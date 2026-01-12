@@ -2,7 +2,7 @@
 
 UI components and themes for FSSHUB Roblox script system.
 
-## Usage
+## Usagee
 
 ### Via jsDelivr CDN (Recommended)
 
