@@ -38,9 +38,13 @@ local Events = {
 _G.FSSHUB_EVENTS = Events
 
 -- Context
-local isPremium = Info.User.IsPremium or false
+local isPremium = Info.User.IsPremium == true -- Strict boolean check
 local username = Info.User.Username or "User"
 local tier = Info.User.Tier or "Free"
+
+-- DEBUG: Print premium status
+print("[FSSHUB] isPremium value:", Info.User.IsPremium, "->", isPremium)
+print("[FSSHUB] Tier:", tier)
 local expiryTimestamp = Info.User.ExpiryTimestamp or 0
 local gameName = Info.Game.Name or "Universal"
 local gameSlug = Info.Game.Slug or "unknown"
