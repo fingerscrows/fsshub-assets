@@ -38,12 +38,14 @@ local Events = {
 _G.FSSHUB_EVENTS = Events
 
 -- Context
-local isPremium = Info.User.IsPremium == true -- Strict boolean check
+-- Check for boolean true OR truthy value (1, "true", etc)
+local rawPremium = Info.User.IsPremium
+local isPremium = (rawPremium == true) or (rawPremium == 1) or (rawPremium == "true")
 local username = Info.User.Username or "User"
 local tier = Info.User.Tier or "Free"
 
--- DEBUG: Print premium status
-print("[FSSHUB] isPremium value:", Info.User.IsPremium, "->", isPremium)
+-- DEBUG
+print("[FSSHUB] isPremium raw:", rawPremium, "type:", type(rawPremium), "-> result:", isPremium)
 print("[FSSHUB] Tier:", tier)
 local expiryTimestamp = Info.User.ExpiryTimestamp or 0
 local gameName = Info.Game.Name or "Universal"
