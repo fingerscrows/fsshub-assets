@@ -1,124 +1,82 @@
 --[[
-    FSSHUB Main Menu - Universal FREE Features
-    Monolithic UI Entry Point
+    FSSHUB Main Menu - v3.0.0
+    Universal FREE + PREMIUM Features
     
-    GitHub: https://github.com/fingerscrows/fsshub-assets
+    IMPORTANT: Premium features only render when isPremium = true
+    FREE users do NOT see Premium features (clean UI)
 ]]
 
--- Ensure context exists
 if not getgenv().FSSHUB_INFO then
-    warn("[FSSHUB] Error: FSSHUB_INFO not found. This script must be loaded via FSSHUB Worker.")
+    warn("[FSSHUB] Error: FSSHUB_INFO not found.")
     return
 end
 
--- ========== CLEANUP OLD MENU ==========
-if _G.FSSHUB_FLUENT then
-    pcall(function()
-        _G.FSSHUB_FLUENT:Destroy()
-    end)
-end
-if _G.FSSHUB_WINDOW then
-    pcall(function()
-        _G.FSSHUB_WINDOW = nil
-    end)
-end
+-- Cleanup
+if _G.FSSHUB_FLUENT then pcall(function() _G.FSSHUB_FLUENT:Destroy() end) end
+_G.FSSHUB_WINDOW = nil
 
 local Info = getgenv().FSSHUB_INFO
-
--- Load bundled Fluent library
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
--- ========== CONFIGURATION ==========
-local DISCORD_INVITE = "https://discord.gg/fsshub"
+local DISCORD = "https://discord.gg/fsshub"
 
--- ========== EVENT SYSTEM ==========
+-- Event System
 local Events = {
     listeners = {},
-    Emit = function(self, eventName, ...)
-        local callbacks = self.listeners[eventName]
-        if callbacks then
-            for _, callback in ipairs(callbacks) do
-                local success, err = pcall(callback, ...)
-                if not success then
-                    warn("[FSSHUB Events] Error:", err)
-                end
-            end
+    Emit = function(self, name, ...)
+        if self.listeners[name] then
+            for _, cb in ipairs(self.listeners[name]) do pcall(cb, ...) end
         end
     end,
-    On = function(self, eventName, callback)
-        self.listeners[eventName] = self.listeners[eventName] or {}
-        table.insert(self.listeners[eventName], callback)
+    On = function(self, name, cb)
+        self.listeners[name] = self.listeners[name] or {}
+        table.insert(self.listeners[name], cb)
     end
 }
 _G.FSSHUB_EVENTS = Events
 
--- ========== CONTEXT PARSING ==========
+-- Context
 local isPremium = Info.User.IsPremium or false
 local username = Info.User.Username or "User"
 local tier = Info.User.Tier or "Free"
 local expiryTimestamp = Info.User.ExpiryTimestamp or 0
 local gameName = Info.Game.Name or "Universal"
 local gameSlug = Info.Game.Slug or "unknown"
-local isSupported = Info.Game.IsSupported or false
-local version = Info.Version or "v2.1.0"
+local version = Info.Version or "v3.0.0"
 
--- ========== EXPIRY TIME FORMATTER ==========
 local function formatExpiry()
-    if expiryTimestamp == 0 then
-        return "Lifetime ∞"
-    end
-    local currentTime = os.time()
-    local remaining = expiryTimestamp - currentTime
-    if remaining <= 0 then return "Expired" end
-    local days = math.floor(remaining / 86400)
-    local hours = math.floor((remaining % 86400) / 3600)
-    local minutes = math.floor((remaining % 3600) / 60)
-    local seconds = math.floor(remaining % 60)
-    if days > 0 then
-        return string.format("%dd %02d:%02d:%02d", days, hours, minutes, seconds)
-    else
-        return string.format("%02d:%02d:%02d", hours, minutes, seconds)
-    end
+    if expiryTimestamp == 0 then return "Lifetime ∞" end
+    local rem = expiryTimestamp - os.time()
+    if rem <= 0 then return "Expired" end
+    local d = math.floor(rem / 86400)
+    local h = math.floor((rem % 86400) / 3600)
+    local m = math.floor((rem % 3600) / 60)
+    return d > 0 and string.format("%dd %02d:%02d", d, h, m) or string.format("%02d:%02d", h, m)
 end
 
--- ========== CREATE WINDOW ==========
+-- Window
 local Window = Fluent:CreateWindow({
     Title = "FSSHUB | " .. gameName,
     SubTitle = version,
     TabWidth = 160,
-    Size = UDim2.fromOffset(580, 480),
+    Size = UDim2.fromOffset(600, 500),
     Acrylic = true,
     Theme = "Amethyst",
     MinimizeKey = Enum.KeyCode.RightControl
 })
 
--- ========== TABS (Category-based) ==========
 local Tabs = {
     Home = Window:AddTab({ Title = "Dashboard", Icon = "home" }),
     Movement = Window:AddTab({ Title = "Movement", Icon = "footprints" }),
     Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
     Utility = Window:AddTab({ Title = "Utility", Icon = "wrench" }),
     Player = Window:AddTab({ Title = "Player", Icon = "user" }),
-    Combat = Window:AddTab({ Title = "Combat", Icon = "swords" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
 local Options = Fluent.Options
-
--- ========== LOCKED FEATURE HANDLER ==========
-local function showLockedNotification()
-    Fluent:Notify({
-        Title = "🔒 Premium Feature",
-        Content = "Join our Discord to upgrade!",
-        SubContent = "This feature requires Premium access.",
-        Duration = 5
-    })
-    if setclipboard then
-        setclipboard(DISCORD_INVITE)
-    end
-end
 
 -- ========== HOME TAB ==========
 Tabs.Home:AddParagraph({
@@ -126,386 +84,249 @@ Tabs.Home:AddParagraph({
     Content = "Hello, " .. username .. (isPremium and " 👑" or "") .. "\nTier: " .. tier
 })
 
-local expiryParagraph = Tabs.Home:AddParagraph({
-    Title = "Subscription Status",
+local expiryPara = Tabs.Home:AddParagraph({
+    Title = "Subscription",
     Content = "Expires: " .. formatExpiry()
 })
 
 task.spawn(function()
     while _G.FSSHUB_WINDOW do
         task.wait(1)
-        if expiryParagraph and expiryParagraph.SetDesc then
-            pcall(function()
-                expiryParagraph:SetDesc("Expires: " .. formatExpiry())
-            end)
-        end
+        pcall(function() expiryPara:SetDesc("Expires: " .. formatExpiry()) end)
     end
 end)
-
-Tabs.Home:AddParagraph({
-    Title = "Game Info",
-    Content = (isSupported and gameName or "Universal Mode") .. "\nPlace ID: " .. game.PlaceId
-})
 
 Tabs.Home:AddButton({
     Title = "Join Discord",
-    Description = "Get support and premium access",
+    Description = "Support & Premium",
     Callback = function()
-        if setclipboard then
-            setclipboard(DISCORD_INVITE)
-            Fluent:Notify({
-                Title = "Discord Link Copied!",
-                Content = DISCORD_INVITE,
-                Duration = 3
-            })
-        end
+        if setclipboard then setclipboard(DISCORD) end
+        Fluent:Notify({ Title = "Copied!", Content = DISCORD, Duration = 3 })
     end
 })
 
--- ==========================================================================
--- MOVEMENT TAB (FREE FEATURES)
--- ==========================================================================
+-- ========== MOVEMENT TAB ==========
+Tabs.Movement:AddParagraph({ Title = "🏃 Movement", Content = "Character movement controls" })
 
-Tabs.Movement:AddParagraph({
-    Title = "🏃 Movement Features",
-    Content = "All movement features are FREE!"
-})
-
--- Walk Speed
-local speedEnabled = false
-local speedValue = 16
-
-Tabs.Movement:AddToggle("SpeedWalk", {
-    Title = "Walk Speed",
-    Description = "Modify character walk speed",
-    Default = false
-})
-
-Options.SpeedWalk:OnChanged(function()
-    speedEnabled = Options.SpeedWalk.Value
+-- FREE: WalkSpeed
+local speedEnabled, speedValue = false, 16
+Tabs.Movement:AddToggle("WalkSpeed", { Title = "Walk Speed", Default = false })
+Options.WalkSpeed:OnChanged(function()
+    speedEnabled = Options.WalkSpeed.Value
     Events:Emit("toggle_speed", speedEnabled, speedValue)
 end)
-
-Tabs.Movement:AddSlider("SpeedValue", {
-    Title = "Speed Value",
-    Description = "16 - 500",
-    Default = 16,
-    Min = 16,
-    Max = 500,
-    Rounding = 0,
-    Callback = function(value)
-        speedValue = value
-        if speedEnabled then
-            Events:Emit("toggle_speed", true, value)
-        end
-    end
+Tabs.Movement:AddSlider("SpeedValue", { Title = "Speed", Default = 16, Min = 16, Max = 500, Rounding = 0,
+    Callback = function(v) speedValue = v; if speedEnabled then Events:Emit("toggle_speed", true, v) end end
 })
 
--- Jump Power
-local jumpEnabled = false
-local jumpValue = 50
-
-Tabs.Movement:AddToggle("JumpPower", {
-    Title = "Jump Power",
-    Description = "Modify character jump power",
-    Default = false
-})
-
+-- FREE: JumpPower
+local jumpEnabled, jumpValue = false, 50
+Tabs.Movement:AddToggle("JumpPower", { Title = "Jump Power", Default = false })
 Options.JumpPower:OnChanged(function()
     jumpEnabled = Options.JumpPower.Value
     Events:Emit("toggle_jump", jumpEnabled, jumpValue)
 end)
-
-Tabs.Movement:AddSlider("JumpValue", {
-    Title = "Jump Value",
-    Description = "50 - 500",
-    Default = 50,
-    Min = 50,
-    Max = 500,
-    Rounding = 0,
-    Callback = function(value)
-        jumpValue = value
-        if jumpEnabled then
-            Events:Emit("toggle_jump", true, value)
-        end
-    end
+Tabs.Movement:AddSlider("JumpValue", { Title = "Jump", Default = 50, Min = 50, Max = 500, Rounding = 0,
+    Callback = function(v) jumpValue = v; if jumpEnabled then Events:Emit("toggle_jump", true, v) end end
 })
 
--- Infinite Jump
-Tabs.Movement:AddToggle("InfiniteJump", {
-    Title = "Infinite Jump",
-    Description = "Jump in mid-air infinitely",
-    Default = false,
-    Callback = function(value)
-        Events:Emit("toggle_infinitejump", value)
-    end
+-- FREE: Infinite Jump
+Tabs.Movement:AddToggle("InfiniteJump", { Title = "Infinite Jump", Default = false,
+    Callback = function(v) Events:Emit("toggle_infinitejump", v) end
 })
 
--- ==========================================================================
--- VISUAL TAB (FREE - ESP FEATURES)
--- ==========================================================================
-
-Tabs.Visual:AddParagraph({
-    Title = "👁️ Visual / ESP Features",
-    Content = "See players through walls"
-})
-
--- Master ESP Toggle
-local function UpdateESPConfig()
-    Events:Emit("toggle_esp", Options.PlayerESP.Value, {
-        showBox = Options.ESPShowBox and Options.ESPShowBox.Value or false,
-        showChams = Options.ESPShowChams and Options.ESPShowChams.Value or false,
-        showName = Options.ESPShowName and Options.ESPShowName.Value or true,
-        showDistance = Options.ESPShowDistance and Options.ESPShowDistance.Value or true,
-        showHealth = Options.ESPShowHealth and Options.ESPShowHealth.Value or true,
-        teamCheck = Options.ESPTeamCheck and Options.ESPTeamCheck.Value or false
-    })
-end
-
-Tabs.Visual:AddToggle("PlayerESP", {
-    Title = "Enable ESP",
-    Description = "Master switch for player visuals",
-    Default = false,
-    Callback = UpdateESPConfig
-})
-
-Tabs.Visual:AddToggle("ESPShowBox", {
-    Title = "Show 2D Box",
-    Description = "Draws a 2D box around players",
-    Default = false,
-    Callback = UpdateESPConfig
-})
-
-Tabs.Visual:AddToggle("ESPShowChams", {
-    Title = "Show Chams",
-    Description = "Highlights players through walls (Red/Green)",
-    Default = false,
-    Callback = UpdateESPConfig
-})
-
-Tabs.Visual:AddToggle("ESPShowName", {
-    Title = "Show Names",
-    Description = "Display player names",
-    Default = true,
-    Callback = UpdateESPConfig
-})
-
-Tabs.Visual:AddToggle("ESPShowDistance", {
-    Title = "Show Distance",
-    Description = "Display distance in meters",
-    Default = true,
-    Callback = UpdateESPConfig
-})
-
-Tabs.Visual:AddToggle("ESPShowHealth", {
-    Title = "Show Health",
-    Description = "Display health bar/text",
-    Default = true,
-    Callback = UpdateESPConfig
-})
-
-Tabs.Visual:AddToggle("ESPTeamCheck", {
-    Title = "Team Check",
-    Description = "Hide teammates (Green)",
-    Default = false,
-    Callback = UpdateESPConfig
-})
-
--- Fullbright
-Tabs.Visual:AddToggle("Fullbright", {
-    Title = "Fullbright",
-    Description = "Remove darkness and shadows",
-    Default = false,
-    Callback = function(value)
-        Events:Emit("toggle_fullbright", value)
-    end
-})
-
--- ==========================================================================
--- UTILITY TAB (FREE FEATURES)
--- ==========================================================================
-
-Tabs.Utility:AddParagraph({
-    Title = "🔧 Utility Features",
-    Content = "Helpful system utilities"
-})
-
--- Anti AFK
-Tabs.Utility:AddToggle("AntiAFK", {
-    Title = "Anti AFK",
-    Description = "Prevents being kicked for inactivity",
-    Default = false,
-    Callback = function(value)
-        Events:Emit("toggle_antiafk", value)
-    end
-})
-
--- FPS Booster
-Tabs.Utility:AddToggle("FPSBooster", {
-    Title = "FPS Booster (Low Graphics)",
-    Description = "Disable effects for better performance",
-    Default = false,
-    Callback = function(value)
-        Events:Emit("toggle_fpsboost", value)
-    end
-})
-
--- Unlock FPS Button
-Tabs.Utility:AddButton({
-    Title = "Unlock FPS",
-    Description = "Remove FPS cap (executor-dependent)",
-    Callback = function()
-        Events:Emit("action_unlockfps")
-    end
-})
-
--- Rejoin Server
-Tabs.Utility:AddButton({
-    Title = "Rejoin Server",
-    Description = "Rejoin the current server",
-    Callback = function()
-        Events:Emit("action_rejoin")
-    end
-})
-
--- ==========================================================================
--- PLAYER TAB (FREE FEATURES)
--- ==========================================================================
-
-Tabs.Player:AddParagraph({
-    Title = "🎮 Player Features",
-    Content = "Character manipulation tools"
-})
-
--- Auto Respawn
-Tabs.Player:AddToggle("AutoRespawn", {
-    Title = "Auto Respawn",
-    Description = "Automatically respawn when you die",
-    Default = false,
-    Callback = function(value)
-        Events:Emit("toggle_autorespawn", value)
-    end
-})
-
--- Reset Character
-Tabs.Player:AddButton({
-    Title = "Reset Character",
-    Description = "Kill your character instantly",
-    Callback = function()
-        Events:Emit("action_reset")
-    end
-})
-
--- Collision Toggle
-Tabs.Player:AddToggle("NoCollision", {
-    Title = "No Player Collision",
-    Description = "Walk through other players",
-    Default = false,
-    Callback = function(value)
-        Events:Emit("toggle_nocollision", value)
-    end
-})
-
--- ==========================================================================
--- COMBAT TAB (PREMIUM PLACEHOLDERS)
--- ==========================================================================
-
+-- PREMIUM ONLY
 if isPremium then
-    Tabs.Combat:AddParagraph({
-        Title = "⚔️ Combat Features 👑",
-        Content = "Premium combat features"
+    Tabs.Movement:AddParagraph({ Title = "✨ Premium Movement", Content = "Advanced movement controls" })
+    
+    -- Fly
+    local flySpeed = 50
+    Tabs.Movement:AddToggle("Fly", { Title = "Fly (WASD + Space/Shift)", Default = false,
+        Callback = function(v) Events:Emit("toggle_fly", v, flySpeed, false) end
+    })
+    Tabs.Movement:AddSlider("FlySpeed", { Title = "Fly Speed", Default = 50, Min = 10, Max = 200, Rounding = 0,
+        Callback = function(v) flySpeed = v; if Options.Fly.Value then Events:Emit("toggle_fly", true, v, false) end end
     })
     
-    Tabs.Combat:AddToggle("AutoParry", {
-        Title = "Auto Parry 👑",
-        Description = "Automatically parry attacks",
-        Default = false,
-        Callback = function(value)
-            Events:Emit("toggle_autoparry", value)
-        end
+    -- Noclip
+    Tabs.Movement:AddToggle("Noclip", { Title = "Noclip", Default = false,
+        Callback = function(v) Events:Emit("toggle_noclip", v) end
     })
     
-    Tabs.Combat:AddSlider("HitboxSize", {
-        Title = "Hitbox Expander 👑",
-        Description = "Increase enemy hitbox size",
-        Default = 1,
-        Min = 1,
-        Max = 10,
-        Rounding = 1,
-        Callback = function(value)
-            Events:Emit("set_hitbox", value)
-        end
-    })
-else
-    Tabs.Combat:AddParagraph({
-        Title = "⚔️ Combat Features",
-        Content = "Premium combat features are locked"
+    -- Gravity
+    Tabs.Movement:AddSlider("Gravity", { Title = "Gravity", Default = 196, Min = 0, Max = 500, Rounding = 0,
+        Callback = function(v) Events:Emit("set_gravity", v) end
     })
     
-    Tabs.Combat:AddButton({
-        Title = "🔒 Auto Parry (Premium)",
-        Description = "Click to unlock via Discord",
-        Callback = showLockedNotification
-    })
-    
-    Tabs.Combat:AddButton({
-        Title = "🔒 Hitbox Expander (Premium)",
-        Description = "Click to unlock via Discord",
-        Callback = showLockedNotification
+    -- Platform Stand
+    Tabs.Movement:AddToggle("PlatformStand", { Title = "Platform Stand", Default = false,
+        Callback = function(v) Events:Emit("toggle_platformstand", v) end
     })
 end
 
--- ==========================================================================
--- SETTINGS TAB
--- ==========================================================================
+-- ========== VISUAL TAB ==========
+Tabs.Visual:AddParagraph({ Title = "👁️ Visual", Content = "ESP and visual enhancements" })
 
+-- ESP Config Helper
+local function GetESPOptions()
+    return {
+        showChams = Options.ESPChams and Options.ESPChams.Value or false,
+        showName = Options.ESPName and Options.ESPName.Value or true,
+        showDistance = Options.ESPDistance and Options.ESPDistance.Value or true,
+        showHealth = Options.ESPHealth and Options.ESPHealth.Value or true
+    }
+end
+
+local function UpdateESP()
+    Events:Emit("toggle_esp", Options.ESPEnabled.Value, GetESPOptions())
+end
+
+-- FREE ESP
+Tabs.Visual:AddToggle("ESPEnabled", { Title = "Enable ESP", Default = false, Callback = UpdateESP })
+Tabs.Visual:AddToggle("ESPChams", { Title = "Show Chams", Default = false, Callback = UpdateESP })
+Tabs.Visual:AddToggle("ESPName", { Title = "Show Names", Default = true, Callback = UpdateESP })
+Tabs.Visual:AddToggle("ESPDistance", { Title = "Show Distance", Default = true, Callback = UpdateESP })
+Tabs.Visual:AddToggle("ESPHealth", { Title = "Show Health", Default = true, Callback = UpdateESP })
+
+-- FREE Fullbright
+Tabs.Visual:AddToggle("Fullbright", { Title = "Fullbright", Default = false,
+    Callback = function(v) Events:Emit("toggle_fullbright", v) end
+})
+
+-- PREMIUM ONLY
+if isPremium then
+    Tabs.Visual:AddParagraph({ Title = "✨ Premium Visual", Content = "Advanced ESP features" })
+    
+    -- Skeleton
+    Tabs.Visual:AddToggle("SkeletonESP", { Title = "Skeleton ESP", Default = false,
+        Callback = function(v) Events:Emit("toggle_skeleton", v) end
+    })
+    
+    -- Tracers
+    Tabs.Visual:AddToggle("Tracers", { Title = "Tracers", Default = false,
+        Callback = function(v) Events:Emit("toggle_tracers", v) end
+    })
+    
+    -- ESP Filter
+    Tabs.Visual:AddSlider("ESPFilterDist", { Title = "Max Distance", Default = 1000, Min = 50, Max = 2000, Rounding = 0,
+        Callback = function(v) Events:Emit("set_esp_filter", v, Options.ESPFilterTeam and Options.ESPFilterTeam.Value, 0) end
+    })
+    Tabs.Visual:AddToggle("ESPFilterTeam", { Title = "Hide Teammates", Default = false,
+        Callback = function(v) Events:Emit("set_esp_filter", Options.ESPFilterDist.Value, v, 0) end
+    })
+    
+    -- Custom Color
+    Tabs.Visual:AddColorpicker("ESPColor", { Title = "ESP Color", Default = Color3.fromRGB(255, 0, 0),
+        Callback = function(c) Events:Emit("set_esp_color", c) end
+    })
+end
+
+-- ========== UTILITY TAB ==========
+Tabs.Utility:AddParagraph({ Title = "🔧 Utility", Content = "System utilities" })
+
+-- FREE
+Tabs.Utility:AddToggle("AntiAFK", { Title = "Anti AFK", Default = false,
+    Callback = function(v) Events:Emit("toggle_antiafk", v) end
+})
+Tabs.Utility:AddToggle("FPSBoost", { Title = "FPS Boost", Default = false,
+    Callback = function(v) Events:Emit("toggle_fpsboost", v) end
+})
+Tabs.Utility:AddButton({ Title = "Unlock FPS", Callback = function() Events:Emit("action_unlockfps") end })
+Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
+
+-- PREMIUM ONLY
+if isPremium then
+    Tabs.Utility:AddParagraph({ Title = "✨ Premium Utility", Content = "Advanced utilities" })
+    
+    Tabs.Utility:AddToggle("AutoRejoin", { Title = "Auto Rejoin on Kick", Default = false,
+        Callback = function(v) Events:Emit("toggle_autorejoin", v) end
+    })
+    Tabs.Utility:AddButton({ Title = "Server Hop", Callback = function() Events:Emit("action_serverhop") end })
+    Tabs.Utility:AddToggle("PerfMonitor", { Title = "Performance Monitor", Default = false,
+        Callback = function(v) Events:Emit("toggle_perfmon", v) end
+    })
+    Tabs.Utility:AddToggle("AntiLag", { Title = "Anti Lag (Remove Textures)", Default = false,
+        Callback = function(v) Events:Emit("toggle_antilag", v) end
+    })
+    
+    -- Config
+    local configName = "default"
+    Tabs.Utility:AddInput("ConfigName", { Title = "Config Name", Default = "default", Placeholder = "Enter name",
+        Callback = function(v) configName = v end
+    })
+    Tabs.Utility:AddButton({ Title = "Save Config", Callback = function() Events:Emit("action_saveconfig", configName) end })
+    Tabs.Utility:AddButton({ Title = "Load Config", Callback = function() Events:Emit("action_loadconfig", configName) end })
+end
+
+-- ========== PLAYER TAB ==========
+Tabs.Player:AddParagraph({ Title = "🎮 Player", Content = "Character controls" })
+
+-- FREE
+Tabs.Player:AddToggle("AutoRespawn", { Title = "Auto Respawn", Default = false,
+    Callback = function(v) Events:Emit("toggle_autorespawn", v) end
+})
+Tabs.Player:AddButton({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
+Tabs.Player:AddToggle("NoCollision", { Title = "No Player Collision", Default = false,
+    Callback = function(v) Events:Emit("toggle_nocollision", v) end
+})
+
+-- PREMIUM ONLY
+if isPremium then
+    Tabs.Player:AddParagraph({ Title = "✨ Premium Player", Content = "Advanced player controls" })
+    
+    Tabs.Player:AddToggle("GodMode", { Title = "God Mode (Soft)", Default = false,
+        Callback = function(v) Events:Emit("toggle_godmode", v) end
+    })
+    Tabs.Player:AddToggle("NoFallDamage", { Title = "No Fall Damage", Default = false,
+        Callback = function(v) Events:Emit("toggle_nofall", v) end
+    })
+    Tabs.Player:AddToggle("NoRagdoll", { Title = "No Ragdoll", Default = false,
+        Callback = function(v) Events:Emit("toggle_noragdoll", v) end
+    })
+    
+    local animSpeed = 1
+    Tabs.Player:AddToggle("AnimSpeed", { Title = "Animation Speed", Default = false,
+        Callback = function(v) Events:Emit("toggle_animspeed", v, animSpeed) end
+    })
+    Tabs.Player:AddSlider("AnimSpeedValue", { Title = "Speed Multiplier", Default = 1, Min = 0.1, Max = 3, Rounding = 1,
+        Callback = function(v) animSpeed = v; if Options.AnimSpeed.Value then Events:Emit("toggle_animspeed", true, v) end end
+    })
+end
+
+-- ========== SETTINGS TAB ==========
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
-
 SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({})
-
 InterfaceManager:SetFolder("FSSHUB")
 SaveManager:SetFolder("FSSHUB/" .. gameSlug)
-
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
--- ==========================================================================
--- EXPOSE GLOBALS
--- ==========================================================================
+-- Keybind Manager (Premium)
+if isPremium then
+    Tabs.Settings:AddParagraph({ Title = "✨ Keybinds", Content = "Customize keybinds" })
+    Tabs.Settings:AddKeybind("FlyKey", { Title = "Fly Toggle", Default = Enum.KeyCode.F,
+        Callback = function() Options.Fly:SetValue(not Options.Fly.Value) end
+    })
+    Tabs.Settings:AddKeybind("NoclipKey", { Title = "Noclip Toggle", Default = Enum.KeyCode.N,
+        Callback = function() Options.Noclip:SetValue(not Options.Noclip.Value) end
+    })
+end
 
+-- Globals
 _G.FSSHUB_TABS = Tabs
 _G.FSSHUB_WINDOW = Window
 _G.FSSHUB_FLUENT = Fluent
 _G.FSSHUB_OPTIONS = Options
 
--- ==========================================================================
--- SELECT DEFAULT TAB & NOTIFICATIONS
--- ==========================================================================
-
 Window:SelectTab(1)
 
 Fluent:Notify({
     Title = "FSSHUB",
-    Content = "Welcome to FSSHub!",
+    Content = "Welcome, " .. username .. "!",
     SubContent = tier .. " | " .. version,
     Duration = 5
 })
 
-if not isPremium then
-    task.delay(2, function()
-        Fluent:Notify({
-            Title = "💎 Upgrade to Premium",
-            Content = "Unlock Combat features and more!",
-            SubContent = "Join Discord for details",
-            Duration = 6
-        })
-    end)
-end
-
-print("[FSSHUB] Main Menu loaded successfully")
-print("[FSSHUB] Version:", version)
-
--- Load saved config
+print("[FSSHUB] Main Menu v" .. version .. " loaded")
 SaveManager:LoadAutoloadConfig()
