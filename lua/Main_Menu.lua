@@ -2,9 +2,6 @@
     FSSHUB Main Menu - Universal FREE Features
     Monolithic UI Entry Point
     
-    This file is the PUBLIC entry point loaded via loadstring from GitHub.
-    It expects FSSHUB_INFO to be injected by the Worker before execution.
-    
     GitHub: https://github.com/fingerscrows/fsshub-assets
 ]]
 
@@ -27,8 +24,6 @@ if _G.FSSHUB_WINDOW then
 end
 
 local Info = getgenv().FSSHUB_INFO
-print("[FSSHUB] Main Menu initializing...")
-print("[FSSHUB] User:", Info.User.Username, "| Tier:", Info.User.Tier)
 
 -- Load bundled Fluent library
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
@@ -67,26 +62,20 @@ local expiryTimestamp = Info.User.ExpiryTimestamp or 0
 local gameName = Info.Game.Name or "Universal"
 local gameSlug = Info.Game.Slug or "unknown"
 local isSupported = Info.Game.IsSupported or false
-local version = Info.Version or "v1.0.0"
+local version = Info.Version or "v2.1.0"
 
 -- ========== EXPIRY TIME FORMATTER ==========
 local function formatExpiry()
     if expiryTimestamp == 0 then
         return "Lifetime ∞"
     end
-    
     local currentTime = os.time()
     local remaining = expiryTimestamp - currentTime
-    
-    if remaining <= 0 then
-        return "Expired"
-    end
-    
+    if remaining <= 0 then return "Expired" end
     local days = math.floor(remaining / 86400)
     local hours = math.floor((remaining % 86400) / 3600)
     local minutes = math.floor((remaining % 3600) / 60)
     local seconds = math.floor(remaining % 60)
-    
     if days > 0 then
         return string.format("%dd %02d:%02d:%02d", days, hours, minutes, seconds)
     else
@@ -122,18 +111,12 @@ local Options = Fluent.Options
 local function showLockedNotification()
     Fluent:Notify({
         Title = "🔒 Premium Feature",
-        Content = "This feature requires Premium access.",
-        SubContent = "Join our Discord to upgrade!",
+        Content = "Join our Discord to upgrade!",
+        SubContent = "This feature requires Premium access.",
         Duration = 5
     })
-    
     if setclipboard then
         setclipboard(DISCORD_INVITE)
-        Fluent:Notify({
-            Title = "Discord Link Copied",
-            Content = "Paste in your browser to join!",
-            Duration = 3
-        })
     end
 end
 
@@ -264,46 +247,68 @@ Tabs.Movement:AddToggle("InfiniteJump", {
 
 Tabs.Visual:AddParagraph({
     Title = "👁️ Visual / ESP Features",
-    Content = "See players through walls and more"
+    Content = "See players through walls"
 })
 
--- Player ESP Main Toggle
+-- Master ESP Toggle
+local function UpdateESPConfig()
+    Events:Emit("toggle_esp", Options.PlayerESP.Value, {
+        showBox = Options.ESPShowBox and Options.ESPShowBox.Value or false,
+        showChams = Options.ESPShowChams and Options.ESPShowChams.Value or false,
+        showName = Options.ESPShowName and Options.ESPShowName.Value or true,
+        showDistance = Options.ESPShowDistance and Options.ESPShowDistance.Value or true,
+        showHealth = Options.ESPShowHealth and Options.ESPShowHealth.Value or true,
+        teamCheck = Options.ESPTeamCheck and Options.ESPTeamCheck.Value or false
+    })
+end
+
 Tabs.Visual:AddToggle("PlayerESP", {
-    Title = "Player ESP",
-    Description = "Show box ESP on all players",
+    Title = "Enable ESP",
+    Description = "Master switch for player visuals",
     Default = false,
-    Callback = function(value)
-        Events:Emit("toggle_esp", value, {
-            showName = Options.ESPShowName and Options.ESPShowName.Value or true,
-            showDistance = Options.ESPShowDistance and Options.ESPShowDistance.Value or true,
-            showHealth = Options.ESPShowHealth and Options.ESPShowHealth.Value or true,
-            teamCheck = Options.ESPTeamCheck and Options.ESPTeamCheck.Value or false
-        })
-    end
+    Callback = UpdateESPConfig
+})
+
+Tabs.Visual:AddToggle("ESPShowBox", {
+    Title = "Show 2D Box",
+    Description = "Draws a 2D box around players",
+    Default = false,
+    Callback = UpdateESPConfig
+})
+
+Tabs.Visual:AddToggle("ESPShowChams", {
+    Title = "Show Chams",
+    Description = "Highlights players through walls (Red/Green)",
+    Default = false,
+    Callback = UpdateESPConfig
 })
 
 Tabs.Visual:AddToggle("ESPShowName", {
     Title = "Show Names",
-    Description = "Display player names above ESP box",
-    Default = true
+    Description = "Display player names",
+    Default = true,
+    Callback = UpdateESPConfig
 })
 
 Tabs.Visual:AddToggle("ESPShowDistance", {
     Title = "Show Distance",
-    Description = "Display distance to players",
-    Default = true
+    Description = "Display distance in meters",
+    Default = true,
+    Callback = UpdateESPConfig
 })
 
 Tabs.Visual:AddToggle("ESPShowHealth", {
     Title = "Show Health",
-    Description = "Display health bar on ESP",
-    Default = true
+    Description = "Display health bar/text",
+    Default = true,
+    Callback = UpdateESPConfig
 })
 
 Tabs.Visual:AddToggle("ESPTeamCheck", {
     Title = "Team Check",
-    Description = "Hide ESP on teammates",
-    Default = false
+    Description = "Hide teammates (Green)",
+    Default = false,
+    Callback = UpdateESPConfig
 })
 
 -- Fullbright
@@ -322,7 +327,7 @@ Tabs.Visual:AddToggle("Fullbright", {
 
 Tabs.Utility:AddParagraph({
     Title = "🔧 Utility Features",
-    Content = "Helpful tools and system utilities"
+    Content = "Helpful system utilities"
 })
 
 -- Anti AFK
@@ -360,45 +365,6 @@ Tabs.Utility:AddButton({
     Description = "Rejoin the current server",
     Callback = function()
         Events:Emit("action_rejoin")
-    end
-})
-
--- Copy Place ID
-Tabs.Utility:AddButton({
-    Title = "Copy Place ID",
-    Description = "Copy current game's Place ID",
-    Callback = function()
-        Events:Emit("action_copyplaceid")
-    end
-})
-
--- Copy Job ID
-Tabs.Utility:AddButton({
-    Title = "Copy Job ID",
-    Description = "Copy current server's Job ID",
-    Callback = function()
-        Events:Emit("action_copyjobid")
-    end
-})
-
--- UI Toggle Info
-Tabs.Utility:AddParagraph({
-    Title = "Hide UI Keybind",
-    Content = "Press RightCtrl to toggle menu visibility"
-})
-
--- Destroy GUI (Emergency)
-Tabs.Utility:AddButton({
-    Title = "🚨 Destroy GUI (Emergency)",
-    Description = "Completely remove FSSHUB UI",
-    Callback = function()
-        Fluent:Notify({
-            Title = "GUI Destroyed",
-            Content = "FSSHUB has been removed",
-            Duration = 2
-        })
-        task.wait(0.5)
-        Events:Emit("action_destroygui")
     end
 })
 
@@ -452,7 +418,7 @@ if isPremium then
     
     Tabs.Combat:AddToggle("AutoParry", {
         Title = "Auto Parry 👑",
-        Description = "Automatically parry attacks (Coming Soon)",
+        Description = "Automatically parry attacks",
         Default = false,
         Callback = function(value)
             Events:Emit("toggle_autoparry", value)
@@ -539,7 +505,7 @@ if not isPremium then
 end
 
 print("[FSSHUB] Main Menu loaded successfully")
-print("[FSSHUB] Free Features: Movement (3) | Visual (5) | Utility (9) | Player (3)")
+print("[FSSHUB] Version:", version)
 
 -- Load saved config
 SaveManager:LoadAutoloadConfig()
