@@ -1,5 +1,5 @@
 --[[
-    FSSHUB Main Menu - v3.2.0
+    FSSHUB Main Menu - v3.3.0
     Universal FREE + PREMIUM Features
     
     Premium features only render when isPremium = true
@@ -16,7 +16,13 @@ if _G.FSSHUB_FLUENT then pcall(function() _G.FSSHUB_FLUENT:Destroy() end) end
 _G.FSSHUB_WINDOW = nil
 
 local Info = getgenv().FSSHUB_INFO
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+-- LOAD MODIFIED FLUENT LIBRARY
+-- User clarified that local folder maps to this GitHub repo
+-- WARNING: This requires the repo content to be loadable via loadstring (bundled or custom loader)
+-- Direct 'init.lua' loading via standard loadstring usually fails if it uses 'require(script.Child)'
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/Fluent_Bundled.lua"))()
+
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
@@ -48,7 +54,7 @@ print("[FSSHUB] isPremium:", isPremium, "| Tier:", tier)
 local expiryTimestamp = Info.User.ExpiryTimestamp or 0
 local gameName = Info.Game.Name or "Universal"
 local gameSlug = Info.Game.Slug or "unknown"
-local version = Info.Version or "v3.2.0"
+local version = Info.Version or "v3.3.0"
 
 local function formatExpiry()
     if expiryTimestamp == 0 then return "Lifetime ∞" end
@@ -83,177 +89,17 @@ local Tabs = {
 
 local Options = Fluent.Options
 
--- Helper: Add Toggle with Inline Keybind (Premium only)
--- Keybind box appears LEFT of toggle slider
--- Clear button (✕) + Right-click to reset to "None"
-local UserInputService = game:GetService("UserInputService")
-
-local function AddToggleWithKeybind(tab, toggleId, toggleConfig, keybindDefault)
-    local toggle = tab:AddToggle(toggleId, toggleConfig)
-    
-    if isPremium and keybindDefault then
-        -- Create inline keybind UI elements
-        local keybindValue = keybindDefault
-        local picking = false
-        
-        -- Get the toggle's frame (parent container)
-        task.defer(function()
-            local toggleFrame = nil
-            -- Find the ToggleFrame by looking through the tab container
-            for _, child in ipairs(tab.Container:GetChildren()) do
-                if child:IsA("TextButton") then
-                    local titleLabel = child:FindFirstChild("LabelHolder") and child.LabelHolder:FindFirstChild("TitleLabel")
-                    if titleLabel and titleLabel.Text == toggleConfig.Title then
-                        toggleFrame = child
-                        break
-                    end
-                end
-            end
-            
-            if not toggleFrame then
-                warn("[FSSHUB] Could not find toggle frame for:", toggleId)
-                return
-            end
-            
-            -- Create Keybind Label
-            local keybindLabel = Instance.new("TextLabel")
-            keybindLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-            keybindLabel.Text = keybindValue
-            keybindLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-            keybindLabel.TextSize = 11
-            keybindLabel.TextXAlignment = Enum.TextXAlignment.Center
-            keybindLabel.Size = UDim2.new(0, 0, 0, 14)
-            keybindLabel.Position = UDim2.new(0, 0, 0.5, 0)
-            keybindLabel.AnchorPoint = Vector2.new(0, 0.5)
-            keybindLabel.BackgroundTransparency = 1
-            keybindLabel.AutomaticSize = Enum.AutomaticSize.X
-            
-            -- Create Keybind Button (LEFT of toggle slider at position ~-56)
-            local keybindButton = Instance.new("TextButton")
-            keybindButton.Size = UDim2.fromOffset(0, 24)
-            keybindButton.Position = UDim2.new(1, -56, 0.5, 0)
-            keybindButton.AnchorPoint = Vector2.new(1, 0.5)
-            keybindButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-            keybindButton.BackgroundTransparency = 0.5
-            keybindButton.AutomaticSize = Enum.AutomaticSize.X
-            keybindButton.Text = ""
-            keybindButton.Parent = toggleFrame
-            
-            local keybindCorner = Instance.new("UICorner")
-            keybindCorner.CornerRadius = UDim.new(0, 5)
-            keybindCorner.Parent = keybindButton
-            
-            local keybindPadding = Instance.new("UIPadding")
-            keybindPadding.PaddingLeft = UDim.new(0, 6)
-            keybindPadding.PaddingRight = UDim.new(0, 6)
-            keybindPadding.Parent = keybindButton
-            
-            local keybindStroke = Instance.new("UIStroke")
-            keybindStroke.Color = Color3.fromRGB(80, 80, 90)
-            keybindStroke.Transparency = 0.5
-            keybindStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-            keybindStroke.Parent = keybindButton
-            
-            keybindLabel.Parent = keybindButton
-            
-            -- Create Clear Button (✕) - LEFT of keybind box
-            local clearButton = Instance.new("TextButton")
-            clearButton.Size = UDim2.fromOffset(20, 20)
-            clearButton.Position = UDim2.new(1, -100, 0.5, 0)
-            clearButton.AnchorPoint = Vector2.new(1, 0.5)
-            clearButton.BackgroundColor3 = Color3.fromRGB(80, 60, 60)
-            clearButton.BackgroundTransparency = 0.6
-            clearButton.Text = "✕"
-            clearButton.TextColor3 = Color3.fromRGB(180, 120, 120)
-            clearButton.TextSize = 12
-            clearButton.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
-            clearButton.Parent = toggleFrame
-            
-            local clearCorner = Instance.new("UICorner")
-            clearCorner.CornerRadius = UDim.new(0, 4)
-            clearCorner.Parent = clearButton
-            
-            -- Helper: Set keybind value
-            local function setKeybind(key)
-                keybindValue = key
-                keybindLabel.Text = key
-            end
-            
-            -- Helper: Clear keybind
-            local function clearKeybind()
-                setKeybind("None")
-            end
-            
-            -- Keybind picking (left click / touch)
-            keybindButton.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    picking = true
-                    keybindLabel.Text = "..."
-                    
-                    task.wait(0.2)
-                    
-                    local event
-                    event = UserInputService.InputBegan:Connect(function(keyInput)
-                        local key
-                        
-                        if keyInput.UserInputType == Enum.UserInputType.Keyboard then
-                            key = keyInput.KeyCode.Name
-                        elseif keyInput.UserInputType == Enum.UserInputType.MouseButton1 then
-                            key = "MouseLeft"
-                        elseif keyInput.UserInputType == Enum.UserInputType.MouseButton2 then
-                            key = "MouseRight"
-                        end
-                        
-                        if key then
-                            local endedEvent
-                            endedEvent = UserInputService.InputEnded:Connect(function(endInput)
-                                if endInput.KeyCode.Name == key
-                                    or (key == "MouseLeft" and endInput.UserInputType == Enum.UserInputType.MouseButton1)
-                                    or (key == "MouseRight" and endInput.UserInputType == Enum.UserInputType.MouseButton2)
-                                then
-                                    picking = false
-                                    setKeybind(key)
-                                    event:Disconnect()
-                                    endedEvent:Disconnect()
-                                end
-                            end)
-                        end
-                    end)
-                    
-                -- Right-click to clear (PC)
-                elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-                    clearKeybind()
-                end
-            end)
-            
-            -- Clear button click (Mobile + PC)
-            clearButton.MouseButton1Click:Connect(function()
-                clearKeybind()
-            end)
-            
-            -- Global keybind listener - toggle the feature when key pressed
-            UserInputService.InputBegan:Connect(function(input)
-                if picking or UserInputService:GetFocusedTextBox() then return end
-                if keybindValue == "None" then return end
-                
-                local matched = false
-                
-                if keybindValue == "MouseLeft" and input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    matched = true
-                elseif keybindValue == "MouseRight" and input.UserInputType == Enum.UserInputType.MouseButton2 then
-                    matched = true
-                elseif input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode.Name == keybindValue then
-                    matched = true
-                end
-                
-                if matched then
-                    Options[toggleId]:SetValue(not Options[toggleId].Value)
-                end
-            end)
-        end)
+-- Helper Config Builder
+local function ToggleConfig(title, default, callback, keybind)
+    local config = {
+        Title = title,
+        Default = default,
+        Callback = callback
+    }
+    if isPremium and keybind then
+        config.Keybind = keybind
     end
-    
-    return toggle
+    return config
 end
 
 -- ========== HOME TAB ==========
@@ -286,7 +132,7 @@ Tabs.Home:AddButton({
 if isPremium then
     Tabs.Home:AddParagraph({
         Title = "⌨️ Keybinds",
-        Content = "All toggles have customizable keybinds!\nClick the keybind box next to any toggle to change it."
+        Content = "All toggles have customizable inline keybinds!\nClick the keybind text (e.g. 'F') to rebind. Right-click or press X to clear."
     })
 end
 
@@ -295,14 +141,10 @@ Tabs.Movement:AddParagraph({ Title = "🏃 Movement", Content = "Character movem
 
 -- FREE: WalkSpeed
 local speedEnabled, speedValue = false, 16
-AddToggleWithKeybind(Tabs.Movement, "WalkSpeed", { 
-    Title = "Walk Speed", 
-    Default = false,
-    Callback = function(v)
-        speedEnabled = v
-        Events:Emit("toggle_speed", speedEnabled, speedValue)
-    end
-}, "LeftBracket")
+Tabs.Movement:AddToggle("WalkSpeed", ToggleConfig("Walk Speed", false, function(v)
+    speedEnabled = v
+    Events:Emit("toggle_speed", speedEnabled, speedValue)
+end, "LeftBracket"))
 
 Tabs.Movement:AddSlider("SpeedValue", { Title = "Speed", Default = 16, Min = 16, Max = 500, Rounding = 0,
     Callback = function(v) speedValue = v; if speedEnabled then Events:Emit("toggle_speed", true, v) end end
@@ -310,54 +152,42 @@ Tabs.Movement:AddSlider("SpeedValue", { Title = "Speed", Default = 16, Min = 16,
 
 -- FREE: JumpPower
 local jumpEnabled, jumpValue = false, 50
-AddToggleWithKeybind(Tabs.Movement, "JumpPower", { 
-    Title = "Jump Power", 
-    Default = false,
-    Callback = function(v)
-        jumpEnabled = v
-        Events:Emit("toggle_jump", jumpEnabled, jumpValue)
-    end
-}, "RightBracket")
+Tabs.Movement:AddToggle("JumpPower", ToggleConfig("Jump Power", false, function(v)
+    jumpEnabled = v
+    Events:Emit("toggle_jump", jumpEnabled, jumpValue)
+end, "RightBracket"))
 
 Tabs.Movement:AddSlider("JumpValue", { Title = "Jump", Default = 50, Min = 50, Max = 500, Rounding = 0,
     Callback = function(v) jumpValue = v; if jumpEnabled then Events:Emit("toggle_jump", true, v) end end
 })
 
 -- FREE: Infinite Jump
-AddToggleWithKeybind(Tabs.Movement, "InfiniteJump", { 
-    Title = "Infinite Jump", 
-    Default = false,
-    Callback = function(v) Events:Emit("toggle_infinitejump", v) end
-}, "J")
+Tabs.Movement:AddToggle("InfiniteJump", ToggleConfig("Infinite Jump", false, function(v) 
+    Events:Emit("toggle_infinitejump", v) 
+end, "J"))
 
 -- PREMIUM Movement
 if isPremium then
     local flySpeed = 50
-    AddToggleWithKeybind(Tabs.Movement, "Fly", { 
-        Title = "Fly (WASD + Space/Shift)", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_fly", v, flySpeed, false) end
-    }, "F")
+    Tabs.Movement:AddToggle("Fly", ToggleConfig("Fly (WASD + Space/Shift)", false, function(v) 
+        Events:Emit("toggle_fly", v, flySpeed, false) 
+    end, "F"))
     
     Tabs.Movement:AddSlider("FlySpeed", { Title = "Fly Speed", Default = 50, Min = 10, Max = 200, Rounding = 0,
         Callback = function(v) flySpeed = v; if Options.Fly.Value then Events:Emit("toggle_fly", true, v, false) end end
     })
     
-    AddToggleWithKeybind(Tabs.Movement, "Noclip", { 
-        Title = "Noclip", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_noclip", v) end
-    }, "N")
+    Tabs.Movement:AddToggle("Noclip", ToggleConfig("Noclip", false, function(v) 
+        Events:Emit("toggle_noclip", v) 
+    end, "N"))
     
     Tabs.Movement:AddSlider("Gravity", { Title = "Gravity", Default = 196, Min = 0, Max = 500, Rounding = 0,
         Callback = function(v) Events:Emit("set_gravity", v) end
     })
     
-    AddToggleWithKeybind(Tabs.Movement, "PlatformStand", { 
-        Title = "Platform Stand", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_platformstand", v) end
-    }, "P")
+    Tabs.Movement:AddToggle("PlatformStand", ToggleConfig("Platform Stand", false, function(v) 
+        Events:Emit("toggle_platformstand", v) 
+    end, "P"))
 end
 
 -- ========== VISUAL TAB ==========
@@ -377,11 +207,7 @@ local function UpdateESP()
 end
 
 -- FREE ESP
-AddToggleWithKeybind(Tabs.Visual, "ESPEnabled", { 
-    Title = "Enable ESP", 
-    Default = false, 
-    Callback = UpdateESP 
-}, "E")
+Tabs.Visual:AddToggle("ESPEnabled", ToggleConfig("Enable ESP", false, UpdateESP, "E"))
 
 Tabs.Visual:AddToggle("ESPChams", { Title = "Show Chams", Default = false, Callback = UpdateESP })
 Tabs.Visual:AddToggle("ESPName", { Title = "Show Names", Default = true, Callback = UpdateESP })
@@ -389,25 +215,19 @@ Tabs.Visual:AddToggle("ESPDistance", { Title = "Show Distance", Default = true, 
 Tabs.Visual:AddToggle("ESPHealth", { Title = "Show Health", Default = true, Callback = UpdateESP })
 
 -- FREE Fullbright
-AddToggleWithKeybind(Tabs.Visual, "Fullbright", { 
-    Title = "Fullbright", 
-    Default = false,
-    Callback = function(v) Events:Emit("toggle_fullbright", v) end
-}, "B")
+Tabs.Visual:AddToggle("Fullbright", ToggleConfig("Fullbright", false, function(v) 
+    Events:Emit("toggle_fullbright", v) 
+end, "B"))
 
 -- PREMIUM Visual
 if isPremium then
-    AddToggleWithKeybind(Tabs.Visual, "SkeletonESP", { 
-        Title = "Skeleton ESP", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_skeleton", v) end
-    }, "K")
+    Tabs.Visual:AddToggle("SkeletonESP", ToggleConfig("Skeleton ESP", false, function(v) 
+        Events:Emit("toggle_skeleton", v) 
+    end, "K"))
     
-    AddToggleWithKeybind(Tabs.Visual, "Tracers", { 
-        Title = "Tracers", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_tracers", v) end
-    }, "T")
+    Tabs.Visual:AddToggle("Tracers", ToggleConfig("Tracers", false, function(v) 
+        Events:Emit("toggle_tracers", v) 
+    end, "T"))
     
     Tabs.Visual:AddSlider("ESPFilterDist", { Title = "Max Distance", Default = 1000, Min = 50, Max = 2000, Rounding = 0,
         Callback = function(v) Events:Emit("set_esp_filter", v, Options.ESPFilterTeam and Options.ESPFilterTeam.Value, 0) end
@@ -425,88 +245,66 @@ end
 Tabs.Utility:AddParagraph({ Title = "🔧 Utility", Content = "System utilities" })
 
 -- FREE
-AddToggleWithKeybind(Tabs.Utility, "AntiAFK", { 
-    Title = "Anti AFK", 
-    Default = false,
-    Callback = function(v) Events:Emit("toggle_antiafk", v) end
-}, "A")
+Tabs.Utility:AddToggle("AntiAFK", ToggleConfig("Anti AFK", false, function(v) 
+    Events:Emit("toggle_antiafk", v) 
+end, "A"))
 
-AddToggleWithKeybind(Tabs.Utility, "FPSBoost", { 
-    Title = "FPS Boost", 
-    Default = false,
-    Callback = function(v) Events:Emit("toggle_fpsboost", v) end
-}, nil) -- No keybind for this
+Tabs.Utility:AddToggle("FPSBoost", ToggleConfig("FPS Boost", false, function(v) 
+    Events:Emit("toggle_fpsboost", v) 
+end, nil))
 
 Tabs.Utility:AddButton({ Title = "Unlock FPS", Callback = function() Events:Emit("action_unlockfps") end })
 Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
 
 -- PREMIUM Utility
 if isPremium then
-    AddToggleWithKeybind(Tabs.Utility, "AutoRejoin", { 
-        Title = "Auto Rejoin on Kick", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_autorejoin", v) end
-    }, nil)
+    Tabs.Utility:AddToggle("AutoRejoin", ToggleConfig("Auto Rejoin on Kick", false, function(v) 
+        Events:Emit("toggle_autorejoin", v) 
+    end, nil))
     
     Tabs.Utility:AddButton({ Title = "Server Hop", Callback = function() Events:Emit("action_serverhop") end })
     
-    AddToggleWithKeybind(Tabs.Utility, "PerfMonitor", { 
-        Title = "Performance Monitor", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_perfmon", v) end
-    }, "M")
+    Tabs.Utility:AddToggle("PerfMonitor", ToggleConfig("Performance Monitor", false, function(v) 
+        Events:Emit("toggle_perfmon", v) 
+    end, "M"))
     
-    AddToggleWithKeybind(Tabs.Utility, "AntiLag", { 
-        Title = "Anti Lag (Remove Textures)", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_antilag", v) end
-    }, nil)
+    Tabs.Utility:AddToggle("AntiLag", ToggleConfig("Anti Lag (Remove Textures)", false, function(v) 
+        Events:Emit("toggle_antilag", v) 
+    end, nil))
 end
 
 -- ========== PLAYER TAB ==========
 Tabs.Player:AddParagraph({ Title = "🎮 Player", Content = "Character controls" })
 
 -- FREE
-AddToggleWithKeybind(Tabs.Player, "AutoRespawn", { 
-    Title = "Auto Respawn", 
-    Default = false,
-    Callback = function(v) Events:Emit("toggle_autorespawn", v) end
-}, nil)
+Tabs.Player:AddToggle("AutoRespawn", ToggleConfig("Auto Respawn", false, function(v) 
+    Events:Emit("toggle_autorespawn", v) 
+end, nil))
 
 Tabs.Player:AddButton({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
 
-AddToggleWithKeybind(Tabs.Player, "NoCollision", { 
-    Title = "No Player Collision", 
-    Default = false,
-    Callback = function(v) Events:Emit("toggle_nocollision", v) end
-}, "C")
+Tabs.Player:AddToggle("NoCollision", ToggleConfig("No Player Collision", false, function(v) 
+    Events:Emit("toggle_nocollision", v) 
+end, "C"))
 
 -- PREMIUM Player
 if isPremium then
-    AddToggleWithKeybind(Tabs.Player, "GodMode", { 
-        Title = "God Mode (Soft)", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_godmode", v) end
-    }, "G")
+    Tabs.Player:AddToggle("GodMode", ToggleConfig("God Mode (Soft)", false, function(v) 
+        Events:Emit("toggle_godmode", v) 
+    end, "G"))
     
-    AddToggleWithKeybind(Tabs.Player, "NoFallDamage", { 
-        Title = "No Fall Damage", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_nofall", v) end
-    }, nil)
+    Tabs.Player:AddToggle("NoFallDamage", ToggleConfig("No Fall Damage", false, function(v) 
+        Events:Emit("toggle_nofall", v) 
+    end, nil))
     
-    AddToggleWithKeybind(Tabs.Player, "NoRagdoll", { 
-        Title = "No Ragdoll", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_noragdoll", v) end
-    }, "R")
+    Tabs.Player:AddToggle("NoRagdoll", ToggleConfig("No Ragdoll", false, function(v) 
+        Events:Emit("toggle_noragdoll", v) 
+    end, "R"))
     
     local animSpeed = 1
-    AddToggleWithKeybind(Tabs.Player, "AnimSpeed", { 
-        Title = "Animation Speed", 
-        Default = false,
-        Callback = function(v) Events:Emit("toggle_animspeed", v, animSpeed) end
-    }, nil)
+    Tabs.Player:AddToggle("AnimSpeed", ToggleConfig("Animation Speed", false, function(v) 
+        Events:Emit("toggle_animspeed", v, animSpeed) 
+    end, nil))
     
     Tabs.Player:AddSlider("AnimSpeedValue", { Title = "Speed Multiplier", Default = 1, Min = 0.1, Max = 3, Rounding = 1,
         Callback = function(v) animSpeed = v; if Options.AnimSpeed.Value then Events:Emit("toggle_animspeed", true, v) end end
