@@ -308,15 +308,10 @@ SaveManager:SetFolder("FSSHUB/" .. gameSlug)
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
--- Keybind Manager (Premium)
+-- Keybind Manager (Premium) - Temporarily disabled due to Fluent compatibility
+-- TODO: Re-add with proper Fluent Keybind API
 if isPremium then
-    Tabs.Settings:AddParagraph({ Title = "✨ Keybinds", Content = "Customize keybinds" })
-    Tabs.Settings:AddKeybind("FlyKey", { Title = "Fly Toggle", Default = Enum.KeyCode.F,
-        Callback = function() Options.Fly:SetValue(not Options.Fly.Value) end
-    })
-    Tabs.Settings:AddKeybind("NoclipKey", { Title = "Noclip Toggle", Default = Enum.KeyCode.N,
-        Callback = function() Options.Noclip:SetValue(not Options.Noclip.Value) end
-    })
+    Tabs.Settings:AddParagraph({ Title = "✨ Premium Settings", Content = "Extra customization options" })
 end
 
 -- Globals
