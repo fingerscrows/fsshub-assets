@@ -21,7 +21,16 @@ local Info = getgenv().FSSHUB_INFO
 -- User clarified that local folder maps to this GitHub repo
 -- WARNING: This requires the repo content to be loadable via loadstring (bundled or custom loader)
 -- Direct 'init.lua' loading via standard loadstring usually fails if it uses 'require(script.Child)'
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/Fluent_Bundled.lua"))()
+local bundleUrl = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/Fluent_Bundled.lua"
+local bundleContent = game:HttpGet(bundleUrl)
+local chunk, syntaxErr = loadstring(bundleContent)
+
+if not chunk then
+    warn("[FSSHUB CRITICAL] Syntax Error in Bundle:", syntaxErr)
+    return
+end
+
+local Fluent = chunk()
 
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
