@@ -1,9 +1,9 @@
 --[[
-    Fluent Renewed Loader - V3.1 (URL Encoded)
+    Fluent Renewed Loader - V3.2 (Safe Themes)
     Author: Antigravity
     
     This loader dynamically fetches Fluent Renewed modules from GitHub.
-    It includes a robust mock file system and URL encoding for special filenames.
+    It includes a robust mock file system, URL encoding, and SAFETY FALLBACKS for broken themes.
 ]]
 
 local BASE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/Fluent/Src/"
@@ -50,7 +50,7 @@ local ModuleMap = {
     ["Components/TitleBar"] = "Components/TitleBar.luau",
     ["Components/Window"] = "Components/Window.luau",
     
-    -- Themes (Explicitly mapped common ones, fallback dynamic)
+    -- Themes
     ["Themes"] = "Themes/init.luau",
 }
 
@@ -103,8 +103,6 @@ local function GetDownloadURL(path)
     end
     
     if relativePath then
-        -- Encode the path components to handle spaces and +
-        -- However, we must preserve '/' separators
         local encodedPath = relativePath:gsub("([^/]+)", function(s) return UrlEncode(s) end)
         return BASE_URL .. encodedPath
     end
@@ -126,10 +124,27 @@ customRequire = function(moduleIdentity)
         return nil
     end
     
+    -- Debug Print for problematic files
+    if moduleName:find("VSC Dark") then
+        print("[Fluent Loader] Requesting Theme URL: " .. url)
+    end
+    
     -- 4. Fetch
     local success, content = pcall(function() return game:HttpGet(url) end)
-    if not success or not content then
-        warn("[Fluent Loader] Failed to fetch: " .. url)
+    
+    -- Handle 404 or Empty Content
+    if not success or not content or content == "404: Not Found" or #content < 10 then
+        warn("[Fluent Loader] Failed to fetch (or 404): " .. url)
+        
+        -- SAFETY FALLBACK FOR THEMES
+        if moduleName:find("Themes/") then
+             warn("[Fluent Loader] Returning Dummy Theme for: " .. moduleName)
+             local dummyTheme = {
+                Properties = {}, -- Empty properties
+             }
+             ModuleCache[moduleName] = dummyTheme
+             return dummyTheme
+        end
         return nil
     end
     
@@ -137,6 +152,16 @@ customRequire = function(moduleIdentity)
     local func, err = loadstring(content, moduleName)
     if not func then
         warn("[Fluent Loader] Syntax error in " .. moduleName .. ": " .. tostring(err))
+        
+        -- SAFETY FALLBACK FOR THEMES (Syntax Error Case)
+        if moduleName:find("Themes/") then
+             warn("[Fluent Loader] Returning Dummy Theme (Syntax Error Recovery) for: " .. moduleName)
+             local dummyTheme = {
+                Properties = {},
+             }
+             ModuleCache[moduleName] = dummyTheme
+             return dummyTheme
+        end
         return nil
     end
     
