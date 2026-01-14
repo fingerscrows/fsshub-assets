@@ -1,8 +1,8 @@
 --[[
-    FSSHUB Main Menu - v3.0.0
+    FSSHUB Main Menu - v3.1.0
     Universal FREE + PREMIUM Features
     
-    IMPORTANT: Premium features only render when isPremium = true
+    Premium features only render when isPremium = true
     FREE users do NOT see Premium features (clean UI)
 ]]
 
@@ -38,19 +38,17 @@ local Events = {
 _G.FSSHUB_EVENTS = Events
 
 -- Context
--- Check for boolean true OR truthy value (1, "true", etc)
 local rawPremium = Info.User.IsPremium
 local isPremium = (rawPremium == true) or (rawPremium == 1) or (rawPremium == "true")
 local username = Info.User.Username or "User"
 local tier = Info.User.Tier or "Free"
 
--- DEBUG
-print("[FSSHUB] isPremium raw:", rawPremium, "type:", type(rawPremium), "-> result:", isPremium)
-print("[FSSHUB] Tier:", tier)
+print("[FSSHUB] isPremium:", isPremium, "| Tier:", tier)
+
 local expiryTimestamp = Info.User.ExpiryTimestamp or 0
 local gameName = Info.Game.Name or "Universal"
 local gameSlug = Info.Game.Slug or "unknown"
-local version = Info.Version or "v3.0.0"
+local version = Info.Version or "v3.1.0"
 
 local function formatExpiry()
     if expiryTimestamp == 0 then return "Lifetime ∞" end
@@ -62,10 +60,11 @@ local function formatExpiry()
     return d > 0 and string.format("%dd %02d:%02d", d, h, m) or string.format("%02d:%02d", h, m)
 end
 
--- Window
+-- Window - PREMIUM indicator in title
+local windowTitle = isPremium and "FSSHUB 👑 | " .. gameName or "FSSHUB | " .. gameName
 local Window = Fluent:CreateWindow({
-    Title = "FSSHUB | " .. gameName,
-    SubTitle = version,
+    Title = windowTitle,
+    SubTitle = version .. (isPremium and " Premium" or ""),
     TabWidth = 160,
     Size = UDim2.fromOffset(600, 500),
     Acrylic = true,
@@ -86,8 +85,8 @@ local Options = Fluent.Options
 
 -- ========== HOME TAB ==========
 Tabs.Home:AddParagraph({
-    Title = "Welcome to FSSHub",
-    Content = "Hello, " .. username .. (isPremium and " 👑" or "") .. "\nTier: " .. tier
+    Title = isPremium and "Welcome, Premium User! 👑" or "Welcome to FSSHub",
+    Content = "Hello, " .. username .. "\nTier: " .. tier
 })
 
 local expiryPara = Tabs.Home:AddParagraph({
@@ -141,11 +140,8 @@ Tabs.Movement:AddToggle("InfiniteJump", { Title = "Infinite Jump", Default = fal
     Callback = function(v) Events:Emit("toggle_infinitejump", v) end
 })
 
--- PREMIUM ONLY
+-- PREMIUM Movement
 if isPremium then
-    Tabs.Movement:AddParagraph({ Title = "✨ Premium Movement", Content = "Advanced movement controls" })
-    
-    -- Fly
     local flySpeed = 50
     Tabs.Movement:AddToggle("Fly", { Title = "Fly (WASD + Space/Shift)", Default = false,
         Callback = function(v) Events:Emit("toggle_fly", v, flySpeed, false) end
@@ -154,17 +150,14 @@ if isPremium then
         Callback = function(v) flySpeed = v; if Options.Fly.Value then Events:Emit("toggle_fly", true, v, false) end end
     })
     
-    -- Noclip
     Tabs.Movement:AddToggle("Noclip", { Title = "Noclip", Default = false,
         Callback = function(v) Events:Emit("toggle_noclip", v) end
     })
     
-    -- Gravity
     Tabs.Movement:AddSlider("Gravity", { Title = "Gravity", Default = 196, Min = 0, Max = 500, Rounding = 0,
         Callback = function(v) Events:Emit("set_gravity", v) end
     })
     
-    -- Platform Stand
     Tabs.Movement:AddToggle("PlatformStand", { Title = "Platform Stand", Default = false,
         Callback = function(v) Events:Emit("toggle_platformstand", v) end
     })
@@ -173,7 +166,6 @@ end
 -- ========== VISUAL TAB ==========
 Tabs.Visual:AddParagraph({ Title = "👁️ Visual", Content = "ESP and visual enhancements" })
 
--- ESP Config Helper
 local function GetESPOptions()
     return {
         showChams = Options.ESPChams and Options.ESPChams.Value or false,
@@ -199,21 +191,16 @@ Tabs.Visual:AddToggle("Fullbright", { Title = "Fullbright", Default = false,
     Callback = function(v) Events:Emit("toggle_fullbright", v) end
 })
 
--- PREMIUM ONLY
+-- PREMIUM Visual
 if isPremium then
-    Tabs.Visual:AddParagraph({ Title = "✨ Premium Visual", Content = "Advanced ESP features" })
-    
-    -- Skeleton
     Tabs.Visual:AddToggle("SkeletonESP", { Title = "Skeleton ESP", Default = false,
         Callback = function(v) Events:Emit("toggle_skeleton", v) end
     })
     
-    -- Tracers
     Tabs.Visual:AddToggle("Tracers", { Title = "Tracers", Default = false,
         Callback = function(v) Events:Emit("toggle_tracers", v) end
     })
     
-    -- ESP Filter
     Tabs.Visual:AddSlider("ESPFilterDist", { Title = "Max Distance", Default = 1000, Min = 50, Max = 2000, Rounding = 0,
         Callback = function(v) Events:Emit("set_esp_filter", v, Options.ESPFilterTeam and Options.ESPFilterTeam.Value, 0) end
     })
@@ -221,7 +208,6 @@ if isPremium then
         Callback = function(v) Events:Emit("set_esp_filter", Options.ESPFilterDist.Value, v, 0) end
     })
     
-    -- Custom Color
     Tabs.Visual:AddColorpicker("ESPColor", { Title = "ESP Color", Default = Color3.fromRGB(255, 0, 0),
         Callback = function(c) Events:Emit("set_esp_color", c) end
     })
@@ -240,10 +226,8 @@ Tabs.Utility:AddToggle("FPSBoost", { Title = "FPS Boost", Default = false,
 Tabs.Utility:AddButton({ Title = "Unlock FPS", Callback = function() Events:Emit("action_unlockfps") end })
 Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
 
--- PREMIUM ONLY
+-- PREMIUM Utility (No config buttons - already in Settings)
 if isPremium then
-    Tabs.Utility:AddParagraph({ Title = "✨ Premium Utility", Content = "Advanced utilities" })
-    
     Tabs.Utility:AddToggle("AutoRejoin", { Title = "Auto Rejoin on Kick", Default = false,
         Callback = function(v) Events:Emit("toggle_autorejoin", v) end
     })
@@ -254,14 +238,6 @@ if isPremium then
     Tabs.Utility:AddToggle("AntiLag", { Title = "Anti Lag (Remove Textures)", Default = false,
         Callback = function(v) Events:Emit("toggle_antilag", v) end
     })
-    
-    -- Config
-    local configName = "default"
-    Tabs.Utility:AddInput("ConfigName", { Title = "Config Name", Default = "default", Placeholder = "Enter name",
-        Callback = function(v) configName = v end
-    })
-    Tabs.Utility:AddButton({ Title = "Save Config", Callback = function() Events:Emit("action_saveconfig", configName) end })
-    Tabs.Utility:AddButton({ Title = "Load Config", Callback = function() Events:Emit("action_loadconfig", configName) end })
 end
 
 -- ========== PLAYER TAB ==========
@@ -276,10 +252,8 @@ Tabs.Player:AddToggle("NoCollision", { Title = "No Player Collision", Default = 
     Callback = function(v) Events:Emit("toggle_nocollision", v) end
 })
 
--- PREMIUM ONLY
+-- PREMIUM Player
 if isPremium then
-    Tabs.Player:AddParagraph({ Title = "✨ Premium Player", Content = "Advanced player controls" })
-    
     Tabs.Player:AddToggle("GodMode", { Title = "God Mode (Soft)", Default = false,
         Callback = function(v) Events:Emit("toggle_godmode", v) end
     })
@@ -308,12 +282,6 @@ SaveManager:SetFolder("FSSHUB/" .. gameSlug)
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
--- Keybind Manager (Premium) - Temporarily disabled due to Fluent compatibility
--- TODO: Re-add with proper Fluent Keybind API
-if isPremium then
-    Tabs.Settings:AddParagraph({ Title = "✨ Premium Settings", Content = "Extra customization options" })
-end
-
 -- Globals
 _G.FSSHUB_TABS = Tabs
 _G.FSSHUB_WINDOW = Window
@@ -323,7 +291,7 @@ _G.FSSHUB_OPTIONS = Options
 Window:SelectTab(1)
 
 Fluent:Notify({
-    Title = "FSSHUB",
+    Title = isPremium and "FSSHUB 👑" or "FSSHUB",
     Content = "Welcome, " .. username .. "!",
     SubContent = tier .. " | " .. version,
     Duration = 5
