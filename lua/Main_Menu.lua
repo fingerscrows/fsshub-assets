@@ -62,10 +62,10 @@ local Window = Fluent:Window({
     SubTitle = version .. (isPremium and " Premium" or ""),
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
-    Resize = true,
+    Resize = false, -- Disabled for testing
     MinimizeKey = Enum.KeyCode.RightControl,
-    Acrylic = true,
-    Theme = "Amethyst"
+    Acrylic = false, -- Disabled for testing
+    Theme = "Dark" -- Changed to a known working theme
 })
 
 local Tabs = {
