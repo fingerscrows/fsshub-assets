@@ -275,8 +275,12 @@ function Element:New(Idx, Config)
 		
 								Keybind:SetValue(Key)
 		
-								Library:SafeCallback(self.ChangedCallback, Input.KeyCode or Input.UserInputType)
-								Library:SafeCallback(self.Changed, Input.KeyCode or Input.UserInputType)
+								if self.ChangedCallback then
+									Library:SafeCallback(self.ChangedCallback, Input.KeyCode or Input.UserInputType)
+								end
+								if self.Changed then
+									Library:SafeCallback(self.Changed, Input.KeyCode or Input.UserInputType)
+								end
 							end
 						end)
 					end)
