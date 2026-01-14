@@ -1,9 +1,9 @@
 --[[
-    FSSHUB Main Menu - v3.1.0
+    FSSHUB Main Menu - v3.2.0
     Universal FREE + PREMIUM Features
     
     Premium features only render when isPremium = true
-    FREE users do NOT see Premium features (clean UI)
+    Premium includes keybinds for all toggle features
 ]]
 
 if not getgenv().FSSHUB_INFO then
@@ -48,7 +48,7 @@ print("[FSSHUB] isPremium:", isPremium, "| Tier:", tier)
 local expiryTimestamp = Info.User.ExpiryTimestamp or 0
 local gameName = Info.Game.Name or "Universal"
 local gameSlug = Info.Game.Slug or "unknown"
-local version = Info.Version or "v3.1.0"
+local version = Info.Version or "v3.2.0"
 
 local function formatExpiry()
     if expiryTimestamp == 0 then return "Lifetime ∞" end
@@ -66,7 +66,7 @@ local Window = Fluent:CreateWindow({
     Title = windowTitle,
     SubTitle = version .. (isPremium and " Premium" or ""),
     TabWidth = 160,
-    Size = UDim2.fromOffset(600, 500),
+    Size = UDim2.fromOffset(620, 520),
     Acrylic = true,
     Theme = "Amethyst",
     MinimizeKey = Enum.KeyCode.RightControl
@@ -82,6 +82,22 @@ local Tabs = {
 }
 
 local Options = Fluent.Options
+
+-- Helper: Add Toggle with Keybind (Premium only)
+local function AddToggleWithKeybind(tab, toggleId, toggleConfig, keybindDefault)
+    tab:AddToggle(toggleId, toggleConfig)
+    
+    if isPremium and keybindDefault then
+        tab:AddKeybind(toggleId .. "Key", {
+            Title = "Keybind",
+            Mode = "Toggle",
+            Default = keybindDefault,
+            Callback = function()
+                Options[toggleId]:SetValue(not Options[toggleId].Value)
+            end
+        })
+    end
+end
 
 -- ========== HOME TAB ==========
 Tabs.Home:AddParagraph({
@@ -110,57 +126,81 @@ Tabs.Home:AddButton({
     end
 })
 
+if isPremium then
+    Tabs.Home:AddParagraph({
+        Title = "⌨️ Keybinds",
+        Content = "All toggles have customizable keybinds!\nClick the keybind box next to any toggle to change it."
+    })
+end
+
 -- ========== MOVEMENT TAB ==========
 Tabs.Movement:AddParagraph({ Title = "🏃 Movement", Content = "Character movement controls" })
 
 -- FREE: WalkSpeed
 local speedEnabled, speedValue = false, 16
-Tabs.Movement:AddToggle("WalkSpeed", { Title = "Walk Speed", Default = false })
-Options.WalkSpeed:OnChanged(function()
-    speedEnabled = Options.WalkSpeed.Value
-    Events:Emit("toggle_speed", speedEnabled, speedValue)
-end)
+AddToggleWithKeybind(Tabs.Movement, "WalkSpeed", { 
+    Title = "Walk Speed", 
+    Default = false,
+    Callback = function(v)
+        speedEnabled = v
+        Events:Emit("toggle_speed", speedEnabled, speedValue)
+    end
+}, "LeftBracket")
+
 Tabs.Movement:AddSlider("SpeedValue", { Title = "Speed", Default = 16, Min = 16, Max = 500, Rounding = 0,
     Callback = function(v) speedValue = v; if speedEnabled then Events:Emit("toggle_speed", true, v) end end
 })
 
 -- FREE: JumpPower
 local jumpEnabled, jumpValue = false, 50
-Tabs.Movement:AddToggle("JumpPower", { Title = "Jump Power", Default = false })
-Options.JumpPower:OnChanged(function()
-    jumpEnabled = Options.JumpPower.Value
-    Events:Emit("toggle_jump", jumpEnabled, jumpValue)
-end)
+AddToggleWithKeybind(Tabs.Movement, "JumpPower", { 
+    Title = "Jump Power", 
+    Default = false,
+    Callback = function(v)
+        jumpEnabled = v
+        Events:Emit("toggle_jump", jumpEnabled, jumpValue)
+    end
+}, "RightBracket")
+
 Tabs.Movement:AddSlider("JumpValue", { Title = "Jump", Default = 50, Min = 50, Max = 500, Rounding = 0,
     Callback = function(v) jumpValue = v; if jumpEnabled then Events:Emit("toggle_jump", true, v) end end
 })
 
 -- FREE: Infinite Jump
-Tabs.Movement:AddToggle("InfiniteJump", { Title = "Infinite Jump", Default = false,
+AddToggleWithKeybind(Tabs.Movement, "InfiniteJump", { 
+    Title = "Infinite Jump", 
+    Default = false,
     Callback = function(v) Events:Emit("toggle_infinitejump", v) end
-})
+}, "J")
 
 -- PREMIUM Movement
 if isPremium then
     local flySpeed = 50
-    Tabs.Movement:AddToggle("Fly", { Title = "Fly (WASD + Space/Shift)", Default = false,
+    AddToggleWithKeybind(Tabs.Movement, "Fly", { 
+        Title = "Fly (WASD + Space/Shift)", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_fly", v, flySpeed, false) end
-    })
+    }, "F")
+    
     Tabs.Movement:AddSlider("FlySpeed", { Title = "Fly Speed", Default = 50, Min = 10, Max = 200, Rounding = 0,
         Callback = function(v) flySpeed = v; if Options.Fly.Value then Events:Emit("toggle_fly", true, v, false) end end
     })
     
-    Tabs.Movement:AddToggle("Noclip", { Title = "Noclip", Default = false,
+    AddToggleWithKeybind(Tabs.Movement, "Noclip", { 
+        Title = "Noclip", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_noclip", v) end
-    })
+    }, "N")
     
     Tabs.Movement:AddSlider("Gravity", { Title = "Gravity", Default = 196, Min = 0, Max = 500, Rounding = 0,
         Callback = function(v) Events:Emit("set_gravity", v) end
     })
     
-    Tabs.Movement:AddToggle("PlatformStand", { Title = "Platform Stand", Default = false,
+    AddToggleWithKeybind(Tabs.Movement, "PlatformStand", { 
+        Title = "Platform Stand", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_platformstand", v) end
-    })
+    }, "P")
 end
 
 -- ========== VISUAL TAB ==========
@@ -180,26 +220,37 @@ local function UpdateESP()
 end
 
 -- FREE ESP
-Tabs.Visual:AddToggle("ESPEnabled", { Title = "Enable ESP", Default = false, Callback = UpdateESP })
+AddToggleWithKeybind(Tabs.Visual, "ESPEnabled", { 
+    Title = "Enable ESP", 
+    Default = false, 
+    Callback = UpdateESP 
+}, "E")
+
 Tabs.Visual:AddToggle("ESPChams", { Title = "Show Chams", Default = false, Callback = UpdateESP })
 Tabs.Visual:AddToggle("ESPName", { Title = "Show Names", Default = true, Callback = UpdateESP })
 Tabs.Visual:AddToggle("ESPDistance", { Title = "Show Distance", Default = true, Callback = UpdateESP })
 Tabs.Visual:AddToggle("ESPHealth", { Title = "Show Health", Default = true, Callback = UpdateESP })
 
 -- FREE Fullbright
-Tabs.Visual:AddToggle("Fullbright", { Title = "Fullbright", Default = false,
+AddToggleWithKeybind(Tabs.Visual, "Fullbright", { 
+    Title = "Fullbright", 
+    Default = false,
     Callback = function(v) Events:Emit("toggle_fullbright", v) end
-})
+}, "B")
 
 -- PREMIUM Visual
 if isPremium then
-    Tabs.Visual:AddToggle("SkeletonESP", { Title = "Skeleton ESP", Default = false,
+    AddToggleWithKeybind(Tabs.Visual, "SkeletonESP", { 
+        Title = "Skeleton ESP", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_skeleton", v) end
-    })
+    }, "K")
     
-    Tabs.Visual:AddToggle("Tracers", { Title = "Tracers", Default = false,
+    AddToggleWithKeybind(Tabs.Visual, "Tracers", { 
+        Title = "Tracers", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_tracers", v) end
-    })
+    }, "T")
     
     Tabs.Visual:AddSlider("ESPFilterDist", { Title = "Max Distance", Default = 1000, Min = 50, Max = 2000, Rounding = 0,
         Callback = function(v) Events:Emit("set_esp_filter", v, Options.ESPFilterTeam and Options.ESPFilterTeam.Value, 0) end
@@ -217,57 +268,89 @@ end
 Tabs.Utility:AddParagraph({ Title = "🔧 Utility", Content = "System utilities" })
 
 -- FREE
-Tabs.Utility:AddToggle("AntiAFK", { Title = "Anti AFK", Default = false,
+AddToggleWithKeybind(Tabs.Utility, "AntiAFK", { 
+    Title = "Anti AFK", 
+    Default = false,
     Callback = function(v) Events:Emit("toggle_antiafk", v) end
-})
-Tabs.Utility:AddToggle("FPSBoost", { Title = "FPS Boost", Default = false,
+}, "A")
+
+AddToggleWithKeybind(Tabs.Utility, "FPSBoost", { 
+    Title = "FPS Boost", 
+    Default = false,
     Callback = function(v) Events:Emit("toggle_fpsboost", v) end
-})
+}, nil) -- No keybind for this
+
 Tabs.Utility:AddButton({ Title = "Unlock FPS", Callback = function() Events:Emit("action_unlockfps") end })
 Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
 
--- PREMIUM Utility (No config buttons - already in Settings)
+-- PREMIUM Utility
 if isPremium then
-    Tabs.Utility:AddToggle("AutoRejoin", { Title = "Auto Rejoin on Kick", Default = false,
+    AddToggleWithKeybind(Tabs.Utility, "AutoRejoin", { 
+        Title = "Auto Rejoin on Kick", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_autorejoin", v) end
-    })
+    }, nil)
+    
     Tabs.Utility:AddButton({ Title = "Server Hop", Callback = function() Events:Emit("action_serverhop") end })
-    Tabs.Utility:AddToggle("PerfMonitor", { Title = "Performance Monitor", Default = false,
+    
+    AddToggleWithKeybind(Tabs.Utility, "PerfMonitor", { 
+        Title = "Performance Monitor", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_perfmon", v) end
-    })
-    Tabs.Utility:AddToggle("AntiLag", { Title = "Anti Lag (Remove Textures)", Default = false,
+    }, "M")
+    
+    AddToggleWithKeybind(Tabs.Utility, "AntiLag", { 
+        Title = "Anti Lag (Remove Textures)", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_antilag", v) end
-    })
+    }, nil)
 end
 
 -- ========== PLAYER TAB ==========
 Tabs.Player:AddParagraph({ Title = "🎮 Player", Content = "Character controls" })
 
 -- FREE
-Tabs.Player:AddToggle("AutoRespawn", { Title = "Auto Respawn", Default = false,
+AddToggleWithKeybind(Tabs.Player, "AutoRespawn", { 
+    Title = "Auto Respawn", 
+    Default = false,
     Callback = function(v) Events:Emit("toggle_autorespawn", v) end
-})
+}, nil)
+
 Tabs.Player:AddButton({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
-Tabs.Player:AddToggle("NoCollision", { Title = "No Player Collision", Default = false,
+
+AddToggleWithKeybind(Tabs.Player, "NoCollision", { 
+    Title = "No Player Collision", 
+    Default = false,
     Callback = function(v) Events:Emit("toggle_nocollision", v) end
-})
+}, "C")
 
 -- PREMIUM Player
 if isPremium then
-    Tabs.Player:AddToggle("GodMode", { Title = "God Mode (Soft)", Default = false,
+    AddToggleWithKeybind(Tabs.Player, "GodMode", { 
+        Title = "God Mode (Soft)", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_godmode", v) end
-    })
-    Tabs.Player:AddToggle("NoFallDamage", { Title = "No Fall Damage", Default = false,
+    }, "G")
+    
+    AddToggleWithKeybind(Tabs.Player, "NoFallDamage", { 
+        Title = "No Fall Damage", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_nofall", v) end
-    })
-    Tabs.Player:AddToggle("NoRagdoll", { Title = "No Ragdoll", Default = false,
+    }, nil)
+    
+    AddToggleWithKeybind(Tabs.Player, "NoRagdoll", { 
+        Title = "No Ragdoll", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_noragdoll", v) end
-    })
+    }, "R")
     
     local animSpeed = 1
-    Tabs.Player:AddToggle("AnimSpeed", { Title = "Animation Speed", Default = false,
+    AddToggleWithKeybind(Tabs.Player, "AnimSpeed", { 
+        Title = "Animation Speed", 
+        Default = false,
         Callback = function(v) Events:Emit("toggle_animspeed", v, animSpeed) end
-    })
+    }, nil)
+    
     Tabs.Player:AddSlider("AnimSpeedValue", { Title = "Speed Multiplier", Default = 1, Min = 0.1, Max = 3, Rounding = 1,
         Callback = function(v) animSpeed = v; if Options.AnimSpeed.Value then Events:Emit("toggle_animspeed", true, v) end end
     })
