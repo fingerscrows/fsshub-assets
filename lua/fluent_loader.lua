@@ -1,9 +1,11 @@
 --[[
-    Fluent Renewed Loader - V3.3 (GetChildren Support)
+    Fluent Renewed Loader - V3.4 (Signal Wrapper + Ripple Fallback)
     Author: Antigravity
     
     This loader dynamically fetches Fluent Renewed modules from GitHub.
     It includes a robust mock file system with GetChildren support and URL encoding.
+    - V3.4: Added SignalWrapper for uppercase method compatibility (Fire/Wait/Connect)
+    - V3.4: Added Ripple fallback using Flipper.Spring when original URL returns 404
 ]]
 
 local BASE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/Fluent/Src/"
@@ -65,12 +67,80 @@ local PackagesMap = {
     ["Packages/Flipper/Signal"] = PACKAGES_URL .. "Flipper/Signal.lua",
     ["Packages/Flipper/isMotor"] = PACKAGES_URL .. "Flipper/isMotor.lua",
     
-    ["Packages/Signal"] = PACKAGES_URL .. "Flipper/Signal.lua",
+    -- Note: Packages/Signal uses a WRAPPER (see SignalWrapper below)
     -- Corrected Ripple URL (using a known mirror if original is down, or raw link)
-    -- Trying a different source or keeping it if it works now. 
-    -- If 404, we can fallback to Flipper Spring which is similar, but for now let's try this:
     ["Packages/Ripple"] = "https://raw.githubusercontent.com/8ne/Ripple/main/src/init.lua" 
 }
+
+-- Signal Wrapper: The Flipper Signal module uses lowercase methods (fire, wait, connect)
+-- but Fluent UI expects uppercase methods (Fire, Wait, Connect). This wrapper adapts the API.
+local SignalWrapper = nil
+local function GetSignalWrapper()
+    if SignalWrapper then return SignalWrapper end
+    
+    -- Fetch the original Flipper Signal
+    local url = PACKAGES_URL .. "Flipper/Signal.lua"
+    local success, content = pcall(function() return game:HttpGet(url) end)
+    if not success or not content or #content < 10 then
+        warn("[Fluent Loader] Failed to fetch Signal module")
+        return nil
+    end
+    
+    local func, err = loadstring(content, "Packages/Flipper/Signal")
+    if not func then
+        warn("[Fluent Loader] Signal syntax error: " .. tostring(err))
+        return nil
+    end
+    
+    setfenv(func, getfenv())
+    local OriginalSignal = func()
+    
+    -- Create wrapper that adds uppercase method aliases
+    SignalWrapper = {}
+    SignalWrapper.__index = SignalWrapper
+    
+    function SignalWrapper.new()
+        local original = OriginalSignal.new()
+        local wrapper = setmetatable({
+            _original = original,
+            _connections = original._connections,
+            _threads = original._threads,
+        }, SignalWrapper)
+        
+        return wrapper
+    end
+    
+    -- Uppercase methods that Fluent expects
+    function SignalWrapper:Fire(...)
+        return self._original:fire(...)
+    end
+    
+    function SignalWrapper:Wait()
+        return self._original:wait()
+    end
+    
+    function SignalWrapper:Connect(handler)
+        local conn = self._original:connect(handler)
+        -- Wrap connection to add uppercase Disconnect
+        return {
+            _original = conn,
+            connected = conn.connected,
+            Disconnect = function(self)
+                return self._original:disconnect()
+            end,
+            disconnect = function(self)
+                return self._original:disconnect()
+            end
+        }
+    end
+    
+    -- Also support lowercase for compatibility
+    SignalWrapper.fire = SignalWrapper.Fire
+    SignalWrapper.wait = SignalWrapper.Wait
+    SignalWrapper.connect = SignalWrapper.Connect
+    
+    return SignalWrapper
+end
 
 -- Forward declaration
 local customRequire 
@@ -119,6 +189,46 @@ customRequire = function(moduleIdentity)
     
     -- 2. Check Cache
     if ModuleCache[moduleName] then return ModuleCache[moduleName] end
+    
+    -- 2.5. SPECIAL CASE: Signal module needs wrapper for uppercase methods
+    if moduleName == "Packages/Signal" then
+        local wrapper = GetSignalWrapper()
+        if wrapper then
+            ModuleCache[moduleName] = wrapper
+            return wrapper
+        end
+    end
+    
+    -- 2.6. SPECIAL CASE: Ripple fallback - if URL fails, use Flipper.Spring as fallback
+    if moduleName == "Packages/Ripple" then
+        -- Try fetching first
+        local url = PackagesMap[moduleName]
+        local success, content = pcall(function() return game:HttpGet(url) end)
+        if not success or not content or content == "404: Not Found" or #content < 10 then
+            warn("[Fluent Loader] Ripple 404, using Flipper.Spring fallback")
+            -- Create a simple Ripple-compatible wrapper using Flipper Spring
+            local FlipperSpring = customRequire("Packages/Flipper/Spring")
+            if FlipperSpring then
+                local RippleFallback = {}
+                RippleFallback.__index = RippleFallback
+                function RippleFallback.new(target, options)
+                    options = options or {}
+                    -- Ripple uses frequency/dampingRatio, Flipper uses frequency/dampingRatio too
+                    return FlipperSpring.new(target, {
+                        frequency = options.frequency or 8,
+                        dampingRatio = options.dampingRatio or 1
+                    })
+                end
+                setmetatable(RippleFallback, {
+                    __call = function(_, target, options)
+                        return RippleFallback.new(target, options)
+                    end
+                })
+                ModuleCache[moduleName] = RippleFallback
+                return RippleFallback
+            end
+        end
+    end
     
     -- 3. Resolve URL
     local url = GetDownloadURL(moduleName)
