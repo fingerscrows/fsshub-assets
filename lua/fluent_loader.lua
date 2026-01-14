@@ -1,121 +1,185 @@
 --[[
-    Fluent UI Loader for FSSHUB
-    Version: 1.0.0
+    Fluent Renewed Loader
+    Author: Antigravity (Generated)
     
-    This loader fetches the Fluent UI library from your GitHub fork
-    and handles module resolution without bundling.
+    This loader dynamically fetches Fluent Renewed modules from GitHub.
+    It includes a package manager mock to handle missing dependencies in the repository.
 ]]
 
-local BASE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/ui_source/main_menu/src/"
+local BASE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/Fluent/Src/"
+local PACKAGES_URL = "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/src/Packages/" -- Fallback for missing packages
 
--- Module cache to avoid redundant HTTP requests
 local ModuleCache = {}
-
--- Module name to file path mapping
 local ModuleMap = {
     -- Core
-    ["Root"] = "init.lua",
-    ["Creator"] = "Creator.lua",
-    ["Icons"] = "Icons.lua",
-    ["Bridge"] = "FSSHUB_Bridge.lua",
+    ["Root"] = "init.luau",
     
-    -- Acrylic
-    ["Acrylic"] = "Acrylic/init.lua",
-    ["Acrylic/Utils"] = "Acrylic/Utils.lua",
-    ["Acrylic/AcrylicBlur"] = "Acrylic/AcrylicBlur.lua",
-    ["Acrylic/AcrylicPaint"] = "Acrylic/AcrylicPaint.lua",
-    ["Acrylic/CreateAcrylic"] = "Acrylic/CreateAcrylic.lua",
+    -- Modules
+    ["Modules/Creator"] = "Modules/Creator.luau",
+    ["Modules/Icons"] = "Modules/Icons.luau",
+    ["Modules/Acrylic"] = "Modules/Acrylic/init.luau",
+    ["Modules/Acrylic/Utils"] = "Modules/Acrylic/Utils.luau",
+    ["Modules/Acrylic/AcrylicBlur"] = "Modules/Acrylic/AcrylicBlur.luau",
+    ["Modules/Acrylic/AcrylicPaint"] = "Modules/Acrylic/AcrylicPaint.luau",
+    ["Modules/Acrylic/CreateAcrylic"] = "Modules/Acrylic/CreateAcrylic.luau",
+
+    -- Elements
+    ["Elements"] = "Elements/init.luau",
+    ["Elements/Button"] = "Elements/Button.luau",
+    ["Elements/Colorpicker"] = "Elements/Colorpicker.luau",
+    ["Elements/Dropdown"] = "Elements/Dropdown.luau",
+    ["Elements/Input"] = "Elements/Input.luau",
+    ["Elements/Keybind"] = "Elements/Keybind.luau",
+    ["Elements/Paragraph"] = "Elements/Paragraph.luau",
+    ["Elements/Slider"] = "Elements/Slider.luau",
+    ["Elements/Toggle"] = "Elements/Toggle.luau",
+
+    -- Components
+    ["Components/Assets"] = "Components/Assets.luau",
+    ["Components/Button"] = "Components/Button.luau",
+    ["Components/Dialog"] = "Components/Dialog.luau",
+    ["Components/Element"] = "Components/Element.luau",
+    ["Components/Notification"] = "Components/Notification.luau",
+    ["Components/Section"] = "Components/Section.luau",
+    ["Components/Tab"] = "Components/Tab.luau",
+    ["Components/Textbox"] = "Components/Textbox.luau",
+    ["Components/TitleBar"] = "Components/TitleBar.luau",
+    ["Components/Window"] = "Components/Window.luau",
     
-    -- Themes
-    ["Themes"] = "Themes/init.lua",
-    ["Themes/Amethyst"] = "Themes/Amethyst.lua",
-    ["Themes/Aqua"] = "Themes/Aqua.lua",
-    ["Themes/Dark"] = "Themes/Dark.lua",
-    ["Themes/Darker"] = "Themes/Darker.lua",
-    ["Themes/Light"] = "Themes/Light.lua",
-    ["Themes/Rose"] = "Themes/Rose.lua",
-    
-    -- Flipper (Animation Library)
-    ["Flipper"] = "Packages/Flipper/init.lua",
-    ["Flipper/BaseMotor"] = "Packages/Flipper/BaseMotor.lua",
-    ["Flipper/GroupMotor"] = "Packages/Flipper/GroupMotor.lua",
-    ["Flipper/SingleMotor"] = "Packages/Flipper/SingleMotor.lua",
-    ["Flipper/Instant"] = "Packages/Flipper/Instant.lua",
-    ["Flipper/Linear"] = "Packages/Flipper/Linear.lua",
-    ["Flipper/Spring"] = "Packages/Flipper/Spring.lua",
-    ["Flipper/Signal"] = "Packages/Flipper/Signal.lua",
-    ["Flipper/isMotor"] = "Packages/Flipper/isMotor.lua",
-    
-    -- Elements (UI Components)
-    ["Elements"] = "Elements/init.lua",
-    ["Elements/Button"] = "Elements/Button.lua",
-    ["Elements/Colorpicker"] = "Elements/Colorpicker.lua",
-    ["Elements/Dropdown"] = "Elements/Dropdown.lua",
-    ["Elements/Input"] = "Elements/Input.lua",
-    ["Elements/Keybind"] = "Elements/Keybind.lua",
-    ["Elements/Paragraph"] = "Elements/Paragraph.lua",
-    ["Elements/Slider"] = "Elements/Slider.lua",
-    ["Elements/Toggle"] = "Elements/Toggle.lua",
-    
-    -- Components (Higher-level UI)
-    ["Components/Assets"] = "Components/Assets.lua",
-    ["Components/Button"] = "Components/Button.lua",
-    ["Components/Dialog"] = "Components/Dialog.lua",
-    ["Components/Element"] = "Components/Element.lua",
-    ["Components/Notification"] = "Components/Notification.lua",
-    ["Components/Section"] = "Components/Section.lua",
-    ["Components/Tab"] = "Components/Tab.lua",
-    ["Components/Textbox"] = "Components/Textbox.lua",
-    ["Components/TitleBar"] = "Components/TitleBar.lua",
-    ["Components/Window"] = "Components/Window.lua",
+    -- Themes (Mapped dynamically in require if possible, but hardcoded here for safety)
+    ["Themes"] = "Themes/init.luau",
+    ["Themes/Dark"] = "Themes/Dark.luau",
+    ["Themes/Light"] = "Themes/Light.luau",
+    ["Themes/Vynixu"] = "Themes/Vynixu.luau",
+    -- Add other themes as needed or load dynamically
 }
 
--- Custom require function
+-- Fallback for packages missing in the repo
+local PackagesMap = {
+    ["Packages/Flipper"] = PACKAGES_URL .. "Flipper/init.lua",
+    ["Packages/Flipper/BaseMotor"] = PACKAGES_URL .. "Flipper/BaseMotor.lua",
+    ["Packages/Flipper/GroupMotor"] = PACKAGES_URL .. "Flipper/GroupMotor.lua",
+    ["Packages/Flipper/SingleMotor"] = PACKAGES_URL .. "Flipper/SingleMotor.lua",
+    ["Packages/Flipper/Instant"] = PACKAGES_URL .. "Flipper/Instant.lua",
+    ["Packages/Flipper/Linear"] = PACKAGES_URL .. "Flipper/Linear.lua",
+    ["Packages/Flipper/Spring"] = PACKAGES_URL .. "Flipper/Spring.lua",
+    ["Packages/Flipper/Signal"] = PACKAGES_URL .. "Flipper/Signal.lua",
+    ["Packages/Flipper/isMotor"] = PACKAGES_URL .. "Flipper/isMotor.lua",
+    
+    ["Packages/Signal"] = PACKAGES_URL .. "Flipper/Signal.lua", -- Use Flipper's Signal or separate
+    ["Packages/Ripple"] = "https://raw.githubusercontent.com/dphfox/Ripple/main/src/init.lua" -- Ripple Source
+}
+
 local function customRequire(moduleName)
-    -- Check cache first
-    if ModuleCache[moduleName] then
-        return ModuleCache[moduleName]
+    if ModuleCache[moduleName] then return ModuleCache[moduleName] end
+
+    local url
+    if PackagesMap[moduleName] then
+        url = PackagesMap[moduleName]
+    else
+        local path = ModuleMap[moduleName]
+        if not path and moduleName:find("Themes/") then
+            path = moduleName .. ".luau" -- Dynamic theme loading attempt
+        end
+        
+        if path then
+            url = BASE_URL .. path
+        else
+            warn("[Fluent Loader] Unknown module: " .. tostring(moduleName))
+            return nil
+        end
     end
-    
-    -- Get file path from map
-    local filePath = ModuleMap[moduleName]
-    if not filePath then
-        warn("[Fluent Loader] Module not mapped: " .. tostring(moduleName))
-        return nil
-    end
-    
-    -- Fetch from GitHub
-    local url = BASE_URL .. filePath
-    local success, source = pcall(function()
-        return game:HttpGet(url)
-    end)
-    
-    if not success or not source or source == "" then
+
+    local success, content = pcall(function() return game:HttpGet(url) end)
+    if not success or not content then
         warn("[Fluent Loader] Failed to fetch: " .. url)
         return nil
     end
-    
-    -- Compile and execute
-    local compiled, err = loadstring(source, moduleName)
-    if not compiled then
+
+    local func, err = loadstring(content, moduleName)
+    if not func then
         warn("[Fluent Loader] Syntax error in " .. moduleName .. ": " .. tostring(err))
         return nil
     end
-    
-    -- Set up environment with custom require
+
     local env = setmetatable({
-        require = customRequire,
-        script = { Parent = {} }, -- Mock script object
+        require = function(mod)
+            -- Handle relative requires (simple approximation)
+            local name = tostring(mod)
+            
+            -- Hook for Root.Packages...
+            if name:find("Packages") then
+                if name:find("Flipper") then
+                     -- Handle Flipper submodules
+                     if name:find("Spring") then return customRequire("Packages/Flipper/Spring") end
+                     if name:find("Instant") then return customRequire("Packages/Flipper/Instant") end
+                     if name:find("SingleMotor") then return customRequire("Packages/Flipper/SingleMotor") end
+                     if name:find("GroupMotor") then return customRequire("Packages/Flipper/GroupMotor") end
+                     return customRequire("Packages/Flipper")
+                end
+                if name:find("Signal") then return customRequire("Packages/Signal") end
+                if name:find("Ripple") then return customRequire("Packages/Ripple") end
+            end
+            
+            -- Normal modules
+            if name == "Root" then return customRequire("Root") end
+            
+            -- Map typical instance requiring to our map
+            if typeof(mod) == "Instance" then
+                 if mod.Name == "Creator" then return customRequire("Modules/Creator") end
+                 if mod.Name == "Icons" then return customRequire("Modules/Icons") end
+                 if mod.Name == "Acrylic" then return customRequire("Modules/Acrylic") end
+                 if mod.Name == "Elements" then return customRequire("Elements") end
+                 if mod.Name == "Themes" then return customRequire("Themes") end
+                 if mod.Name == "Components" then return {
+                     Window = function(...) return customRequire("Components/Window")(...) end, -- Mock
+                     -- This part is tricky because require(Components.Window) expects the module itself
+                 } end
+            end
+            
+            -- Direct internal requires in Fluent Renewed often use `require(Root.Modules.Creator)`
+            -- We need to intercept these.
+            -- Since we can't easily parse the table path passed to require,
+            -- we rely on the fact that we replace `Root` with a table that has our structure.
+            
+            return customRequire(name) 
+        end,
+        script = { 
+            Parent = { 
+                Name = "Src", 
+                Parent = { Name = "Fluent" } 
+            } 
+        } -- Mock script environment
     }, { __index = getfenv() })
-    setfenv(compiled, env)
     
-    -- Execute and cache
-    local result = compiled()
+    -- Mock the Root object structure for navigation
+    local function makeProxy(path)
+        return setmetatable({}, {
+            __index = function(_, key)
+                local newPath = path and (path .. "/" .. key) or key
+                -- Check if this path maps to a module
+                if ModuleMap[newPath] or PackagesMap[newPath] then
+                    return customRequire(newPath)
+                end
+                return makeProxy(newPath)
+            end,
+            __tostring = function() return path end
+        })
+    end
+    
+    -- In init.luau: local Root = script
+    -- We need script to behave like Root
+    env.script = makeProxy("Root")
+    -- Override Root if it's defined globally or locally? No, loadstring env handles it.
+    
+    setfenv(func, env)
+    
+    local result = func()
     ModuleCache[moduleName] = result
-    
-    print("[Fluent Loader] Loaded: " .. moduleName)
     return result
 end
 
--- Load and return the Root module (main library entry point)
+-- Fix circular or complex deps by pre-defining Root?
+ModuleCache["Root"] = nil -- Will be loaded by customRequire
+
 return customRequire("Root")
