@@ -1,7 +1,7 @@
 # FSSHUB Assets - Git Ignore
 
 # Source files (not for public distribution)
-ui_source/
+
 
 # Build artifacts
 *.rbxm
