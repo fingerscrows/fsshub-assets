@@ -1,10 +1,9 @@
 --[[
-    Fluent Renewed Loader - V3 (Debugged)
+    Fluent Renewed Loader - V3.1 (URL Encoded)
     Author: Antigravity
     
     This loader dynamically fetches Fluent Renewed modules from GitHub.
-    It includes a robust mock file system to handle valid Luau 'script.Parent' traversal
-    and 'require(script.Parent.Module)' patterns.
+    It includes a robust mock file system and URL encoding for special filenames.
 ]]
 
 local BASE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/Fluent/Src/"
@@ -13,11 +12,10 @@ local PACKAGES_URL = "https://raw.githubusercontent.com/dawid-scripts/Fluent/mas
 local ModuleCache = {}
 
 -- Map of Logical Path -> Physical File Path
--- Keys MUST match what the code tries to access (e.g. "Modules/Creator")
 local ModuleMap = {
     -- Core
     ["init"] = "init.luau",
-    ["Root"] = "init.luau", -- Alias
+    ["Root"] = "init.luau",
     
     -- Modules
     ["Modules/Creator"] = "Modules/Creator.luau",
@@ -40,7 +38,7 @@ local ModuleMap = {
     ["Elements/Toggle"] = "Elements/Toggle.luau",
 
     -- Components
-    ["Components"] = "Components/init.luau", -- Some scripts might require folder
+    ["Components"] = "Components/init.luau",
     ["Components/Assets"] = "Components/Assets.luau",
     ["Components/Button"] = "Components/Button.luau",
     ["Components/Dialog"] = "Components/Dialog.luau",
@@ -52,12 +50,8 @@ local ModuleMap = {
     ["Components/TitleBar"] = "Components/TitleBar.luau",
     ["Components/Window"] = "Components/Window.luau",
     
-    -- Themes
+    -- Themes (Explicitly mapped common ones, fallback dynamic)
     ["Themes"] = "Themes/init.luau",
-    ["Themes/Dark"] = "Themes/Dark.luau",
-    ["Themes/Light"] = "Themes/Light.luau",
-    ["Themes/Amethyst"] = "Themes/Amethyst.luau",
-    ["Themes/Vynixu"] = "Themes/Vynixu.luau",
 }
 
 local PackagesMap = {
@@ -78,16 +72,21 @@ local PackagesMap = {
 -- Forward declaration
 local customRequire 
 
--- Helper to normalize paths
+-- Helper: Simple URL Encoder
+local function UrlEncode(str)
+    if not str then return "" end
+    return (str:gsub("([^A-Za-z0-9%_%.%-%/])", function(c)
+        return string.format("%%%02X", string.byte(c))
+    end))
+end
+
 local function NormalizePath(path)
-    -- Remove "Root/" prefix if present, as our map keys typically don't include it (except "Root" itself)
     if path:sub(1, 5) == "Root/" then
         return path:sub(6)
     end
     return path
 end
 
--- Helper to resolve URLs
 local function GetDownloadURL(path)
     local cleanPath = NormalizePath(path)
     
@@ -95,19 +94,25 @@ local function GetDownloadURL(path)
         return PackagesMap[cleanPath]
     end
     
-    local fileMap = ModuleMap[cleanPath]
-    if not fileMap and cleanPath:find("Themes/") then
-         fileMap = cleanPath .. ".luau"
+    local relativePath = ModuleMap[cleanPath]
+    
+    if not relativePath then
+        if cleanPath:find("Themes/") then
+             relativePath = cleanPath .. ".luau"
+        end
     end
     
-    if fileMap then
-        return BASE_URL .. fileMap
+    if relativePath then
+        -- Encode the path components to handle spaces and +
+        -- However, we must preserve '/' separators
+        local encodedPath = relativePath:gsub("([^/]+)", function(s) return UrlEncode(s) end)
+        return BASE_URL .. encodedPath
     end
     return nil
 end
 
 customRequire = function(moduleIdentity)
-    -- 1. Handle String Paths (most common from our mock system)
+    -- 1. Handle String Paths
     local moduleName = tostring(moduleIdentity)
     moduleName = NormalizePath(moduleName)
     
@@ -117,7 +122,7 @@ customRequire = function(moduleIdentity)
     -- 3. Resolve URL
     local url = GetDownloadURL(moduleName)
     if not url then
-        warn("[Fluent Loader] Unknown module path: " .. moduleName .. " (Original: " .. tostring(moduleIdentity) .. ")")
+        warn("[Fluent Loader] Unknown module path: " .. moduleName)
         return nil
     end
     
@@ -136,20 +141,13 @@ customRequire = function(moduleIdentity)
     end
     
     -- 6. Environment Setup
-    -- We need a robust 'script' object that allows .Parent traversal and indexing
-    -- 'Root' is the top level. 'Root/Modules/Creator' is a child.
-    
     local function makeProxy(currentPath)
          local proxy = newproxy(true)
          local meta = getmetatable(proxy)
          
          meta.__index = function(_, key)
             if key == "Parent" then
-                -- Determine parent path
-                -- If path is "Modules/Creator", Parent is "Modules"
-                -- If path is "Modules", Parent is "Root"
-                if currentPath == "Root" then return nil end -- Top level
-                
+                if currentPath == "Root" then return nil end
                 local lastSep = currentPath:match("^.*()/")
                 if lastSep then
                     return makeProxy(currentPath:sub(1, lastSep - 1))
@@ -157,12 +155,7 @@ customRequire = function(moduleIdentity)
                     return makeProxy("Root")
                 end
             end
-            
-            -- Normal indexing = accessing child
             local childPath = (currentPath == "Root") and key or (currentPath .. "/" .. key)
-            
-            -- If the child matches a known module, we want to be able to require it
-            -- BUT, 'require' takes the proxy object.
             return makeProxy(childPath)
          end
          
@@ -171,15 +164,11 @@ customRequire = function(moduleIdentity)
          return proxy
     end
     
-    -- Current script path creation
-    -- If moduleName is "Modules/Creator", current script path is "Modules/Creator"
-    -- If moduleName is "Root", current is "Root"
     local scriptProxy = makeProxy(moduleName == "init.luau" and "Root" or (moduleName == "init" and "Root" or moduleName))
 
     local env = setmetatable({
         script = scriptProxy,
         require = function(mod)
-            -- If mod is our proxy, tostring(mod) gives the path
             return customRequire(tostring(mod))
         end,
     }, { __index = getfenv() })
