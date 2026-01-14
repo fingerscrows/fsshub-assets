@@ -83,20 +83,177 @@ local Tabs = {
 
 local Options = Fluent.Options
 
--- Helper: Add Toggle with Keybind (Premium only)
+-- Helper: Add Toggle with Inline Keybind (Premium only)
+-- Keybind box appears LEFT of toggle slider
+-- Clear button (✕) + Right-click to reset to "None"
+local UserInputService = game:GetService("UserInputService")
+
 local function AddToggleWithKeybind(tab, toggleId, toggleConfig, keybindDefault)
-    tab:AddToggle(toggleId, toggleConfig)
+    local toggle = tab:AddToggle(toggleId, toggleConfig)
     
     if isPremium and keybindDefault then
-        tab:AddKeybind(toggleId .. "Key", {
-            Title = "Keybind",
-            Mode = "Toggle",
-            Default = keybindDefault,
-            Callback = function()
-                Options[toggleId]:SetValue(not Options[toggleId].Value)
+        -- Create inline keybind UI elements
+        local keybindValue = keybindDefault
+        local picking = false
+        
+        -- Get the toggle's frame (parent container)
+        task.defer(function()
+            local toggleFrame = nil
+            -- Find the ToggleFrame by looking through the tab container
+            for _, child in ipairs(tab.Container:GetChildren()) do
+                if child:IsA("TextButton") then
+                    local titleLabel = child:FindFirstChild("LabelHolder") and child.LabelHolder:FindFirstChild("TitleLabel")
+                    if titleLabel and titleLabel.Text == toggleConfig.Title then
+                        toggleFrame = child
+                        break
+                    end
+                end
             end
-        })
+            
+            if not toggleFrame then
+                warn("[FSSHUB] Could not find toggle frame for:", toggleId)
+                return
+            end
+            
+            -- Create Keybind Label
+            local keybindLabel = Instance.new("TextLabel")
+            keybindLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+            keybindLabel.Text = keybindValue
+            keybindLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            keybindLabel.TextSize = 11
+            keybindLabel.TextXAlignment = Enum.TextXAlignment.Center
+            keybindLabel.Size = UDim2.new(0, 0, 0, 14)
+            keybindLabel.Position = UDim2.new(0, 0, 0.5, 0)
+            keybindLabel.AnchorPoint = Vector2.new(0, 0.5)
+            keybindLabel.BackgroundTransparency = 1
+            keybindLabel.AutomaticSize = Enum.AutomaticSize.X
+            
+            -- Create Keybind Button (LEFT of toggle slider at position ~-56)
+            local keybindButton = Instance.new("TextButton")
+            keybindButton.Size = UDim2.fromOffset(0, 24)
+            keybindButton.Position = UDim2.new(1, -56, 0.5, 0)
+            keybindButton.AnchorPoint = Vector2.new(1, 0.5)
+            keybindButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+            keybindButton.BackgroundTransparency = 0.5
+            keybindButton.AutomaticSize = Enum.AutomaticSize.X
+            keybindButton.Text = ""
+            keybindButton.Parent = toggleFrame
+            
+            local keybindCorner = Instance.new("UICorner")
+            keybindCorner.CornerRadius = UDim.new(0, 5)
+            keybindCorner.Parent = keybindButton
+            
+            local keybindPadding = Instance.new("UIPadding")
+            keybindPadding.PaddingLeft = UDim.new(0, 6)
+            keybindPadding.PaddingRight = UDim.new(0, 6)
+            keybindPadding.Parent = keybindButton
+            
+            local keybindStroke = Instance.new("UIStroke")
+            keybindStroke.Color = Color3.fromRGB(80, 80, 90)
+            keybindStroke.Transparency = 0.5
+            keybindStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            keybindStroke.Parent = keybindButton
+            
+            keybindLabel.Parent = keybindButton
+            
+            -- Create Clear Button (✕) - LEFT of keybind box
+            local clearButton = Instance.new("TextButton")
+            clearButton.Size = UDim2.fromOffset(20, 20)
+            clearButton.Position = UDim2.new(1, -100, 0.5, 0)
+            clearButton.AnchorPoint = Vector2.new(1, 0.5)
+            clearButton.BackgroundColor3 = Color3.fromRGB(80, 60, 60)
+            clearButton.BackgroundTransparency = 0.6
+            clearButton.Text = "✕"
+            clearButton.TextColor3 = Color3.fromRGB(180, 120, 120)
+            clearButton.TextSize = 12
+            clearButton.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+            clearButton.Parent = toggleFrame
+            
+            local clearCorner = Instance.new("UICorner")
+            clearCorner.CornerRadius = UDim.new(0, 4)
+            clearCorner.Parent = clearButton
+            
+            -- Helper: Set keybind value
+            local function setKeybind(key)
+                keybindValue = key
+                keybindLabel.Text = key
+            end
+            
+            -- Helper: Clear keybind
+            local function clearKeybind()
+                setKeybind("None")
+            end
+            
+            -- Keybind picking (left click / touch)
+            keybindButton.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    picking = true
+                    keybindLabel.Text = "..."
+                    
+                    task.wait(0.2)
+                    
+                    local event
+                    event = UserInputService.InputBegan:Connect(function(keyInput)
+                        local key
+                        
+                        if keyInput.UserInputType == Enum.UserInputType.Keyboard then
+                            key = keyInput.KeyCode.Name
+                        elseif keyInput.UserInputType == Enum.UserInputType.MouseButton1 then
+                            key = "MouseLeft"
+                        elseif keyInput.UserInputType == Enum.UserInputType.MouseButton2 then
+                            key = "MouseRight"
+                        end
+                        
+                        if key then
+                            local endedEvent
+                            endedEvent = UserInputService.InputEnded:Connect(function(endInput)
+                                if endInput.KeyCode.Name == key
+                                    or (key == "MouseLeft" and endInput.UserInputType == Enum.UserInputType.MouseButton1)
+                                    or (key == "MouseRight" and endInput.UserInputType == Enum.UserInputType.MouseButton2)
+                                then
+                                    picking = false
+                                    setKeybind(key)
+                                    event:Disconnect()
+                                    endedEvent:Disconnect()
+                                end
+                            end)
+                        end
+                    end)
+                    
+                -- Right-click to clear (PC)
+                elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    clearKeybind()
+                end
+            end)
+            
+            -- Clear button click (Mobile + PC)
+            clearButton.MouseButton1Click:Connect(function()
+                clearKeybind()
+            end)
+            
+            -- Global keybind listener - toggle the feature when key pressed
+            UserInputService.InputBegan:Connect(function(input)
+                if picking or UserInputService:GetFocusedTextBox() then return end
+                if keybindValue == "None" then return end
+                
+                local matched = false
+                
+                if keybindValue == "MouseLeft" and input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    matched = true
+                elseif keybindValue == "MouseRight" and input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    matched = true
+                elseif input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode.Name == keybindValue then
+                    matched = true
+                end
+                
+                if matched then
+                    Options[toggleId]:SetValue(not Options[toggleId].Value)
+                end
+            end)
+        end)
     end
+    
+    return toggle
 end
 
 -- ========== HOME TAB ==========
