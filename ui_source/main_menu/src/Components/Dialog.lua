@@ -3,8 +3,8 @@ local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
 local Camera = game:GetService("Workspace").CurrentCamera
 
 local Root = script.Parent.Parent
-local Flipper = require(Root.Packages.Flipper)
-local Creator = require(Root.Creator)
+local Flipper = require("Flipper")
+local Creator = require("Creator")
 
 local Spring = Flipper.Spring.new
 local Instant = Flipper.Instant.new

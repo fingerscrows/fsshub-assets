@@ -1,7 +1,7 @@
 local Root = script.Parent.Parent
-local Flipper = require(Root.Packages.Flipper)
-local Creator = require(Root.Creator)
-local Acrylic = require(Root.Acrylic)
+local Flipper = require("Flipper")
+local Creator = require("Creator")
+local Acrylic = require("Acrylic")
 
 local Spring = Flipper.Spring.new
 local Instant = Flipper.Instant.new
@@ -112,7 +112,7 @@ function Notification:New(Config)
 		BackgroundTransparency = 1,
 	}, {
 		New("ImageLabel", {
-			Image = require(script.Parent.Assets).Close,
+			Image = require("Components/Assets").Close,
 			Size = UDim2.fromOffset(16, 16),
 			Position = UDim2.fromScale(0.5, 0.5),
 			AnchorPoint = Vector2.new(0.5, 0.5),

@@ -1,6 +1,6 @@
 return function()
-	local SingleMotor = require(script.Parent.SingleMotor)
-	local Linear = require(script.Parent.Linear)
+	local SingleMotor = require("Flipper/SingleMotor")
+	local Linear = require("Flipper/Linear")
 
 	describe("completed state", function()
 		local motor = SingleMotor.new(0, false)

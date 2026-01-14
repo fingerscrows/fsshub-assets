@@ -1,4 +1,4 @@
-local BaseMotor = require(script.Parent.BaseMotor)
+local BaseMotor = require("Flipper/BaseMotor")
 
 local SingleMotor = setmetatable({}, BaseMotor)
 SingleMotor.__index = SingleMotor

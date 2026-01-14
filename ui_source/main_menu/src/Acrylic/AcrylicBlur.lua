@@ -1,6 +1,6 @@
-local Creator = require(script.Parent.Parent.Creator)
-local createAcrylic = require(script.Parent.CreateAcrylic)
-local viewportPointToWorld, getOffset = unpack(require(script.Parent.Utils))
+local Creator = require("Creator")
+local createAcrylic = require("Acrylic/CreateAcrylic")
+local viewportPointToWorld, getOffset = unpack(require("Acrylic/Utils"))
 
 local function createAcrylicBlur(distance)
 	local cleanups = {}

@@ -1,8 +1,8 @@
 return function()
-	local isMotor = require(script.Parent.isMotor)
+	local isMotor = require("Flipper/isMotor")
 
-	local SingleMotor = require(script.Parent.SingleMotor)
-	local GroupMotor = require(script.Parent.GroupMotor)
+	local SingleMotor = require("Flipper/SingleMotor")
+	local GroupMotor = require("Flipper/GroupMotor")
 
 	local singleMotor = SingleMotor.new(0)
 	local groupMotor = GroupMotor.new({})

@@ -1,6 +1,6 @@
 return function()
-	local SingleMotor = require(script.Parent.SingleMotor)
-	local Instant = require(script.Parent.Instant)
+	local SingleMotor = require("Flipper/SingleMotor")
+	local Instant = require("Flipper/Instant")
 
 	it("should assign new state on step", function()
 		local motor = SingleMotor.new(0, false)

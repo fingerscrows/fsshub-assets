@@ -1,6 +1,6 @@
 return function()
-	local SingleMotor = require(script.Parent.SingleMotor)
-	local Spring = require(script.Parent.Spring)
+	local SingleMotor = require("Flipper/SingleMotor")
+	local Spring = require("Flipper/Spring")
 
 	describe("completed state", function()
 		local motor = SingleMotor.new(0, false)

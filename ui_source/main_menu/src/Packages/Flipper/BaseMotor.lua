@@ -1,6 +1,6 @@
 local RunService = game:GetService("RunService")
 
-local Signal = require(script.Parent.Signal)
+local Signal = require("Flipper/Signal")
 
 local noop = function() end
 

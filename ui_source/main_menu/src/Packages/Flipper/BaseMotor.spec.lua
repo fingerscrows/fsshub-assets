@@ -1,7 +1,7 @@
 return function()
 	local RunService = game:GetService("RunService")
 
-	local BaseMotor = require(script.Parent.BaseMotor)
+	local BaseMotor = require("Flipper/BaseMotor")
 
 	describe("connection management", function()
 		local motor = BaseMotor.new()

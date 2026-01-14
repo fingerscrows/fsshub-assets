@@ -1,8 +1,8 @@
 return function()
-	local GroupMotor = require(script.Parent.GroupMotor)
+	local GroupMotor = require("Flipper/GroupMotor")
 
-	local Instant = require(script.Parent.Instant)
-	local Spring = require(script.Parent.Spring)
+	local Instant = require("Flipper/Instant")
+	local Spring = require("Flipper/Spring")
 
 	it("should complete when all child motors are complete", function()
 		local motor = GroupMotor.new({

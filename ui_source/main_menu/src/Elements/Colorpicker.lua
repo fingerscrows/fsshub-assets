@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 local Root = script.Parent.Parent
-local Creator = require(Root.Creator)
+local Creator = require("Creator")
 
 local New = Creator.New
 local Components = Root.Components
@@ -71,7 +71,7 @@ function Element:New(Idx, Config)
 	})
 
 	local function CreateColorDialog()
-		local Dialog = require(Components.Dialog):Create()
+		local Dialog = require("Components/Dialog"):Create()
 		Dialog.Title.Text = Colorpicker.Title
 		Dialog.Root.Size = UDim2.fromOffset(430, 330)
 

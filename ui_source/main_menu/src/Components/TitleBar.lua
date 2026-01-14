@@ -1,7 +1,7 @@
 local Root = script.Parent.Parent
-local Assets = require(script.Parent.Assets)
-local Creator = require(Root.Creator)
-local Flipper = require(Root.Packages.Flipper)
+local Assets = require("Components/Assets")
+local Creator = require("Creator")
+local Flipper = require("Flipper")
 
 local New = Creator.New
 local AddSignal = Creator.AddSignal

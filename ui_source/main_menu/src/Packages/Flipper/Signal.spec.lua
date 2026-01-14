@@ -1,5 +1,5 @@
 return function()
-	local Signal = require(script.Parent.Signal)
+	local Signal = require("Flipper/Signal")
 
 	it("should invoke all connections, instantly", function()
 		local signal = Signal.new()

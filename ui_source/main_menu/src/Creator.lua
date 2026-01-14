@@ -1,6 +1,6 @@
-local Root = script.Parent
-local Themes = require(Root.Themes)
-local Flipper = require(Root.Packages.Flipper)
+-- String-based requires for custom loader compatibility
+local Themes = require("Themes")
+local Flipper = require("Flipper")
 
 local Creator = {
 	Registry = {},

@@ -6,12 +6,11 @@ local TweenService = game:GetService("TweenService")
 local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 
-local Root = script
-local Creator = require(Root.Creator)
-local ElementsTable = require(Root.Elements)
-local Acrylic = require(Root.Acrylic)
-local Components = Root.Components
-local NotificationModule = require(Components.Notification)
+-- String-based requires for custom loader compatibility
+local Creator = require("Creator")
+local ElementsTable = require("Elements")
+local Acrylic = require("Acrylic")
+local NotificationModule = require("Components/Notification")
 
 local New = Creator.New
 
@@ -27,7 +26,7 @@ local Library = {
 
 	OpenFrames = {},
 	Options = {},
-	Themes = require(Root.Themes).Names,
+	Themes = require("Themes").Names,
 
 	Window = nil,
 	WindowFrame = nil,
@@ -79,7 +78,7 @@ function Library:Round(Number, Factor)
 	return Number:find("%.") and tonumber(Number:sub(1, Number:find("%.") + Factor)) or Number
 end
 
-local Icons = require(Root.Icons).assets
+local Icons = require("Icons").assets
 function Library:GetIcon(Name)
 	if Name ~= nil and Icons["lucide-" .. Name] then
 		return Icons["lucide-" .. Name]
@@ -121,7 +120,7 @@ function Library:CreateWindow(Config)
 		return
 	end
 
-	local Window = require(Components.Window)({
+	local Window = require("Components/Window")({
 		Parent = GUI,
 		Size = Config.Size,
 		Title = Config.Title,

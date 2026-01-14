@@ -1,12 +1,12 @@
 local Flipper = {
-	SingleMotor = require(script.SingleMotor),
-	GroupMotor = require(script.GroupMotor),
+	SingleMotor = require("Flipper/SingleMotor"),
+	GroupMotor = require("Flipper/GroupMotor"),
 
-	Instant = require(script.Instant),
-	Linear = require(script.Linear),
-	Spring = require(script.Spring),
+	Instant = require("Flipper/Instant"),
+	Linear = require("Flipper/Linear"),
+	Spring = require("Flipper/Spring"),
 
-	isMotor = require(script.isMotor),
+	isMotor = require("Flipper/isMotor"),
 }
 
 return Flipper

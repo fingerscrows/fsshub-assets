@@ -1,7 +1,7 @@
 local Acrylic = {
-	AcrylicBlur = require(script.AcrylicBlur),
-	CreateAcrylic = require(script.CreateAcrylic),
-	AcrylicPaint = require(script.AcrylicPaint),
+	AcrylicBlur = require("Acrylic/AcrylicBlur"),
+	CreateAcrylic = require("Acrylic/CreateAcrylic"),
+	AcrylicPaint = require("Acrylic/AcrylicPaint"),
 }
 
 function Acrylic.init()

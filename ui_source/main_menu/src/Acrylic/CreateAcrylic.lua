@@ -1,5 +1,5 @@
 local Root = script.Parent.Parent
-local Creator = require(Root.Creator)
+local Creator = require("Creator")
 
 local function createAcrylic()
 	local Part = Creator.New("Part", {

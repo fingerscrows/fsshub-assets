@@ -4,10 +4,10 @@ local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
 local Camera = game:GetService("Workspace").CurrentCamera
 
 local Root = script.Parent.Parent
-local Flipper = require(Root.Packages.Flipper)
-local Creator = require(Root.Creator)
-local Acrylic = require(Root.Acrylic)
-local Assets = require(script.Parent.Assets)
+local Flipper = require("Flipper")
+local Creator = require("Creator")
+local Acrylic = require("Acrylic")
+local Assets = require("Components/Assets")
 local Components = script.Parent
 
 local Spring = Flipper.Spring.new
@@ -114,7 +114,7 @@ return function(Config)
 		ResizeStartFrame,
 	})
 
-	Window.TitleBar = require(script.Parent.TitleBar)({
+	Window.TitleBar = require("Components/TitleBar")({
 		Title = Config.Title,
 		SubTitle = Config.SubTitle,
 		Parent = Window.Root,
@@ -321,7 +321,7 @@ return function(Config)
 		Window.Root:Destroy()
 	end
 
-	local DialogModule = require(Components.Dialog):Init(Window)
+	local DialogModule = require("Components/Dialog"):Init(Window)
 	function Window:Dialog(Config)
 		local Dialog = DialogModule:Create()
 		Dialog.Title.Text = Config.Title
@@ -363,7 +363,7 @@ return function(Config)
 		Dialog:Open()
 	end
 
-	local TabModule = require(Components.Tab):Init(Window)
+	local TabModule = require("Components/Tab"):Init(Window)
 	function Window:AddTab(TabConfig)
 		return TabModule:New(TabConfig.Title, TabConfig.Icon, Window.TabHolder)
 	end

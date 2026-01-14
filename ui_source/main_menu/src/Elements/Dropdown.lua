@@ -4,8 +4,8 @@ local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
 local Camera = game:GetService("Workspace").CurrentCamera
 
 local Root = script.Parent.Parent
-local Creator = require(Root.Creator)
-local Flipper = require(Root.Packages.Flipper)
+local Creator = require("Creator")
+local Flipper = require("Flipper")
 
 local New = Creator.New
 local Components = Root.Components

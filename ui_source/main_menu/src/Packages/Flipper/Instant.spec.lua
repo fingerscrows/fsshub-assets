@@ -1,5 +1,5 @@
 return function()
-	local Instant = require(script.Parent.Instant)
+	local Instant = require("Flipper/Instant")
 
 	it("should return a completed state with the provided value", function()
 		local goal = Instant.new(1.23)
