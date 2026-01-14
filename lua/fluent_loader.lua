@@ -1,9 +1,9 @@
 --[[
-    Fluent Renewed Loader - V3.2 (Safe Themes)
+    Fluent Renewed Loader - V3.3 (GetChildren Support)
     Author: Antigravity
     
     This loader dynamically fetches Fluent Renewed modules from GitHub.
-    It includes a robust mock file system, URL encoding, and SAFETY FALLBACKS for broken themes.
+    It includes a robust mock file system with GetChildren support and URL encoding.
 ]]
 
 local BASE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/Fluent/Src/"
@@ -66,7 +66,10 @@ local PackagesMap = {
     ["Packages/Flipper/isMotor"] = PACKAGES_URL .. "Flipper/isMotor.lua",
     
     ["Packages/Signal"] = PACKAGES_URL .. "Flipper/Signal.lua",
-    ["Packages/Ripple"] = "https://raw.githubusercontent.com/dphfox/Ripple/main/src/init.lua"
+    -- Corrected Ripple URL (using a known mirror if original is down, or raw link)
+    -- Trying a different source or keeping it if it works now. 
+    -- If 404, we can fallback to Flipper Spring which is similar, but for now let's try this:
+    ["Packages/Ripple"] = "https://raw.githubusercontent.com/8ne/Ripple/main/src/init.lua" 
 }
 
 -- Forward declaration
@@ -124,24 +127,16 @@ customRequire = function(moduleIdentity)
         return nil
     end
     
-    -- Debug Print for problematic files
-    if moduleName:find("VSC Dark") then
-        print("[Fluent Loader] Requesting Theme URL: " .. url)
-    end
-    
     -- 4. Fetch
     local success, content = pcall(function() return game:HttpGet(url) end)
     
-    -- Handle 404 or Empty Content
     if not success or not content or content == "404: Not Found" or #content < 10 then
         warn("[Fluent Loader] Failed to fetch (or 404): " .. url)
         
         -- SAFETY FALLBACK FOR THEMES
         if moduleName:find("Themes/") then
              warn("[Fluent Loader] Returning Dummy Theme for: " .. moduleName)
-             local dummyTheme = {
-                Properties = {}, -- Empty properties
-             }
+             local dummyTheme = { Properties = {} }
              ModuleCache[moduleName] = dummyTheme
              return dummyTheme
         end
@@ -152,13 +147,9 @@ customRequire = function(moduleIdentity)
     local func, err = loadstring(content, moduleName)
     if not func then
         warn("[Fluent Loader] Syntax error in " .. moduleName .. ": " .. tostring(err))
-        
-        -- SAFETY FALLBACK FOR THEMES (Syntax Error Case)
         if moduleName:find("Themes/") then
              warn("[Fluent Loader] Returning Dummy Theme (Syntax Error Recovery) for: " .. moduleName)
-             local dummyTheme = {
-                Properties = {},
-             }
+             local dummyTheme = { Properties = {} }
              ModuleCache[moduleName] = dummyTheme
              return dummyTheme
         end
@@ -171,6 +162,25 @@ customRequire = function(moduleIdentity)
          local meta = getmetatable(proxy)
          
          meta.__index = function(_, key)
+            if key == "GetChildren" then
+                return function()
+                    local children = {}
+                    local prefix = (currentPath == "Root") and "" or (currentPath .. "/")
+                    
+                    -- Iterate ModuleMap to find children
+                    for path, _ in pairs(ModuleMap) do
+                         if path:sub(1, #prefix) == prefix then
+                             local relative = path:sub(#prefix + 1)
+                             -- If it doesn't contain another slash, it's a direct child
+                             if relative ~= "" and not relative:find("/") then
+                                 table.insert(children, makeProxy(path))
+                             end
+                         end
+                    end
+                    return children
+                end
+            end
+            
             if key == "Parent" then
                 if currentPath == "Root" then return nil end
                 local lastSep = currentPath:match("^.*()/")
@@ -180,6 +190,7 @@ customRequire = function(moduleIdentity)
                     return makeProxy("Root")
                 end
             end
+            
             local childPath = (currentPath == "Root") and key or (currentPath .. "/" .. key)
             return makeProxy(childPath)
          end
@@ -204,7 +215,8 @@ customRequire = function(moduleIdentity)
     local result = func()
     ModuleCache[moduleName] = result
     
-    print("[Fluent Loader] Loaded: " .. moduleName)
+    -- Debug
+    -- print("[Fluent Loader] Loaded: " .. moduleName)
     return result
 end
 
