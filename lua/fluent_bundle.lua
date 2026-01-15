@@ -6,6 +6,84 @@
 local __MODULES = {}
 local __CACHE = {}
 
+
+-- Create script proxy for Roblox-style requires (script.Parent, script.Components, etc.)
+local function createScriptProxy(path)
+    local proxy = newproxy(true)
+    local meta = getmetatable(proxy)
+    
+    meta.__index = function(_, key)
+        if key == "Parent" then
+            if path == "Root" then return nil end
+            local lastSep = path:match("^.*()/")
+            if lastSep then
+                return createScriptProxy(path:sub(1, lastSep - 1))
+            else
+                return createScriptProxy("Root")
+            end
+        end
+        
+        -- Return a new proxy for the child, blindly assuming it might exist as a directory or file
+        local childPath = (path == "Root") and key or (path .. "/" .. key)
+        return createScriptProxy(childPath)
+    end
+    
+    meta.__tostring = function()
+        return path
+    end
+    
+    return proxy
+end
+
+-- Custom require function
+local function __REQUIRE(modulePath)
+    -- Normalize path to find in __MODULES
+    local key = tostring(modulePath)
+    key = key:gsub("^Root/", "")
+    key = key:gsub("^Root$", "Root")
+    
+    -- Handle script references from Roblox-style code (userdata proxies)
+    if type(modulePath) == "userdata" then
+        key = tostring(modulePath)
+        key = key:gsub("Root%.", ""):gsub("Root/", "")
+        -- Remove "Root" if it's just "Root"
+        if key == "Root" then key = "Root" end
+    end
+
+    -- Correction for "Root/Components" -> "Components" mapping if needed
+    -- Our modules are stored as "Components/Button" not "Root/Components/Button"
+    -- So we just strip "Root/" prefix if present.
+
+    -- Check cache
+    if __CACHE[key] ~= nil then
+        return __CACHE[key]
+    end
+    
+    -- Try to load module
+    local loader = __MODULES[key]
+    if not loader then
+        -- Search for fuzzy match or init
+        -- e.g. required "Authors" but we have "Authors" module or "Authors/init"
+        -- Actually, logic should be simpler: direct lookup first
+        
+        if not loader then
+             -- Try init (e.g. required "Elements", looking for "Elements/init" -> stored as "Elements") -- wait, we store init as parent name
+             -- We stored "Elements/init.luau" as "Elements" already in readModulesRecursively
+             
+             -- Debugging help
+             -- print("Bundler: Module not found directly: " .. key)
+        end
+    end
+    
+    if not loader then
+        error("Module not found: " .. tostring(modulePath) .. " (Keys: " .. key .. ")")
+    end
+    
+    local result = loader()
+    __CACHE[key] = result
+    return result
+end
+
 __MODULES["Components/Assets"] = function()
     local __MODULE_SOURCE = [[return { 
 	Close = "rbxassetid://9886659671",
@@ -15,7 +93,13 @@ __MODULES["Components/Assets"] = function()
 }
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Assets")
-    if not __fn then error("Module compile error in Components/Assets: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/Assets: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/Assets"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -99,7 +183,13 @@ return function(Theme, Parent, DialogCheck)
 end
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Button")
-    if not __fn then error("Module compile error in Components/Button: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/Button: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/Button"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -272,7 +362,13 @@ end
 return Dialog
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Dialog")
-    if not __fn then error("Module compile error in Components/Dialog: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/Dialog: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/Dialog"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -426,7 +522,13 @@ return function(Title, Desc, Parent, Hover, Config)
 end
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Element")
-    if not __fn then error("Module compile error in Components/Element: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/Element: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/Element"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -653,7 +755,13 @@ end
 return Notification
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Notification")
-    if not __fn then error("Module compile error in Components/Notification: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/Notification: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/Notification"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -712,7 +820,13 @@ return function(Title, Parent)
 end
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Section")
-    if not __fn then error("Module compile error in Components/Section: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/Section: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/Section"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -932,7 +1046,13 @@ end
 return TabModule
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Tab")
-    if not __fn then error("Module compile error in Components/Tab: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/Tab: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/Tab"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -1060,7 +1180,13 @@ return function(Parent, Acrylic)
 end
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Textbox")
-    if not __fn then error("Module compile error in Components/Textbox: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/Textbox: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/Textbox"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -1307,7 +1433,13 @@ return function(Config)
 end
 ]=]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/TitleBar")
-    if not __fn then error("Module compile error in Components/TitleBar: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/TitleBar: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/TitleBar"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -1815,7 +1947,13 @@ return function(Config)
 end
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Window")
-    if not __fn then error("Module compile error in Components/Window: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Components/Window: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Components/Window"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -1863,7 +2001,13 @@ end
 return Element
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Button")
-    if not __fn then error("Module compile error in Elements/Button: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Elements/Button: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Elements/Button"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -2445,7 +2589,13 @@ end
 
 return Element]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Colorpicker")
-    if not __fn then error("Module compile error in Elements/Colorpicker: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Elements/Colorpicker: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Elements/Colorpicker"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -3045,7 +3195,13 @@ end
 return Element
 ]=]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Dropdown")
-    if not __fn then error("Module compile error in Elements/Dropdown: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Elements/Dropdown: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Elements/Dropdown"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -3059,7 +3215,13 @@ end
 return Elements
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Elements")
-    if not __fn then error("Module compile error in Elements: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Elements: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Elements"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -3169,7 +3331,13 @@ end
 return Element
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Input")
-    if not __fn then error("Module compile error in Elements/Input: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Elements/Input: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Elements/Input"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -3399,7 +3567,13 @@ end
 return Element
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Keybind")
-    if not __fn then error("Module compile error in Elements/Keybind: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Elements/Keybind: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Elements/Keybind"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -3482,7 +3656,13 @@ end
 return Element
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Paragraph")
-    if not __fn then error("Module compile error in Elements/Paragraph: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Elements/Paragraph: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Elements/Paragraph"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -3669,7 +3849,13 @@ end
 return Element
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Slider")
-    if not __fn then error("Module compile error in Elements/Slider: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Elements/Slider: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Elements/Slider"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -4022,7 +4208,13 @@ end
 return Element
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Toggle")
-    if not __fn then error("Module compile error in Elements/Toggle: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Elements/Toggle: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Elements/Toggle"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -4453,7 +4645,13 @@ end
 return Library
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Root")
-    if not __fn then error("Module compile error in Root: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Root: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Root"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -4576,7 +4774,13 @@ return function(distance)
 end
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic/AcrylicBlur")
-    if not __fn then error("Module compile error in Modules/Acrylic/AcrylicBlur: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Modules/Acrylic/AcrylicBlur: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Modules/Acrylic/AcrylicBlur"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -4703,7 +4907,13 @@ return function(props)
 end
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic/AcrylicPaint")
-    if not __fn then error("Module compile error in Modules/Acrylic/AcrylicPaint: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Modules/Acrylic/AcrylicPaint: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Modules/Acrylic/AcrylicPaint"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -4735,7 +4945,13 @@ end
 return createAcrylic
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic/CreateAcrylic")
-    if not __fn then error("Module compile error in Modules/Acrylic/CreateAcrylic: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Modules/Acrylic/CreateAcrylic: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Modules/Acrylic/CreateAcrylic"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -4793,7 +5009,13 @@ end
 return Acrylic
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic")
-    if not __fn then error("Module compile error in Modules/Acrylic: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Modules/Acrylic: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Modules/Acrylic"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -4815,7 +5037,13 @@ end
 return { viewportPointToWorld, getOffset }
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic/Utils")
-    if not __fn then error("Module compile error in Modules/Acrylic/Utils: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Modules/Acrylic/Utils: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Modules/Acrylic/Utils"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -5050,7 +5278,13 @@ end
 return Creator
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Creator")
-    if not __fn then error("Module compile error in Modules/Creator: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Modules/Creator: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Modules/Creator"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58241,7 +58475,13 @@ return {
 	}
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Icons")
-    if not __fn then error("Module compile error in Modules/Icons: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Modules/Icons: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Modules/Icons"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58303,7 +58543,13 @@ end
 return BaseMotor
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/BaseMotor")
-    if not __fn then error("Module compile error in Packages/Flipper/BaseMotor: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Flipper/BaseMotor: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Flipper/BaseMotor"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58420,7 +58666,13 @@ end
 return GroupMotor
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/GroupMotor")
-    if not __fn then error("Module compile error in Packages/Flipper/GroupMotor: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Flipper/GroupMotor: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Flipper/GroupMotor"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58439,7 +58691,13 @@ __MODULES["Packages/Flipper"] = function()
 return Flipper
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper")
-    if not __fn then error("Module compile error in Packages/Flipper: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Flipper: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Flipper"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58463,7 +58721,13 @@ end
 return Instant
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/Instant")
-    if not __fn then error("Module compile error in Packages/Flipper/Instant: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Flipper/Instant: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Flipper/Instant"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58481,7 +58745,13 @@ end
 return isMotor
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/isMotor")
-    if not __fn then error("Module compile error in Packages/Flipper/isMotor: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Flipper/isMotor: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Flipper/isMotor"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58524,7 +58794,13 @@ end
 return Linear
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/Linear")
-    if not __fn then error("Module compile error in Packages/Flipper/Linear: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Flipper/Linear: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Flipper/Linear"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58589,7 +58865,13 @@ end
 return Signal
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/Signal")
-    if not __fn then error("Module compile error in Packages/Flipper/Signal: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Flipper/Signal: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Flipper/Signal"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58663,7 +58945,13 @@ end
 return SingleMotor
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/SingleMotor")
-    if not __fn then error("Module compile error in Packages/Flipper/SingleMotor: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Flipper/SingleMotor: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Flipper/SingleMotor"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58777,7 +59065,13 @@ end
 return Spring
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/Spring")
-    if not __fn then error("Module compile error in Packages/Flipper/Spring: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Flipper/Spring: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Flipper/Spring"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58807,7 +59101,13 @@ setmetatable(Ripple, {
 return Ripple
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Ripple")
-    if not __fn then error("Module compile error in Packages/Ripple: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Ripple: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Ripple"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58872,7 +59172,13 @@ end
 return Signal
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Signal")
-    if not __fn then error("Module compile error in Packages/Signal: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Packages/Signal: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Packages/Signal"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58924,7 +59230,13 @@ __MODULES["Themes/Abyss"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Abyss")
-    if not __fn then error("Module compile error in Themes/Abyss: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Abyss: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Abyss"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -58976,7 +59288,13 @@ __MODULES["Themes/Adapta Nokto"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Adapta Nokto")
-    if not __fn then error("Module compile error in Themes/Adapta Nokto: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Adapta Nokto: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Adapta Nokto"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59028,7 +59346,13 @@ __MODULES["Themes/Ambiance"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Ambiance")
-    if not __fn then error("Module compile error in Themes/Ambiance: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Ambiance: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Ambiance"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59080,7 +59404,13 @@ __MODULES["Themes/Amethyst Dark"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Amethyst Dark")
-    if not __fn then error("Module compile error in Themes/Amethyst Dark: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Amethyst Dark: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Amethyst Dark"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59133,7 +59463,13 @@ __MODULES["Themes/Amethyst"] = function()
 }
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Amethyst")
-    if not __fn then error("Module compile error in Themes/Amethyst: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Amethyst: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Amethyst"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59186,7 +59522,13 @@ __MODULES["Themes/Aqua"] = function()
 }
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Aqua")
-    if not __fn then error("Module compile error in Themes/Aqua: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Aqua: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Aqua"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59238,7 +59580,13 @@ __MODULES["Themes/Arc Dark"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Arc Dark")
-    if not __fn then error("Module compile error in Themes/Arc Dark: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Arc Dark: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Arc Dark"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59290,7 +59638,13 @@ __MODULES["Themes/Dark Typewriter"] = function()
     HoverChange = 0.04
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Dark Typewriter")
-    if not __fn then error("Module compile error in Themes/Dark Typewriter: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Dark Typewriter: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Dark Typewriter"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59343,7 +59697,13 @@ __MODULES["Themes/Dark"] = function()
 }
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Dark")
-    if not __fn then error("Module compile error in Themes/Dark: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Dark: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Dark"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59379,7 +59739,13 @@ __MODULES["Themes/Darker"] = function()
 }
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Darker")
-    if not __fn then error("Module compile error in Themes/Darker: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Darker: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Darker"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59431,7 +59797,13 @@ __MODULES["Themes/DuoTone Dark Earth"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Earth")
-    if not __fn then error("Module compile error in Themes/DuoTone Dark Earth: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/DuoTone Dark Earth: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/DuoTone Dark Earth"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59483,7 +59855,13 @@ __MODULES["Themes/DuoTone Dark Forest"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Forest")
-    if not __fn then error("Module compile error in Themes/DuoTone Dark Forest: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/DuoTone Dark Forest: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/DuoTone Dark Forest"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59535,7 +59913,13 @@ __MODULES["Themes/DuoTone Dark Sea"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Sea")
-    if not __fn then error("Module compile error in Themes/DuoTone Dark Sea: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/DuoTone Dark Sea: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/DuoTone Dark Sea"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59587,7 +59971,13 @@ __MODULES["Themes/DuoTone Dark Sky"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Sky")
-    if not __fn then error("Module compile error in Themes/DuoTone Dark Sky: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/DuoTone Dark Sky: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/DuoTone Dark Sky"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59639,7 +60029,13 @@ __MODULES["Themes/DuoTone Dark Space"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Space")
-    if not __fn then error("Module compile error in Themes/DuoTone Dark Space: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/DuoTone Dark Space: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/DuoTone Dark Space"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59691,7 +60087,13 @@ __MODULES["Themes/Elementary"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Elementary")
-    if not __fn then error("Module compile error in Themes/Elementary: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Elementary: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Elementary"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59743,7 +60145,13 @@ __MODULES["Themes/GitHub Dark Colorblind"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark Colorblind")
-    if not __fn then error("Module compile error in Themes/GitHub Dark Colorblind: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/GitHub Dark Colorblind: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/GitHub Dark Colorblind"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59795,7 +60203,13 @@ __MODULES["Themes/GitHub Dark Default"] = function()
     HoverChange = 0.1 
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark Default")
-    if not __fn then error("Module compile error in Themes/GitHub Dark Default: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/GitHub Dark Default: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/GitHub Dark Default"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59847,7 +60261,13 @@ __MODULES["Themes/GitHub Dark Dimmed"] = function()
     HoverChange = 0.1 
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark Dimmed")
-    if not __fn then error("Module compile error in Themes/GitHub Dark Dimmed: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/GitHub Dark Dimmed: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/GitHub Dark Dimmed"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59901,7 +60321,13 @@ __MODULES["Themes/GitHub Dark High Contrast"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark High Contrast")
-    if not __fn then error("Module compile error in Themes/GitHub Dark High Contrast: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/GitHub Dark High Contrast: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/GitHub Dark High Contrast"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -59953,7 +60379,13 @@ __MODULES["Themes/GitHub Dark"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark")
-    if not __fn then error("Module compile error in Themes/GitHub Dark: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/GitHub Dark: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/GitHub Dark"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60005,7 +60437,13 @@ __MODULES["Themes/GitHub Light Colorblind"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Light Colorblind")
-    if not __fn then error("Module compile error in Themes/GitHub Light Colorblind: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/GitHub Light Colorblind: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/GitHub Light Colorblind"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60058,7 +60496,13 @@ __MODULES["Themes/GitHub Light Default"] = function()
     HoverChange = 0.1  -- A subtle hover effect
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Light Default")
-    if not __fn then error("Module compile error in Themes/GitHub Light Default: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/GitHub Light Default: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/GitHub Light Default"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60110,7 +60554,13 @@ __MODULES["Themes/GitHub Light High Contrast"] = function()
     HoverChange = 0.1 -- Slightly more pronounced hover effect
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Light High Contrast")
-    if not __fn then error("Module compile error in Themes/GitHub Light High Contrast: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/GitHub Light High Contrast: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/GitHub Light High Contrast"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60162,7 +60612,13 @@ __MODULES["Themes/GitHub Light"] = function()
     HoverChange = 0.1 -- Slightly more pronounced hover effect
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Light")
-    if not __fn then error("Module compile error in Themes/GitHub Light: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/GitHub Light: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/GitHub Light"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60243,7 +60699,13 @@ end
 return Themes
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes")
-    if not __fn then error("Module compile error in Themes: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60295,7 +60757,13 @@ __MODULES["Themes/Kimbie Dark"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Kimbie Dark")
-    if not __fn then error("Module compile error in Themes/Kimbie Dark: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Kimbie Dark: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Kimbie Dark"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60348,7 +60816,13 @@ __MODULES["Themes/Light"] = function()
 }
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Light")
-    if not __fn then error("Module compile error in Themes/Light: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Light: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Light"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60400,7 +60874,13 @@ __MODULES["Themes/Monokai Classic"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Monokai Classic")
-    if not __fn then error("Module compile error in Themes/Monokai Classic: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Monokai Classic: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Monokai Classic"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60452,7 +60932,13 @@ __MODULES["Themes/Monokai Dimmed"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Monokai Dimmed")
-    if not __fn then error("Module compile error in Themes/Monokai Dimmed: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Monokai Dimmed: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Monokai Dimmed"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60504,7 +60990,13 @@ __MODULES["Themes/Monokai Vibrant"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Monokai Vibrant")
-    if not __fn then error("Module compile error in Themes/Monokai Vibrant: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Monokai Vibrant: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Monokai Vibrant"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60556,7 +61048,13 @@ __MODULES["Themes/Monokai"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Monokai")
-    if not __fn then error("Module compile error in Themes/Monokai: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Monokai: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Monokai"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60608,7 +61106,13 @@ __MODULES["Themes/Quiet Light"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Quiet Light")
-    if not __fn then error("Module compile error in Themes/Quiet Light: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Quiet Light: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Quiet Light"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60661,7 +61165,13 @@ __MODULES["Themes/Rose"] = function()
 }
 ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Rose")
-    if not __fn then error("Module compile error in Themes/Rose: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Rose: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Rose"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60713,7 +61223,13 @@ __MODULES["Themes/Solarized Dark"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Solarized Dark")
-    if not __fn then error("Module compile error in Themes/Solarized Dark: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Solarized Dark: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Solarized Dark"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60765,7 +61281,13 @@ __MODULES["Themes/Solarized Light"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Solarized Light")
-    if not __fn then error("Module compile error in Themes/Solarized Light: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Solarized Light: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Solarized Light"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60817,7 +61339,13 @@ __MODULES["Themes/Tomorrow Night Blue"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Tomorrow Night Blue")
-    if not __fn then error("Module compile error in Themes/Tomorrow Night Blue: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Tomorrow Night Blue: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Tomorrow Night Blue"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60869,7 +61397,13 @@ __MODULES["Themes/Typewriter"] = function()
     HoverChange = 0.04
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Typewriter")
-    if not __fn then error("Module compile error in Themes/Typewriter: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Typewriter: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Typewriter"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60921,7 +61455,13 @@ __MODULES["Themes/United GNOME"] = function()
     HoverChange = 0.05
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/United GNOME")
-    if not __fn then error("Module compile error in Themes/United GNOME: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/United GNOME: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/United GNOME"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -60973,7 +61513,13 @@ __MODULES["Themes/United Ubuntu"] = function()
     HoverChange = 0.05
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/United Ubuntu")
-    if not __fn then error("Module compile error in Themes/United Ubuntu: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/United Ubuntu: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/United Ubuntu"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61025,7 +61571,13 @@ __MODULES["Themes/Viow Arabian Mix"] = function()
     HoverChange = 0.05
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Arabian Mix")
-    if not __fn then error("Module compile error in Themes/Viow Arabian Mix: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Viow Arabian Mix: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Viow Arabian Mix"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61077,7 +61629,13 @@ __MODULES["Themes/Viow Arabian"] = function()
     HoverChange = 0.05
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Arabian")
-    if not __fn then error("Module compile error in Themes/Viow Arabian: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Viow Arabian: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Viow Arabian"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61129,7 +61687,13 @@ __MODULES["Themes/Viow Darker"] = function()
     HoverChange = 0.05
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Darker")
-    if not __fn then error("Module compile error in Themes/Viow Darker: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Viow Darker: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Viow Darker"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61181,7 +61745,13 @@ __MODULES["Themes/Viow Flat"] = function()
     HoverChange = 0.05
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Flat")
-    if not __fn then error("Module compile error in Themes/Viow Flat: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Viow Flat: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Viow Flat"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61233,7 +61803,13 @@ __MODULES["Themes/Viow Light"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Light")
-    if not __fn then error("Module compile error in Themes/Viow Light: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Viow Light: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Viow Light"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61285,7 +61861,13 @@ __MODULES["Themes/Viow Mars"] = function()
     HoverChange = 0.05
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Mars")
-    if not __fn then error("Module compile error in Themes/Viow Mars: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Viow Mars: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Viow Mars"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61337,7 +61919,13 @@ __MODULES["Themes/Viow Neon"] = function()
     HoverChange = 0.05
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Neon")
-    if not __fn then error("Module compile error in Themes/Viow Neon: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Viow Neon: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Viow Neon"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61389,7 +61977,13 @@ __MODULES["Themes/VS Dark"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VS Dark")
-    if not __fn then error("Module compile error in Themes/VS Dark: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/VS Dark: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/VS Dark"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61441,7 +62035,13 @@ __MODULES["Themes/VS Light"] = function()
     HoverChange = 0.1
 } ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VS Light")
-    if not __fn then error("Module compile error in Themes/VS Light: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/VS Light: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/VS Light"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61493,7 +62093,13 @@ __MODULES["Themes/VSC Dark High Contrast"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Dark High Contrast")
-    if not __fn then error("Module compile error in Themes/VSC Dark High Contrast: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/VSC Dark High Contrast: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/VSC Dark High Contrast"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61545,7 +62151,13 @@ __MODULES["Themes/VSC Dark Modern"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Dark Modern")
-    if not __fn then error("Module compile error in Themes/VSC Dark Modern: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/VSC Dark Modern: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/VSC Dark Modern"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61597,7 +62209,13 @@ __MODULES["Themes/VSC Dark+"] = function()
     HoverChange = 0.05
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Dark+")
-    if not __fn then error("Module compile error in Themes/VSC Dark+: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/VSC Dark+: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/VSC Dark+"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61649,7 +62267,13 @@ __MODULES["Themes/VSC Light High Contrast"] = function()
     HoverChange = 0.1
 } ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Light High Contrast")
-    if not __fn then error("Module compile error in Themes/VSC Light High Contrast: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/VSC Light High Contrast: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/VSC Light High Contrast"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61701,7 +62325,13 @@ __MODULES["Themes/VSC Light Modern"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Light Modern")
-    if not __fn then error("Module compile error in Themes/VSC Light Modern: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/VSC Light Modern: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/VSC Light Modern"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61753,7 +62383,13 @@ __MODULES["Themes/VSC Light+"] = function()
     HoverChange = 0.1
 } ]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Light+")
-    if not __fn then error("Module compile error in Themes/VSC Light+: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/VSC Light+: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/VSC Light+"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61805,7 +62441,13 @@ __MODULES["Themes/VSC Red"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Red")
-    if not __fn then error("Module compile error in Themes/VSC Red: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/VSC Red: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/VSC Red"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61840,7 +62482,13 @@ __MODULES["Themes/Vynixu"] = function()
 	DialogInputLine = Color3.fromRGB(120, 120, 120)
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Vynixu")
-    if not __fn then error("Module compile error in Themes/Vynixu: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Vynixu: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Vynixu"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61892,7 +62540,13 @@ __MODULES["Themes/Yaru Dark"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Yaru Dark")
-    if not __fn then error("Module compile error in Themes/Yaru Dark: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Yaru Dark: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Yaru Dark"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
@@ -61944,95 +62598,14 @@ __MODULES["Themes/Yaru"] = function()
     HoverChange = 0.1
 }]]
     local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Yaru")
-    if not __fn then error("Module compile error in Themes/Yaru: " .. tostring(__err)) end
+    if not __fn then error("Compile error in Themes/Yaru: " .. tostring(__err)) end
+    -- Create environment with proxy script and overridden require
+    local env = setmetatable({
+        script = createScriptProxy("Themes/Yaru"),
+        require = function(mod) return __REQUIRE(mod) end
+    }, { __index = getfenv() })
+    setfenv(__fn, env)
     return __fn()
 end
 
-
-local function __REQUIRE(modulePath)
-    -- Normalize path
-    local key = tostring(modulePath)
-    key = key:gsub("^Root/", "")
-    
-    -- Handle script references from Roblox-style code
-    if type(modulePath) == "userdata" then
-        key = tostring(modulePath)
-        key = key:gsub("Root%.", ""):gsub("Root/", "")
-    end
-    
-    -- Check cache
-    if __CACHE[key] ~= nil then
-        return __CACHE[key]
-    end
-    
-    -- Try to load module
-    local loader = __MODULES[key]
-    if not loader then
-        -- Try with different variations
-        for moduleKey, _ in pairs(__MODULES) do
-            if moduleKey:match(key .. "$") or key:match(moduleKey .. "$") then
-                loader = __MODULES[moduleKey]
-                key = moduleKey
-                break
-            end
-        end
-    end
-    
-    if not loader then
-        error("Module not found: " .. tostring(modulePath))
-    end
-    
-    local result = loader()
-    __CACHE[key] = result
-    return result
-end
-
--- Override globals for module context
-local originalRequire = require
-
--- Create script proxy for Roblox-style requires
-local function createScriptProxy(currentPath)
-    local proxy = newproxy(true)
-    local meta = getmetatable(proxy)
-    
-    meta.__index = function(_, key)
-        if key == "Parent" then
-            if currentPath == "Root" then return nil end
-            local lastSep = currentPath:match("^.*()/")
-            if lastSep then
-                return createScriptProxy(currentPath:sub(1, lastSep - 1))
-            else
-                return createScriptProxy("Root")
-            end
-        end
-        
-        local childPath = (currentPath == "Root") and key or (currentPath .. "/" .. key)
-        return createScriptProxy(childPath)
-    end
-    
-    meta.__tostring = function()
-        return currentPath
-    end
-    
-    return proxy
-end
-
--- Load and return the main Fluent module
-local scriptProxy = createScriptProxy("Root")
-
--- Set up environment for the main module
-local mainModuleEnv = setmetatable({
-    script = scriptProxy,
-    require = function(mod)
-        return __REQUIRE(tostring(mod))
-    end
-}, { __index = getfenv() })
-
--- Execute main module
-local mainSource = __MODULES["Root"]
-if not mainSource then
-    error("Root module not found in bundle")
-end
-
--- Return the Fluent library
 return __REQUIRE("Root")
