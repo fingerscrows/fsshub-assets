@@ -1,17 +1,16 @@
 --[[
-    Fluent Renewed Loader - V4.0.5 (Optimized Bundle + Local Cache + Pre-load Support)
+    Fluent Renewed Loader - V4.0.6 (Optimized Bundle + Local Cache + Pre-load Support)
     
     This loader fetches the pre-bundled Fluent UI library from GitHub.
     It also caches the bundle locally on the executor for instant subsequent loads.
     
-    V4.0.5 Changes:
+    V4.0.6 Changes:
+    - Bundle Optimization: Replaced runtime loadstring with function wrapping (Critical Perf Fix)
     - Support for payload pre-loading (parallel download optimization)
     - Uses pre-bundled fluent_bundle.lua (all 97 modules in one file)
-    - Local file caching for instant subsequent loads
-    - ~90% faster than dynamic module loading
 ]]
 
-local CACHE_VERSION = "v4.0.5"
+local CACHE_VERSION = "v4.0.6"
 local BUNDLE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_bundle.lua?v=" .. CACHE_VERSION
 local CACHE_FILE = "fsshub_cache/fluent_" .. CACHE_VERSION .. ".lua"
 

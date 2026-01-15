@@ -156,15 +156,16 @@ local function __REQUIRE(modulePath)
 end
 
 __MODULES["Components/Assets"] = function()
-    local __MODULE_SOURCE = [[return { 
+    local __fn = function()
+        return { 
 	Close = "rbxassetid://9886659671",
 	Min = "rbxassetid://9886659276",
 	Max = "rbxassetid://9886659406",
 	Restore = "rbxassetid://9886659001",
 }
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Assets")
-    if not __fn then error("Compile error in Components/Assets: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/Assets"),
@@ -175,7 +176,8 @@ __MODULES["Components/Assets"] = function()
 end
 
 __MODULES["Components/Button"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
 local Creator = require(Root.Modules.Creator)
 local New = Creator.New
@@ -252,9 +254,9 @@ return function(Theme, Parent, DialogCheck)
 
 	return Button
 end
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Button")
-    if not __fn then error("Compile error in Components/Button: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/Button"),
@@ -265,7 +267,8 @@ end
 end
 
 __MODULES["Components/Dialog"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
 local Button_Component = require(Root.Components.Button)
 local Signal = require(Root.Packages.Signal)
@@ -431,9 +434,9 @@ function Dialog:Create()
 end
 
 return Dialog
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Dialog")
-    if not __fn then error("Compile error in Components/Dialog: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/Dialog"),
@@ -444,7 +447,8 @@ return Dialog
 end
 
 __MODULES["Components/Element"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
 local New = Creator.New
 
@@ -591,9 +595,9 @@ return function(Title, Desc, Parent, Hover, Config)
 		end
 	})
 end
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Element")
-    if not __fn then error("Compile error in Components/Element: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/Element"),
@@ -604,7 +608,8 @@ end
 end
 
 __MODULES["Components/Notification"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 
 local Flipper = require(Root.Packages.Flipper)
 local Creator = require(Root.Modules.Creator)
@@ -824,9 +829,9 @@ function Notification:New(Config)
 end
 
 return Notification
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Notification")
-    if not __fn then error("Compile error in Components/Notification: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/Notification"),
@@ -837,7 +842,8 @@ return Notification
 end
 
 __MODULES["Components/Section"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
 
 local New = Creator.New
@@ -889,9 +895,9 @@ return function(Title, Parent)
 
 	return Section
 end
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Section")
-    if not __fn then error("Compile error in Components/Section: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/Section"),
@@ -902,7 +908,8 @@ end
 end
 
 __MODULES["Components/Tab"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
 local Creator = require(Root.Modules.Creator)
 
@@ -1115,9 +1122,9 @@ function TabModule:SelectTab(Tab)
 end
 
 return TabModule
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Tab")
-    if not __fn then error("Compile error in Components/Tab: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/Tab"),
@@ -1128,7 +1135,8 @@ return TabModule
 end
 
 __MODULES["Components/Textbox"] = function()
-    local __MODULE_SOURCE = [[local TextService = game:GetService("TextService")
+    local __fn = function()
+        local TextService = game:GetService("TextService")
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
 local Creator = require(Root.Modules.Creator)
@@ -1249,9 +1257,9 @@ return function(Parent, Acrylic)
 
 	return Textbox
 end
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Textbox")
-    if not __fn then error("Compile error in Components/Textbox: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/Textbox"),
@@ -1262,7 +1270,8 @@ end
 end
 
 __MODULES["Components/TitleBar"] = function()
-    local __MODULE_SOURCE = [=[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
 
 local New = Creator.New
@@ -1502,9 +1511,9 @@ return function(Config)
 
 	return TitleBar
 end
-]=]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/TitleBar")
-    if not __fn then error("Compile error in Components/TitleBar: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/TitleBar"),
@@ -1515,7 +1524,8 @@ end
 end
 
 __MODULES["Components/Window"] = function()
-    local __MODULE_SOURCE = [[-- a wise man once said: "i will rewrite this someday"
+    local __fn = function()
+        -- a wise man once said: "i will rewrite this someday"
 
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
@@ -2016,9 +2026,9 @@ return function(Config)
 
 	return Window
 end
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Components/Window")
-    if not __fn then error("Compile error in Components/Window: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Components/Window"),
@@ -2029,7 +2039,8 @@ end
 end
 
 __MODULES["Elements/Button"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
  
 local New = Creator.New
@@ -2070,9 +2081,9 @@ function Element:New(Config)
 end
 
 return Element
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Button")
-    if not __fn then error("Compile error in Elements/Button: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Elements/Button"),
@@ -2083,7 +2094,8 @@ return Element
 end
 
 __MODULES["Elements/Colorpicker"] = function()
-    local __MODULE_SOURCE = [[local Players = game:GetService("Players")
+    local __fn = function()
+        local Players = game:GetService("Players")
 
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
@@ -2658,9 +2670,9 @@ function Element:New(Idx, Config)
 	})
 end
 
-return Element]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Colorpicker")
-    if not __fn then error("Compile error in Elements/Colorpicker: " .. tostring(__err)) end
+return Element
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Elements/Colorpicker"),
@@ -2671,7 +2683,8 @@ return Element]]
 end
 
 __MODULES["Elements/Dropdown"] = function()
-    local __MODULE_SOURCE = [=[local UserInputService = game:GetService("UserInputService")
+    local __fn = function()
+        local UserInputService = game:GetService("UserInputService")
 local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
 local Camera = game:GetService("Workspace").CurrentCamera
 
@@ -3264,9 +3277,9 @@ function Element:New(Idx, Config)
 end
 
 return Element
-]=]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Dropdown")
-    if not __fn then error("Compile error in Elements/Dropdown: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Elements/Dropdown"),
@@ -3277,16 +3290,17 @@ return Element
 end
 
 __MODULES["Elements"] = function()
-    local __MODULE_SOURCE = [[local Elements = {}
+    local __fn = function()
+        local Elements = {}
 
 for _, Element in next, script:GetChildren() do
 	Elements[#Elements + 1] = require(Element)
 end
 
 return Elements
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Elements")
-    if not __fn then error("Compile error in Elements: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Elements"),
@@ -3297,7 +3311,8 @@ return Elements
 end
 
 __MODULES["Elements/Input"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
 
 local AddSignal = Creator.AddSignal
@@ -3400,9 +3415,9 @@ function Element:New(Idx, Config)
 end
 
 return Element
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Input")
-    if not __fn then error("Compile error in Elements/Input: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Elements/Input"),
@@ -3413,7 +3428,8 @@ return Element
 end
 
 __MODULES["Elements/Keybind"] = function()
-    local __MODULE_SOURCE = [[local UserInputService = game:GetService("UserInputService")
+    local __fn = function()
+        local UserInputService = game:GetService("UserInputService")
 
 local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
@@ -3636,9 +3652,9 @@ function Element:New(Idx, Config)
 end
 
 return Element
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Keybind")
-    if not __fn then error("Compile error in Elements/Keybind: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Elements/Keybind"),
@@ -3649,7 +3665,8 @@ return Element
 end
 
 __MODULES["Elements/Paragraph"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Components = Root.Components
 
 local Element = {}
@@ -3725,9 +3742,9 @@ function Element:New(Idx, Config)
 end
 
 return Element
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Paragraph")
-    if not __fn then error("Compile error in Elements/Paragraph: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Elements/Paragraph"),
@@ -3738,7 +3755,8 @@ return Element
 end
 
 __MODULES["Elements/Slider"] = function()
-    local __MODULE_SOURCE = [[local UserInputService = game:GetService("UserInputService")
+    local __fn = function()
+        local UserInputService = game:GetService("UserInputService")
 local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
 
@@ -3918,9 +3936,9 @@ function Element:New(Idx, Config)
 end
 
 return Element
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Slider")
-    if not __fn then error("Compile error in Elements/Slider: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Elements/Slider"),
@@ -3931,7 +3949,8 @@ return Element
 end
 
 __MODULES["Elements/Toggle"] = function()
-    local __MODULE_SOURCE = [[local TweenService, UserInputService = game:GetService("TweenService"), game:GetService("UserInputService")
+    local __fn = function()
+        local TweenService, UserInputService = game:GetService("TweenService"), game:GetService("UserInputService")
 local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
  
@@ -4277,9 +4296,9 @@ function Element:New(Idx, Config)
 end
 
 return Element
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Elements/Toggle")
-    if not __fn then error("Compile error in Elements/Toggle: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Elements/Toggle"),
@@ -4290,7 +4309,8 @@ return Element
 end
 
 __MODULES["Root"] = function()
-    local __MODULE_SOURCE = [[local function Clone<Original>(ToClone: any & Original): (Original, boolean)
+    local __fn = function()
+        local function Clone<Original>(ToClone: any & Original): (Original, boolean)
 	local Type = typeof(ToClone)
 
 	if Type == "function" and (clonefunc or clonefunction) then
@@ -4714,9 +4734,9 @@ function Library:Notify(Config)
 end
 
 return Library
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Root")
-    if not __fn then error("Compile error in Root: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Root"),
@@ -4727,7 +4747,8 @@ return Library
 end
 
 __MODULES["Modules/Acrylic/AcrylicBlur"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent.Parent
 local Creator = require(Root.Modules.Creator)
 local createAcrylic = require(script.Parent.CreateAcrylic)
 local viewportPointToWorld, getOffset = unpack(require(script.Parent.Utils))
@@ -4843,9 +4864,9 @@ return function(distance)
 
 	return Blur
 end
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic/AcrylicBlur")
-    if not __fn then error("Compile error in Modules/Acrylic/AcrylicBlur: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Modules/Acrylic/AcrylicBlur"),
@@ -4856,7 +4877,8 @@ end
 end
 
 __MODULES["Modules/Acrylic/AcrylicPaint"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent.Parent
 local Creator = require(Root.Modules.Creator)
 local AcrylicBlur = require(script.Parent.AcrylicBlur)
 
@@ -4976,9 +4998,9 @@ return function(props)
 
 	return AcrylicPaint
 end
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic/AcrylicPaint")
-    if not __fn then error("Compile error in Modules/Acrylic/AcrylicPaint: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Modules/Acrylic/AcrylicPaint"),
@@ -4989,7 +5011,8 @@ end
 end
 
 __MODULES["Modules/Acrylic/CreateAcrylic"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent.Parent
 local Creator = require(Root.Modules.Creator)
 
 local function createAcrylic()
@@ -5014,9 +5037,9 @@ local function createAcrylic()
 end
 
 return createAcrylic
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic/CreateAcrylic")
-    if not __fn then error("Compile error in Modules/Acrylic/CreateAcrylic: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Modules/Acrylic/CreateAcrylic"),
@@ -5027,7 +5050,8 @@ return createAcrylic
 end
 
 __MODULES["Modules/Acrylic"] = function()
-    local __MODULE_SOURCE = [[local Acrylic = {
+    local __fn = function()
+        local Acrylic = {
 	AcrylicBlur = require(script.AcrylicBlur),
 	CreateAcrylic = require(script.CreateAcrylic),
 	AcrylicPaint = require(script.AcrylicPaint),
@@ -5078,9 +5102,9 @@ function Acrylic.init()
 end
 
 return Acrylic
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic")
-    if not __fn then error("Compile error in Modules/Acrylic: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Modules/Acrylic"),
@@ -5091,7 +5115,8 @@ return Acrylic
 end
 
 __MODULES["Modules/Acrylic/Utils"] = function()
-    local __MODULE_SOURCE = [[local function map(value, inMin, inMax, outMin, outMax)
+    local __fn = function()
+        local function map(value, inMin, inMax, outMin, outMax)
 	return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
 end
 
@@ -5106,9 +5131,9 @@ local function getOffset()
 end
 
 return { viewportPointToWorld, getOffset }
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Acrylic/Utils")
-    if not __fn then error("Compile error in Modules/Acrylic/Utils: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Modules/Acrylic/Utils"),
@@ -5119,7 +5144,8 @@ return { viewportPointToWorld, getOffset }
 end
 
 __MODULES["Modules/Creator"] = function()
-    local __MODULE_SOURCE = [[local Root = script.Parent.Parent
+    local __fn = function()
+        local Root = script.Parent.Parent
 local Themes = require(Root.Themes)
 local Flipper, Ripple = require(Root.Packages.Flipper), require(Root.Packages.Ripple)
 local Signal = require(Root.Packages.Signal)
@@ -5347,9 +5373,9 @@ function Creator.SpringMotor(Initial: any, Instance: Object, Prop: string, Ignor
 end
 
 return Creator
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Creator")
-    if not __fn then error("Compile error in Modules/Creator: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Modules/Creator"),
@@ -5360,7 +5386,8 @@ return Creator
 end
 
 __MODULES["Modules/Icons"] = function()
-    local __MODULE_SOURCE = [[local icons_1 = 'rbxassetid://124334518624683'
+    local __fn = function()
+        local icons_1 = 'rbxassetid://124334518624683'
 local icons_2 = 'rbxassetid://113826256227095'
 local icons_3 = 'rbxassetid://129900432084566'
 local icons_4 = 'rbxassetid://118976126805967'
@@ -58544,9 +58571,9 @@ return {
 		ImageRectOffset = VEC2['448_448'],
 		Image = icons_42
 	}
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Modules/Icons")
-    if not __fn then error("Compile error in Modules/Icons: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Modules/Icons"),
@@ -58557,7 +58584,8 @@ return {
 end
 
 __MODULES["Packages/Flipper/BaseMotor"] = function()
-    local __MODULE_SOURCE = [[local RunService = game:GetService("RunService")
+    local __fn = function()
+        local RunService = game:GetService("RunService")
 
 local Signal = require(script.Parent.Signal)
 
@@ -58612,9 +58640,9 @@ function BaseMotor:__tostring()
 end
 
 return BaseMotor
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/BaseMotor")
-    if not __fn then error("Compile error in Packages/Flipper/BaseMotor: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Flipper/BaseMotor"),
@@ -58625,7 +58653,8 @@ return BaseMotor
 end
 
 __MODULES["Packages/Flipper/GroupMotor"] = function()
-    local __MODULE_SOURCE = [[local BaseMotor = require(script.Parent.BaseMotor)
+    local __fn = function()
+        local BaseMotor = require(script.Parent.BaseMotor)
 local SingleMotor = require(script.Parent.SingleMotor)
 
 local isMotor = require(script.Parent.isMotor)
@@ -58735,9 +58764,9 @@ function GroupMotor:__tostring()
 end
 
 return GroupMotor
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/GroupMotor")
-    if not __fn then error("Compile error in Packages/Flipper/GroupMotor: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Flipper/GroupMotor"),
@@ -58748,7 +58777,8 @@ return GroupMotor
 end
 
 __MODULES["Packages/Flipper"] = function()
-    local __MODULE_SOURCE = [[local Flipper = {
+    local __fn = function()
+        local Flipper = {
 	SingleMotor = require(script.SingleMotor),
 	GroupMotor = require(script.GroupMotor),
 
@@ -58760,9 +58790,9 @@ __MODULES["Packages/Flipper"] = function()
 }
 
 return Flipper
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper")
-    if not __fn then error("Compile error in Packages/Flipper: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Flipper"),
@@ -58773,7 +58803,8 @@ return Flipper
 end
 
 __MODULES["Packages/Flipper/Instant"] = function()
-    local __MODULE_SOURCE = [[local Instant = {}
+    local __fn = function()
+        local Instant = {}
 Instant.__index = Instant
 
 function Instant.new(targetValue)
@@ -58790,9 +58821,9 @@ function Instant:step()
 end
 
 return Instant
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/Instant")
-    if not __fn then error("Compile error in Packages/Flipper/Instant: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Flipper/Instant"),
@@ -58803,7 +58834,8 @@ return Instant
 end
 
 __MODULES["Packages/Flipper/isMotor"] = function()
-    local __MODULE_SOURCE = [[local function isMotor(value)
+    local __fn = function()
+        local function isMotor(value)
 	local motorType = tostring(value):match("^Motor%((.+)%)$")
 
 	if motorType then
@@ -58814,9 +58846,9 @@ __MODULES["Packages/Flipper/isMotor"] = function()
 end
 
 return isMotor
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/isMotor")
-    if not __fn then error("Compile error in Packages/Flipper/isMotor: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Flipper/isMotor"),
@@ -58827,7 +58859,8 @@ return isMotor
 end
 
 __MODULES["Packages/Flipper/Linear"] = function()
-    local __MODULE_SOURCE = [[local Linear = {}
+    local __fn = function()
+        local Linear = {}
 Linear.__index = Linear
 
 function Linear.new(targetValue, options)
@@ -58863,9 +58896,9 @@ function Linear:step(state, dt)
 end
 
 return Linear
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/Linear")
-    if not __fn then error("Compile error in Packages/Flipper/Linear: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Flipper/Linear"),
@@ -58876,7 +58909,8 @@ return Linear
 end
 
 __MODULES["Packages/Flipper/Signal"] = function()
-    local __MODULE_SOURCE = [[local Connection = {}
+    local __fn = function()
+        local Connection = {}
 Connection.__index = Connection
 
 function Connection.new(signal, handler)
@@ -58934,9 +58968,9 @@ function Signal:wait()
 end
 
 return Signal
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/Signal")
-    if not __fn then error("Compile error in Packages/Flipper/Signal: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Flipper/Signal"),
@@ -58947,7 +58981,8 @@ return Signal
 end
 
 __MODULES["Packages/Flipper/SingleMotor"] = function()
-    local __MODULE_SOURCE = [[local BaseMotor = require(script.Parent.BaseMotor)
+    local __fn = function()
+        local BaseMotor = require(script.Parent.BaseMotor)
 
 local SingleMotor = setmetatable({}, BaseMotor)
 SingleMotor.__index = SingleMotor
@@ -59014,9 +59049,9 @@ function SingleMotor:__tostring()
 end
 
 return SingleMotor
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/SingleMotor")
-    if not __fn then error("Compile error in Packages/Flipper/SingleMotor: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Flipper/SingleMotor"),
@@ -59027,7 +59062,8 @@ return SingleMotor
 end
 
 __MODULES["Packages/Flipper/Spring"] = function()
-    local __MODULE_SOURCE = [[local VELOCITY_THRESHOLD = 0.001
+    local __fn = function()
+        local VELOCITY_THRESHOLD = 0.001
 local POSITION_THRESHOLD = 0.001
 
 local EPS = 0.0001
@@ -59134,9 +59170,9 @@ function Spring:step(state, dt)
 end
 
 return Spring
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Flipper/Spring")
-    if not __fn then error("Compile error in Packages/Flipper/Spring: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Flipper/Spring"),
@@ -59147,7 +59183,8 @@ return Spring
 end
 
 __MODULES["Packages/Ripple"] = function()
-    local __MODULE_SOURCE = [[-- Ripple fallback using Flipper.Spring
+    local __fn = function()
+        -- Ripple fallback using Flipper.Spring
 -- This is a compatibility layer for Fluent Renewed
 
 local Spring = require(script.Parent.Flipper.Spring)
@@ -59170,9 +59207,9 @@ setmetatable(Ripple, {
 })
 
 return Ripple
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Ripple")
-    if not __fn then error("Compile error in Packages/Ripple: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Ripple"),
@@ -59183,7 +59220,8 @@ return Ripple
 end
 
 __MODULES["Packages/Signal"] = function()
-    local __MODULE_SOURCE = [[local Connection = {}
+    local __fn = function()
+        local Connection = {}
 Connection.__index = Connection
 
 function Connection.new(signal, handler)
@@ -59257,9 +59295,9 @@ function Signal:Wait()
 end
 
 return Signal
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Packages/Signal")
-    if not __fn then error("Compile error in Packages/Signal: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Packages/Signal"),
@@ -59270,7 +59308,8 @@ return Signal
 end
 
 __MODULES["Themes/Abyss"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromRGB(102, 136, 204), -- #6688cc
 
     AcrylicMain = Color3.fromRGB(0, 12, 24), -- #000c18
@@ -59315,9 +59354,9 @@ __MODULES["Themes/Abyss"] = function()
     SubText = Color3.fromRGB(64, 99, 133), -- #406385
     Hover = Color3.fromRGB(8, 40, 107), -- #08286b
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Abyss")
-    if not __fn then error("Compile error in Themes/Abyss: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Abyss"),
@@ -59328,7 +59367,8 @@ __MODULES["Themes/Abyss"] = function()
 end
 
 __MODULES["Themes/Adapta Nokto"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#ec6a3f"),
 
     AcrylicMain = Color3.fromHex("#31312e"),
@@ -59373,9 +59413,9 @@ __MODULES["Themes/Adapta Nokto"] = function()
     SubText = Color3.fromHex("#747c84"),
     Hover = Color3.fromHex("#403f3a"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Adapta Nokto")
-    if not __fn then error("Compile error in Themes/Adapta Nokto: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Adapta Nokto"),
@@ -59386,7 +59426,8 @@ __MODULES["Themes/Adapta Nokto"] = function()
 end
 
 __MODULES["Themes/Ambiance"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#00BCD4"),
 
     AcrylicMain = Color3.fromHex("#29353b"),
@@ -59431,9 +59472,9 @@ __MODULES["Themes/Ambiance"] = function()
     SubText = Color3.fromHex("#546E7A"),
     Hover = Color3.fromHex("#2D3B42"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Ambiance")
-    if not __fn then error("Compile error in Themes/Ambiance: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Ambiance"),
@@ -59444,7 +59485,8 @@ __MODULES["Themes/Ambiance"] = function()
 end
 
 __MODULES["Themes/Amethyst Dark"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#b133ff"),
 
     AcrylicMain = Color3.fromHex("#120024"),
@@ -59489,9 +59531,9 @@ __MODULES["Themes/Amethyst Dark"] = function()
     SubText = Color3.fromHex("#9e85ad"),
     Hover = Color3.fromHex("#4d057b"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Amethyst Dark")
-    if not __fn then error("Compile error in Themes/Amethyst Dark: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Amethyst Dark"),
@@ -59502,7 +59544,8 @@ __MODULES["Themes/Amethyst Dark"] = function()
 end
 
 __MODULES["Themes/Amethyst"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
 	Accent = Color3.fromRGB(97, 62, 167),
 
 	AcrylicMain = Color3.fromRGB(20, 20, 20),
@@ -59548,9 +59591,9 @@ __MODULES["Themes/Amethyst"] = function()
 	Hover = Color3.fromRGB(140, 120, 160),
 	HoverChange = 0.04
 }
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Amethyst")
-    if not __fn then error("Compile error in Themes/Amethyst: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Amethyst"),
@@ -59561,7 +59604,8 @@ __MODULES["Themes/Amethyst"] = function()
 end
 
 __MODULES["Themes/Aqua"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
 	Accent = Color3.fromRGB(60, 165, 165),
 
 	AcrylicMain = Color3.fromRGB(20, 20, 20),
@@ -59607,9 +59651,9 @@ __MODULES["Themes/Aqua"] = function()
 	Hover = Color3.fromRGB(110, 160, 160),
 	HoverChange = 0.04
 }
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Aqua")
-    if not __fn then error("Compile error in Themes/Aqua: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Aqua"),
@@ -59620,7 +59664,8 @@ __MODULES["Themes/Aqua"] = function()
 end
 
 __MODULES["Themes/Arc Dark"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#5294e2"),
 
     AcrylicMain = Color3.fromHex("#383c4a"),
@@ -59665,9 +59710,9 @@ __MODULES["Themes/Arc Dark"] = function()
     SubText = Color3.fromHex("#7285b7"),
     Hover = Color3.fromHex("#4b5162"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Arc Dark")
-    if not __fn then error("Compile error in Themes/Arc Dark: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Arc Dark"),
@@ -59678,7 +59723,8 @@ __MODULES["Themes/Arc Dark"] = function()
 end
 
 __MODULES["Themes/Dark Typewriter"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromRGB(109, 180, 120),
 
     AcrylicMain = Color3.fromRGB(38, 38, 38),
@@ -59723,9 +59769,9 @@ __MODULES["Themes/Dark Typewriter"] = function()
     SubText = Color3.fromRGB(158, 158, 158),
     Hover = Color3.fromRGB(149, 149, 149),
     HoverChange = 0.04
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Dark Typewriter")
-    if not __fn then error("Compile error in Themes/Dark Typewriter: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Dark Typewriter"),
@@ -59736,7 +59782,8 @@ __MODULES["Themes/Dark Typewriter"] = function()
 end
 
 __MODULES["Themes/Dark"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
 	Accent = Color3.fromRGB(96, 205, 255),
 
 	AcrylicMain = Color3.fromRGB(60, 60, 60),
@@ -59782,9 +59829,9 @@ __MODULES["Themes/Dark"] = function()
 	Hover = Color3.fromRGB(120, 120, 120),
 	HoverChange = 0.07
 }
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Dark")
-    if not __fn then error("Compile error in Themes/Dark: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Dark"),
@@ -59795,7 +59842,8 @@ __MODULES["Themes/Dark"] = function()
 end
 
 __MODULES["Themes/Darker"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
 	Accent = Color3.fromRGB(72, 138, 182),
 
 	AcrylicMain = Color3.fromRGB(30, 30, 30),
@@ -59824,9 +59872,9 @@ __MODULES["Themes/Darker"] = function()
 	DialogInput = Color3.fromRGB(45, 45, 45),
 	DialogInputLine = Color3.fromRGB(120, 120, 120)
 }
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Darker")
-    if not __fn then error("Compile error in Themes/Darker: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Darker"),
@@ -59837,7 +59885,8 @@ __MODULES["Themes/Darker"] = function()
 end
 
 __MODULES["Themes/DuoTone Dark Earth"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#fecb52"),
 
     AcrylicMain = Color3.fromHex("#2c2826"),
@@ -59882,9 +59931,9 @@ __MODULES["Themes/DuoTone Dark Earth"] = function()
     SubText = Color3.fromHex("#564b43"),
     Hover = Color3.fromHex("#4D4642"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Earth")
-    if not __fn then error("Compile error in Themes/DuoTone Dark Earth: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/DuoTone Dark Earth"),
@@ -59895,7 +59944,8 @@ __MODULES["Themes/DuoTone Dark Earth"] = function()
 end
 
 __MODULES["Themes/DuoTone Dark Forest"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#e7f98b"),
 
     AcrylicMain = Color3.fromHex("#2a2d2a"),
@@ -59940,9 +59990,9 @@ __MODULES["Themes/DuoTone Dark Forest"] = function()
     SubText = Color3.fromHex("#585f58"),
     Hover = Color3.fromHex("#474D47"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Forest")
-    if not __fn then error("Compile error in Themes/DuoTone Dark Forest: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/DuoTone Dark Forest"),
@@ -59953,7 +60003,8 @@ __MODULES["Themes/DuoTone Dark Forest"] = function()
 end
 
 __MODULES["Themes/DuoTone Dark Sea"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#34FEBB"),
 
     AcrylicMain = Color3.fromHex("#1D262F"),
@@ -59998,9 +60049,9 @@ __MODULES["Themes/DuoTone Dark Sea"] = function()
     SubText = Color3.fromHex("#444c55"),
     Hover = Color3.fromHex("#354454"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Sea")
-    if not __fn then error("Compile error in Themes/DuoTone Dark Sea: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/DuoTone Dark Sea"),
@@ -60011,7 +60062,8 @@ __MODULES["Themes/DuoTone Dark Sea"] = function()
 end
 
 __MODULES["Themes/DuoTone Dark Sky"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#fec38f"),
 
     AcrylicMain = Color3.fromHex("#2c2734"),
@@ -60056,9 +60108,9 @@ __MODULES["Themes/DuoTone Dark Sky"] = function()
     SubText = Color3.fromHex("#544d60"),
     Hover = Color3.fromHex("#494256"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Sky")
-    if not __fn then error("Compile error in Themes/DuoTone Dark Sky: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/DuoTone Dark Sky"),
@@ -60069,7 +60121,8 @@ __MODULES["Themes/DuoTone Dark Sky"] = function()
 end
 
 __MODULES["Themes/DuoTone Dark Space"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#fe7734"),
 
     AcrylicMain = Color3.fromHex("#24242e"),
@@ -60114,9 +60167,9 @@ __MODULES["Themes/DuoTone Dark Space"] = function()
     SubText = Color3.fromHex("#49495a"),
     Hover = Color3.fromHex("#3F3F4F"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/DuoTone Dark Space")
-    if not __fn then error("Compile error in Themes/DuoTone Dark Space: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/DuoTone Dark Space"),
@@ -60127,7 +60180,8 @@ __MODULES["Themes/DuoTone Dark Space"] = function()
 end
 
 __MODULES["Themes/Elementary"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#cb5226"),
 
     AcrylicMain = Color3.fromHex("#eff0f1"),
@@ -60172,9 +60226,9 @@ __MODULES["Themes/Elementary"] = function()
     SubText = Color3.fromHex("#93a1a1"),
     Hover = Color3.fromHex("#d6d6d6"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Elementary")
-    if not __fn then error("Compile error in Themes/Elementary: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Elementary"),
@@ -60185,7 +60239,8 @@ __MODULES["Themes/Elementary"] = function()
 end
 
 __MODULES["Themes/GitHub Dark Colorblind"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#1f6feb"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#010409"), -- sideBar.background
@@ -60230,9 +60285,9 @@ __MODULES["Themes/GitHub Dark Colorblind"] = function()
     SubText = Color3.fromHex("#8b949e"), -- descriptionForeground
     Hover = Color3.fromHex("#6e7681"),  -- list.hoverBackground (subtle transparent hover) or #22272D for solid
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark Colorblind")
-    if not __fn then error("Compile error in Themes/GitHub Dark Colorblind: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/GitHub Dark Colorblind"),
@@ -60243,7 +60298,8 @@ __MODULES["Themes/GitHub Dark Colorblind"] = function()
 end
 
 __MODULES["Themes/GitHub Dark Default"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#1f6feb"),  -- focusBorder
 
     AcrylicMain = Color3.fromHex("#010409"), -- sideBar.background
@@ -60288,9 +60344,9 @@ __MODULES["Themes/GitHub Dark Default"] = function()
     SubText = Color3.fromHex("#7d8590"),-- descriptionForeground
     Hover = Color3.fromHex("#6e7681"),  -- list.hoverBackground (keeping alpha for subtle hover effect) or #22272D
     HoverChange = 0.1 
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark Default")
-    if not __fn then error("Compile error in Themes/GitHub Dark Default: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/GitHub Dark Default"),
@@ -60301,7 +60357,8 @@ __MODULES["Themes/GitHub Dark Default"] = function()
 end
 
 __MODULES["Themes/GitHub Dark Dimmed"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#316dca"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#1c2128"), -- sideBar.background
@@ -60346,9 +60403,9 @@ __MODULES["Themes/GitHub Dark Dimmed"] = function()
     SubText = Color3.fromHex("#768390"),  -- descriptionForeground
     Hover = Color3.fromHex("#636e7b"),  -- list.hoverBackground (subtle transparent hover) or #333A42
     HoverChange = 0.1 
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark Dimmed")
-    if not __fn then error("Compile error in Themes/GitHub Dark Dimmed: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/GitHub Dark Dimmed"),
@@ -60359,7 +60416,8 @@ __MODULES["Themes/GitHub Dark Dimmed"] = function()
 end
 
 __MODULES["Themes/GitHub Dark High Contrast"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#409eff"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#010409"), -- sideBar.background
@@ -60406,9 +60464,9 @@ __MODULES["Themes/GitHub Dark High Contrast"] = function()
     SubText = Color3.fromHex("#f0f3f6"), -- descriptionForeground (same as main text for high contrast)
     Hover = Color3.fromHex("#9ea7b3"), -- list.hoverBackground (subtle transparent hover) or #333A42 for solid
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark High Contrast")
-    if not __fn then error("Compile error in Themes/GitHub Dark High Contrast: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/GitHub Dark High Contrast"),
@@ -60419,7 +60477,8 @@ __MODULES["Themes/GitHub Dark High Contrast"] = function()
 end
 
 __MODULES["Themes/GitHub Dark"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#005cc5"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#1f2428"), -- sideBar.background
@@ -60464,9 +60523,9 @@ __MODULES["Themes/GitHub Dark"] = function()
     SubText = Color3.fromHex("#959da5"), -- descriptionForeground
     Hover = Color3.fromHex("#282e34"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Dark")
-    if not __fn then error("Compile error in Themes/GitHub Dark: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/GitHub Dark"),
@@ -60477,7 +60536,8 @@ __MODULES["Themes/GitHub Dark"] = function()
 end
 
 __MODULES["Themes/GitHub Light Colorblind"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#0969da"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#f6f8fa"), -- textBlockQuote.background
@@ -60522,9 +60582,9 @@ __MODULES["Themes/GitHub Light Colorblind"] = function()
     SubText = Color3.fromHex("#57606a"), -- descriptionForeground
     Hover = Color3.fromHex("#eaeef2"),  -- list.hoverBackground (alpha removed)
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Light Colorblind")
-    if not __fn then error("Compile error in Themes/GitHub Light Colorblind: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/GitHub Light Colorblind"),
@@ -60535,7 +60595,8 @@ __MODULES["Themes/GitHub Light Colorblind"] = function()
 end
 
 __MODULES["Themes/GitHub Light Default"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#0969da"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#f6f8fa"), -- sideBar.background
@@ -60581,9 +60642,9 @@ __MODULES["Themes/GitHub Light Default"] = function()
     SubText = Color3.fromHex("#656d76"), -- descriptionForeground
     Hover = Color3.fromHex("#eaeef2"), -- list.hoverBackground
     HoverChange = 0.1  -- A subtle hover effect
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Light Default")
-    if not __fn then error("Compile error in Themes/GitHub Light Default: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/GitHub Light Default"),
@@ -60594,7 +60655,8 @@ __MODULES["Themes/GitHub Light Default"] = function()
 end
 
 __MODULES["Themes/GitHub Light High Contrast"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#0349b4"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#ffffff"), -- sideBar.background
@@ -60639,9 +60701,9 @@ __MODULES["Themes/GitHub Light High Contrast"] = function()
     SubText = Color3.fromHex("#66707b"), -- descriptionForeground (or a slightly lighter shade)
     Hover = Color3.fromHex("#e7ecf0"), -- list.hoverBackground
     HoverChange = 0.1 -- Slightly more pronounced hover effect
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Light High Contrast")
-    if not __fn then error("Compile error in Themes/GitHub Light High Contrast: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/GitHub Light High Contrast"),
@@ -60652,7 +60714,8 @@ __MODULES["Themes/GitHub Light High Contrast"] = function()
 end
 
 __MODULES["Themes/GitHub Light"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("2188ff"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("f6f8fa"), -- sideBar.background
@@ -60697,9 +60760,9 @@ __MODULES["Themes/GitHub Light"] = function()
     SubText = Color3.fromHex("6a737d"), -- descriptionForeground
     Hover = Color3.fromHex("ebf0f4"), -- list.hoverBackground
     HoverChange = 0.1 -- Slightly more pronounced hover effect
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/GitHub Light")
-    if not __fn then error("Compile error in Themes/GitHub Light: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/GitHub Light"),
@@ -60710,7 +60773,8 @@ __MODULES["Themes/GitHub Light"] = function()
 end
 
 __MODULES["Themes"] = function()
-    local __MODULE_SOURCE = [[local Themes = {
+    local __fn = function()
+        local Themes = {
 	Names = {
 		"Vynixu",
 		"Dark",
@@ -60784,9 +60848,9 @@ for _, Theme in next, Themes.Names do
 end
 
 return Themes
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes")
-    if not __fn then error("Compile error in Themes: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes"),
@@ -60797,7 +60861,8 @@ return Themes
 end
 
 __MODULES["Themes/Kimbie Dark"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#a57a4c"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#221a0f"), -- editor.background
@@ -60842,9 +60907,9 @@ __MODULES["Themes/Kimbie Dark"] = function()
     SubText = Color3.fromHex("#a57a4c"), -- comments color
     Hover = Color3.fromHex("#7c5021"), -- list.activeSelectionBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Kimbie Dark")
-    if not __fn then error("Compile error in Themes/Kimbie Dark: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Kimbie Dark"),
@@ -60855,7 +60920,8 @@ __MODULES["Themes/Kimbie Dark"] = function()
 end
 
 __MODULES["Themes/Light"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
 	Accent = Color3.fromRGB(0, 103, 192),
 
 	AcrylicMain = Color3.fromRGB(200, 200, 200),
@@ -60901,9 +60967,9 @@ __MODULES["Themes/Light"] = function()
 	Hover = Color3.fromRGB(50, 50, 50),
 	HoverChange = 0.16
 }
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Light")
-    if not __fn then error("Compile error in Themes/Light: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Light"),
@@ -60914,7 +60980,8 @@ __MODULES["Themes/Light"] = function()
 end
 
 __MODULES["Themes/Monokai Classic"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#75715E"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#272822"), -- editor.background
@@ -60959,9 +61026,9 @@ __MODULES["Themes/Monokai Classic"] = function()
     SubText = Color3.fromHex("#88846f"), -- Comment color
     Hover = Color3.fromHex("#3e3d32"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Monokai Classic")
-    if not __fn then error("Compile error in Themes/Monokai Classic: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Monokai Classic"),
@@ -60972,7 +61039,8 @@ __MODULES["Themes/Monokai Classic"] = function()
 end
 
 __MODULES["Themes/Monokai Dimmed"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#3655b5"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#1e1e1e"), -- editor.background
@@ -61017,9 +61085,9 @@ __MODULES["Themes/Monokai Dimmed"] = function()
     SubText = Color3.fromHex("#9A9B99"), -- comment color from tokenColors
     Hover = Color3.fromHex("#444444"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Monokai Dimmed")
-    if not __fn then error("Compile error in Themes/Monokai Dimmed: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Monokai Dimmed"),
@@ -61030,7 +61098,8 @@ __MODULES["Themes/Monokai Dimmed"] = function()
 end
 
 __MODULES["Themes/Monokai Vibrant"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#528bff"), -- activityBarBadge.background
 
     AcrylicMain = Color3.fromHex("#16171D"), -- editor.background
@@ -61075,9 +61144,9 @@ __MODULES["Themes/Monokai Vibrant"] = function()
     SubText = Color3.fromHex("#5c6370"), -- Comment color
     Hover = Color3.fromHex("#292d35"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Monokai Vibrant")
-    if not __fn then error("Compile error in Themes/Monokai Vibrant: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Monokai Vibrant"),
@@ -61088,7 +61157,8 @@ __MODULES["Themes/Monokai Vibrant"] = function()
 end
 
 __MODULES["Themes/Monokai"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#F92672"), -- Using the keyword color as accent
 
     AcrylicMain = Color3.fromHex("#272822"), -- editor.background
@@ -61133,9 +61203,9 @@ __MODULES["Themes/Monokai"] = function()
     SubText = Color3.fromHex("#88846f"), -- comment color
     Hover = Color3.fromHex("#3e3d32"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Monokai")
-    if not __fn then error("Compile error in Themes/Monokai: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Monokai"),
@@ -61146,7 +61216,8 @@ __MODULES["Themes/Monokai"] = function()
 end
 
 __MODULES["Themes/Quiet Light"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#9769dc"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#F5F5F5"), -- editor.background
@@ -61191,9 +61262,9 @@ __MODULES["Themes/Quiet Light"] = function()
     SubText = Color3.fromHex("#6D705B"), -- editorLineNumber.foreground
     Hover = Color3.fromHex("#e0e0e0"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Quiet Light")
-    if not __fn then error("Compile error in Themes/Quiet Light: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Quiet Light"),
@@ -61204,7 +61275,8 @@ __MODULES["Themes/Quiet Light"] = function()
 end
 
 __MODULES["Themes/Rose"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
 	Accent = Color3.fromRGB(180, 55, 90),
 
 	AcrylicMain = Color3.fromRGB(40, 40, 40),
@@ -61250,9 +61322,9 @@ __MODULES["Themes/Rose"] = function()
 	Hover = Color3.fromRGB(200, 120, 170),
 	HoverChange = 0.04
 }
-]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Rose")
-    if not __fn then error("Compile error in Themes/Rose: " .. tostring(__err)) end
+
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Rose"),
@@ -61263,7 +61335,8 @@ __MODULES["Themes/Rose"] = function()
 end
 
 __MODULES["Themes/Solarized Dark"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#2AA198"), -- String color as accent
 
     AcrylicMain = Color3.fromHex("#002B36"), -- editor.background
@@ -61308,9 +61381,9 @@ __MODULES["Themes/Solarized Dark"] = function()
     SubText = Color3.fromHex("#586E75"), -- Comment color
     Hover = Color3.fromHex("#004454"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Solarized Dark")
-    if not __fn then error("Compile error in Themes/Solarized Dark: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Solarized Dark"),
@@ -61321,7 +61394,8 @@ __MODULES["Themes/Solarized Dark"] = function()
 end
 
 __MODULES["Themes/Solarized Light"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#b58900"), -- Using the extension button color as accent
 
     AcrylicMain = Color3.fromHex("#FDF6E3"), -- editor.background
@@ -61366,9 +61440,9 @@ __MODULES["Themes/Solarized Light"] = function()
     SubText = Color3.fromHex("#93A1A1"), -- Comment color from tokenColors
     Hover = Color3.fromHex("#DFCA88"), -- list.activeSelectionBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Solarized Light")
-    if not __fn then error("Compile error in Themes/Solarized Light: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Solarized Light"),
@@ -61379,7 +61453,8 @@ __MODULES["Themes/Solarized Light"] = function()
 end
 
 __MODULES["Themes/Tomorrow Night Blue"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#bbdaff"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#002451"), -- editor.background
@@ -61424,9 +61499,9 @@ __MODULES["Themes/Tomorrow Night Blue"] = function()
     SubText = Color3.fromHex("#7285B7"), -- Comment color from tokenColors
     Hover = Color3.fromHex("#ffffff"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Tomorrow Night Blue")
-    if not __fn then error("Compile error in Themes/Tomorrow Night Blue: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Tomorrow Night Blue"),
@@ -61437,7 +61512,8 @@ __MODULES["Themes/Tomorrow Night Blue"] = function()
 end
 
 __MODULES["Themes/Typewriter"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromRGB(97, 161, 107),
 
     AcrylicMain = Color3.fromRGB(252, 245, 228),
@@ -61482,9 +61558,9 @@ __MODULES["Themes/Typewriter"] = function()
     SubText = Color3.fromRGB(170, 170, 170),
     Hover = Color3.fromRGB(149, 149, 149),
     HoverChange = 0.04
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Typewriter")
-    if not __fn then error("Compile error in Themes/Typewriter: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Typewriter"),
@@ -61495,7 +61571,8 @@ __MODULES["Themes/Typewriter"] = function()
 end
 
 __MODULES["Themes/United GNOME"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#48b258"),
 
     AcrylicMain = Color3.fromHex("#1e1e1e"),
@@ -61540,9 +61617,9 @@ __MODULES["Themes/United GNOME"] = function()
     SubText = Color3.fromHex("#808080"),
     Hover = Color3.fromHex("#2A2D2E"),
     HoverChange = 0.05
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/United GNOME")
-    if not __fn then error("Compile error in Themes/United GNOME: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/United GNOME"),
@@ -61553,7 +61630,8 @@ __MODULES["Themes/United GNOME"] = function()
 end
 
 __MODULES["Themes/United Ubuntu"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#48b258"),
 
     AcrylicMain = Color3.fromHex("#1e1e1e"),
@@ -61598,9 +61676,9 @@ __MODULES["Themes/United Ubuntu"] = function()
     SubText = Color3.fromHex("#808080"),
     Hover = Color3.fromHex("#2A2D2E"),
     HoverChange = 0.05
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/United Ubuntu")
-    if not __fn then error("Compile error in Themes/United Ubuntu: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/United Ubuntu"),
@@ -61611,7 +61689,8 @@ __MODULES["Themes/United Ubuntu"] = function()
 end
 
 __MODULES["Themes/Viow Arabian Mix"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#7b36e2"),
 
     AcrylicMain = Color3.fromHex("#110e1a"),
@@ -61656,9 +61735,9 @@ __MODULES["Themes/Viow Arabian Mix"] = function()
     SubText = Color3.fromHex("#60576f"),
     Hover = Color3.fromHex("#2A2D2E"),
     HoverChange = 0.05
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Arabian Mix")
-    if not __fn then error("Compile error in Themes/Viow Arabian Mix: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Viow Arabian Mix"),
@@ -61669,7 +61748,8 @@ __MODULES["Themes/Viow Arabian Mix"] = function()
 end
 
 __MODULES["Themes/Viow Arabian"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#7b36e2"),
 
     AcrylicMain = Color3.fromHex("#110e1a"),
@@ -61714,9 +61794,9 @@ __MODULES["Themes/Viow Arabian"] = function()
     SubText = Color3.fromHex("#60576f"),
     Hover = Color3.fromHex("#2A2D2E"),
     HoverChange = 0.05
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Arabian")
-    if not __fn then error("Compile error in Themes/Viow Arabian: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Viow Arabian"),
@@ -61727,7 +61807,8 @@ __MODULES["Themes/Viow Arabian"] = function()
 end
 
 __MODULES["Themes/Viow Darker"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#165fb3"),
 
     AcrylicMain = Color3.fromHex("#21252b"),
@@ -61772,9 +61853,9 @@ __MODULES["Themes/Viow Darker"] = function()
     SubText = Color3.fromHex("#747369"),
     Hover = Color3.fromHex("#383838"),
     HoverChange = 0.05
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Darker")
-    if not __fn then error("Compile error in Themes/Viow Darker: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Viow Darker"),
@@ -61785,7 +61866,8 @@ __MODULES["Themes/Viow Darker"] = function()
 end
 
 __MODULES["Themes/Viow Flat"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#165fb3"),
 
     AcrylicMain = Color3.fromHex("#191c28"),
@@ -61830,9 +61912,9 @@ __MODULES["Themes/Viow Flat"] = function()
     SubText = Color3.fromHex("#747369"),
     Hover = Color3.fromHex("#464870"),
     HoverChange = 0.05
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Flat")
-    if not __fn then error("Compile error in Themes/Viow Flat: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Viow Flat"),
@@ -61843,7 +61925,8 @@ __MODULES["Themes/Viow Flat"] = function()
 end
 
 __MODULES["Themes/Viow Light"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#0f96ff"),
 
     AcrylicMain = Color3.fromHex("#ffffff"),
@@ -61888,9 +61971,9 @@ __MODULES["Themes/Viow Light"] = function()
     SubText = Color3.fromHex("#6f6f6f"),
     Hover = Color3.fromHex("#e8e8e8"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Light")
-    if not __fn then error("Compile error in Themes/Viow Light: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Viow Light"),
@@ -61901,7 +61984,8 @@ __MODULES["Themes/Viow Light"] = function()
 end
 
 __MODULES["Themes/Viow Mars"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#e32b00"),
 
     AcrylicMain = Color3.fromHex("#130c0f"),
@@ -61946,9 +62030,9 @@ __MODULES["Themes/Viow Mars"] = function()
     SubText = Color3.fromHex("#747369"),
     Hover = Color3.fromHex("#5c1b33"),
     HoverChange = 0.05
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Mars")
-    if not __fn then error("Compile error in Themes/Viow Mars: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Viow Mars"),
@@ -61959,7 +62043,8 @@ __MODULES["Themes/Viow Mars"] = function()
 end
 
 __MODULES["Themes/Viow Neon"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#1591ff"),
 
     AcrylicMain = Color3.fromHex("#202432"),
@@ -62004,9 +62089,9 @@ __MODULES["Themes/Viow Neon"] = function()
     SubText = Color3.fromHex("#747369"),
     Hover = Color3.fromHex("#1b375c"),
     HoverChange = 0.05
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Viow Neon")
-    if not __fn then error("Compile error in Themes/Viow Neon: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Viow Neon"),
@@ -62017,7 +62102,8 @@ __MODULES["Themes/Viow Neon"] = function()
 end
 
 __MODULES["Themes/VS Dark"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#007ACC"), -- activityBarBadge.background
 
     AcrylicMain = Color3.fromHex("#1E1E1E"), -- editor.background
@@ -62062,9 +62148,9 @@ __MODULES["Themes/VS Dark"] = function()
     SubText = Color3.fromHex("#BBBBBB"), -- sideBarTitle.foreground
     Hover = Color3.fromHex("#383B3D"), -- list.dropBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VS Dark")
-    if not __fn then error("Compile error in Themes/VS Dark: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/VS Dark"),
@@ -62075,7 +62161,8 @@ __MODULES["Themes/VS Dark"] = function()
 end
 
 __MODULES["Themes/VS Light"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#007ACC"), -- activityBarBadge.background
 
     AcrylicMain = Color3.fromHex("#FFFFFF"), -- editor.background
@@ -62120,9 +62207,9 @@ __MODULES["Themes/VS Light"] = function()
     SubText = Color3.fromHex("#6F6F6F"), -- sideBarTitle.foreground
     Hover = Color3.fromHex("#E8E8E8"), -- list.hoverBackground
     HoverChange = 0.1
-} ]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VS Light")
-    if not __fn then error("Compile error in Themes/VS Light: " .. tostring(__err)) end
+} 
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/VS Light"),
@@ -62133,7 +62220,8 @@ __MODULES["Themes/VS Light"] = function()
 end
 
 __MODULES["Themes/VSC Dark High Contrast"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#569cd6"), -- Based on keyword color
 
     AcrylicMain = Color3.fromHex("#000000"), -- editor.background
@@ -62178,9 +62266,9 @@ __MODULES["Themes/VSC Dark High Contrast"] = function()
     SubText = Color3.fromHex("#9D9D9D"), -- descriptionForeground
     Hover = Color3.fromHex("#383a49"), -- Based on actionBar.toggledBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Dark High Contrast")
-    if not __fn then error("Compile error in Themes/VSC Dark High Contrast: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/VSC Dark High Contrast"),
@@ -62191,7 +62279,8 @@ __MODULES["Themes/VSC Dark High Contrast"] = function()
 end
 
 __MODULES["Themes/VSC Dark Modern"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#0078D4"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#181818"), -- activityBar.background
@@ -62236,9 +62325,9 @@ __MODULES["Themes/VSC Dark Modern"] = function()
     SubText = Color3.fromHex("#9D9D9D"), -- descriptionForeground
     Hover = Color3.fromHex("#3C3C3C"), -- button.secondaryHoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Dark Modern")
-    if not __fn then error("Compile error in Themes/VSC Dark Modern: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/VSC Dark Modern"),
@@ -62249,7 +62338,8 @@ __MODULES["Themes/VSC Dark Modern"] = function()
 end
 
 __MODULES["Themes/VSC DarkPlus"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#DCDCAA"), -- Based on function declarations color
 
     AcrylicMain = Color3.fromHex("#1E1E1E"), -- VS Code's default dark background
@@ -62294,9 +62384,9 @@ __MODULES["Themes/VSC DarkPlus"] = function()
     SubText = Color3.fromHex("#808080"),
     Hover = Color3.fromHex("#2A2D2E"),
     HoverChange = 0.05
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC DarkPlus")
-    if not __fn then error("Compile error in Themes/VSC DarkPlus: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/VSC DarkPlus"),
@@ -62307,7 +62397,8 @@ __MODULES["Themes/VSC DarkPlus"] = function()
 end
 
 __MODULES["Themes/VSC Light High Contrast"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#5e2cbc"), -- Based on function color
 
     AcrylicMain = Color3.fromHex("#ffffff"), -- Light background
@@ -62352,9 +62443,9 @@ __MODULES["Themes/VSC Light High Contrast"] = function()
     SubText = Color3.fromHex("#515151"), -- Comment color
     Hover = Color3.fromHex("#dddddd"), -- Based on actionBar.toggledBackground
     HoverChange = 0.1
-} ]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Light High Contrast")
-    if not __fn then error("Compile error in Themes/VSC Light High Contrast: " .. tostring(__err)) end
+} 
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/VSC Light High Contrast"),
@@ -62365,7 +62456,8 @@ __MODULES["Themes/VSC Light High Contrast"] = function()
 end
 
 __MODULES["Themes/VSC Light Modern"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#005FB8"), -- focusBorder
 
     AcrylicMain = Color3.fromHex("#F8F8F8"), -- activityBar.background
@@ -62410,9 +62502,9 @@ __MODULES["Themes/VSC Light Modern"] = function()
     SubText = Color3.fromHex("#616161"), -- activityBar.inactiveForeground
     Hover = Color3.fromHex("#F2F2F2"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Light Modern")
-    if not __fn then error("Compile error in Themes/VSC Light Modern: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/VSC Light Modern"),
@@ -62423,7 +62515,8 @@ __MODULES["Themes/VSC Light Modern"] = function()
 end
 
 __MODULES["Themes/VSC LightPlus"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#795E26"), -- Function declarations color
 
     AcrylicMain = Color3.fromHex("#FFFFFF"), -- editor.background
@@ -62468,9 +62561,9 @@ __MODULES["Themes/VSC LightPlus"] = function()
     SubText = Color3.fromHex("#6F6F6F"), -- sideBarTitle.foreground
     Hover = Color3.fromHex("#E8E8E8"), -- list.hoverBackground
     HoverChange = 0.1
-} ]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC LightPlus")
-    if not __fn then error("Compile error in Themes/VSC LightPlus: " .. tostring(__err)) end
+} 
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/VSC LightPlus"),
@@ -62481,7 +62574,8 @@ __MODULES["Themes/VSC LightPlus"] = function()
 end
 
 __MODULES["Themes/VSC Red"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#cc3333"), -- badge.background
 
     AcrylicMain = Color3.fromHex("#580000"), -- activityBar.background
@@ -62526,9 +62620,9 @@ __MODULES["Themes/VSC Red"] = function()
     SubText = Color3.fromHex("#e7c0c0"), -- comment color from tokenColors
     Hover = Color3.fromHex("#800000"), -- list.hoverBackground
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Red")
-    if not __fn then error("Compile error in Themes/VSC Red: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/VSC Red"),
@@ -62539,7 +62633,8 @@ __MODULES["Themes/VSC Red"] = function()
 end
 
 __MODULES["Themes/Vynixu"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
 	Accent = Color3.fromRGB(90, 235, 45),
 
 	AcrylicMain = Color3.fromRGB(30, 30, 30),
@@ -62567,9 +62662,9 @@ __MODULES["Themes/Vynixu"] = function()
 	DialogBorder = Color3.fromRGB(50, 50, 50),
 	DialogInput = Color3.fromRGB(45, 45, 45),
 	DialogInputLine = Color3.fromRGB(120, 120, 120)
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Vynixu")
-    if not __fn then error("Compile error in Themes/Vynixu: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Vynixu"),
@@ -62580,7 +62675,8 @@ __MODULES["Themes/Vynixu"] = function()
 end
 
 __MODULES["Themes/Yaru Dark"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#e95420"),
 
     AcrylicMain = Color3.fromHex("#383838"),
@@ -62625,9 +62721,9 @@ __MODULES["Themes/Yaru Dark"] = function()
     SubText = Color3.fromHex("#808080"),
     Hover = Color3.fromHex("#575757"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Yaru Dark")
-    if not __fn then error("Compile error in Themes/Yaru Dark: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Yaru Dark"),
@@ -62638,7 +62734,8 @@ __MODULES["Themes/Yaru Dark"] = function()
 end
 
 __MODULES["Themes/Yaru"] = function()
-    local __MODULE_SOURCE = [[return {
+    local __fn = function()
+        return {
     Accent = Color3.fromHex("#e95420"),
 
     AcrylicMain = Color3.fromHex("#edeef0"),
@@ -62683,9 +62780,9 @@ __MODULES["Themes/Yaru"] = function()
     SubText = Color3.fromHex("#6F6F6F"),
     Hover = Color3.fromHex("#E8E8E8"),
     HoverChange = 0.1
-}]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/Yaru")
-    if not __fn then error("Compile error in Themes/Yaru: " .. tostring(__err)) end
+}
+    end
+
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
         script = createScriptProxy("Themes/Yaru"),

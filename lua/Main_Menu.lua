@@ -34,7 +34,7 @@ end
 -- Fallback to normal loading if pre-load failed
 if not Fluent then
     print("[FSSHUB] Fallback: Loading Fluent normally...")
-    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.5"))()
+    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.6"))()
 end
 
 print("[FSSHUB] Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")
