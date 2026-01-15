@@ -29,29 +29,28 @@ local Info = getgenv().FSSHUB_INFO
 local function CreateLoadingGui()
     if _G.FSSHUB_LOADING_GUI then pcall(function() _G.FSSHUB_LOADING_GUI:Destroy() end) end
     
+    local TweenService = game:GetService("TweenService")
     local gui = Instance.new("ScreenGui")
     gui.Name = "FSSHUB_Loading"
     gui.IgnoreGuiInset = true
     gui.ResetOnSpawn = false
+    gui.DisplayOrder = 100 -- Ensure it's on top
     
     local parent = gethui and gethui() or game:GetService("CoreGui")
     pcall(function() gui.Parent = parent end)
     
     _G.FSSHUB_LOADING_GUI = gui
     
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.fromScale(1, 1)
-    frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-    frame.BackgroundTransparency = 0.4
-    frame.Parent = gui
-    
+    -- Main Container (Bottom Center)
     local container = Instance.new("Frame")
-    container.Size = UDim2.fromOffset(200, 50)
-    container.Position = UDim2.fromScale(0.5, 0.45)
+    container.Name = "Container"
+    container.Size = UDim2.fromOffset(300, 70)
+    container.Position = UDim2.fromScale(0.5, 0.85) -- Bottom center
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    container.BackgroundTransparency = 0.1
     container.BorderSizePixel = 0
-    container.Parent = frame
+    container.Parent = gui
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
@@ -62,46 +61,122 @@ local function CreateLoadingGui()
     stroke.Thickness = 1
     stroke.Parent = container
     
-    local text = Instance.new("TextLabel")
-    text.Size = UDim2.new(1, 0, 1, 0)
-    text.BackgroundTransparency = 1
-    text.Text = "Loading FSSHUB..."
-    text.TextColor3 = Color3.fromRGB(240, 240, 240)
-    text.TextSize = 16
-    text.Font = Enum.Font.GothamBold
-    text.Parent = container
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, -20, 0, 20)
+    title.Position = UDim2.new(0, 10, 0, 10)
+    title.BackgroundTransparency = 1
+    title.Text = "FSSHUB"
+    title.TextColor3 = Color3.fromRGB(240, 240, 240)
+    title.TextSize = 16
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = container
+
+    -- Status Text (Dynamic)
+    local status = Instance.new("TextLabel")
+    status.Name = "Status"
+    status.Size = UDim2.new(1, -20, 0, 15)
+    status.Position = UDim2.new(0, 10, 0, 30)
+    status.BackgroundTransparency = 1
+    status.Text = "Initializing..."
+    status.TextColor3 = Color3.fromRGB(160, 160, 160)
+    status.TextSize = 12
+    status.Font = Enum.Font.Gotham
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Parent = container
     
-    return gui
+    -- Progress Bar Background
+    local barBg = Instance.new("Frame")
+    barBg.Name = "BarBackground"
+    barBg.Size = UDim2.new(1, -20, 0, 4)
+    barBg.Position = UDim2.new(0, 10, 0, 55)
+    barBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    barBg.BorderSizePixel = 0
+    barBg.Parent = container
+    
+    local barCorner = Instance.new("UICorner")
+    barCorner.CornerRadius = UDim.new(0, 2)
+    barCorner.Parent = barBg
+    
+    -- Progress Bar Fill
+    local barFill = Instance.new("Frame")
+    barFill.Name = "BarFill"
+    barFill.Size = UDim2.fromScale(0, 1) -- Start at 0 width
+    barFill.BackgroundColor3 = Color3.fromRGB(0, 120, 215) -- Fluent Blue
+    barFill.BorderSizePixel = 0
+    barFill.Parent = barBg
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(0, 2)
+    fillCorner.Parent = barFill
+
+    -- Gradient for extra polish
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 160, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 190))
+    }
+    gradient.Parent = barFill
+    
+    -- Animations
+    container.GroupTransparency = 1
+    TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
+    container.Position = UDim2.fromScale(0.5, 0.9)
+    TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.fromScale(0.5, 0.85)}):Play()
+    
+    return {
+        Gui = gui,
+        Update = function(progress, text)
+            if not gui.Parent then return end
+            status.Text = text or status.Text
+            TweenService:Create(barFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.fromScale(math.clamp(progress, 0, 1), 1)}):Play()
+        end,
+        Destroy = function()
+            TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1, Position = UDim2.fromScale(0.5, 0.9)}):Play()
+            task.delay(0.3, function()
+                if gui and gui.Parent then gui:Destroy() end
+                _G.FSSHUB_LOADING_GUI = nil
+            end)
+        end
+    }
 end
 
-CreateLoadingGui()
+local Loading = CreateLoadingGui()
 
 -- LOAD FLUENT RENEWED (v4.0.8 with FSSHUBLibrary workspace)
 local Fluent
 local loadStart = tick()
 
+Loading.Update(0.1, "Checking resources...")
+
 -- Check if Fluent was pre-loaded by payload (parallel loading optimization)
 if getgenv().FSSHUB_GET_FLUENT then
+    Loading.Update(0.2, "Syncing resources...")
     Log("Checking for pre-loaded Fluent...")
     Fluent = getgenv().FSSHUB_GET_FLUENT(8) -- Wait up to 8 seconds
     if Fluent then
+        Loading.Update(0.8, "Resources synced (Instant)")
         Log("Using pre-loaded Fluent (instant!)")
     end
 end
 
 -- Fallback to normal loading if pre-load failed
 if not Fluent then
+    Loading.Update(0.3, "Downloading library...")
     Log("Fallback: Loading Fluent normally...")
     Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
 end
 
+Loading.Update(0.9, "Initializing UI...")
 Log("Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")
 
 -- Remove Loading GUI
 if _G.FSSHUB_LOADING_GUI then
+    Loading.Update(1, "Launching...")
     task.delay(0.5, function()
-        pcall(function() _G.FSSHUB_LOADING_GUI:Destroy() end)
-        _G.FSSHUB_LOADING_GUI = nil
+        Loading.Destroy()
     end)
 end
 
