@@ -46,9 +46,25 @@ function Element:New(Idx, Config)
 		},
 	})
 
+	-- Clear Button (New)
+	local KeybindClearButton = New("TextButton", {
+		Size = UDim2.fromOffset(20, 30),
+		Position = UDim2.new(1, -10, 0.5, 0),
+		AnchorPoint = Vector2.new(1, 0.5),
+		BackgroundTransparency = 1,
+		Text = "X",
+		TextColor3 = Color3.fromRGB(150, 150, 150),
+		TextSize = 14,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+		Parent = KeybindFrame.Frame,
+		ThemeTag = {
+			TextColor3 = "SubText" -- Updates on theme change
+		}
+	})
+
 	local KeybindDisplayFrame = New("TextButton", {
 		Size = UDim2.fromOffset(0, 30),
-		Position = UDim2.new(1, -10, 0.5, 0),
+		Position = UDim2.new(1, -35, 0.5, 0), -- Shifted to make room for X
 		AnchorPoint = Vector2.new(1, 0.5),
 		BackgroundTransparency = 0.9,
 		Parent = KeybindFrame.Frame,
@@ -73,6 +89,11 @@ function Element:New(Idx, Config)
 		}),
 		KeybindDisplayLabel,
 	}) :: TextButton
+
+	-- Clear Action
+	KeybindClearButton.MouseButton1Click:Connect(function()
+		Keybind:SetValue("None", Keybind.Mode)
+	end)
 
 	function Keybind:GetState()
 		if UserInputService:GetFocusedTextBox() and Keybind.Mode ~= "Always" then

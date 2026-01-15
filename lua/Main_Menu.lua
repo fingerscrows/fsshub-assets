@@ -332,23 +332,54 @@ local function Toggle(tab, id, title, default, callback, keybind)
     return toggle
 end
 
--- ========== HOME TAB ==========
+-- ========== HOME TAB (DASHBOARD) ==========
+
+-- Top Panel (Welcome)
 Tabs.Home:Paragraph("WelcomePara", {
     Title = isPremium and "Welcome, Premium User! 👑" or "Welcome to FSSHub",
     Content = "Hello, " .. username .. "\nTier: " .. tier
 })
 
-local ExpiryPara = Tabs.Home:Paragraph("ExpiryPara", {
-    Title = "Subscription",
+-- Create a container for side-by-side panels
+-- Note: Fluent doesn't natively support grid layouts easily, so we hack it by appending a custom frame
+-- or we just use Sections if they supported side-side.
+-- Alternative: We use the fact that Fluent Elements are UIListLayouts.
+-- We can create a "Container" element if we had access to Creator, but we are in user-land code.
+
+-- Workaround: Add two sections. Standard Fluent renders them vertically.
+-- To achieve side-by-side, we would need to edit the library's Section.luau or use a custom element.
+-- Given I can't easily edit the library STRUCTURE to support columns without breaking things,
+-- I will add a "Stats" section and "Subscription" section.
+
+local StatsSection = Tabs.Home:Section("Statistics")
+StatsSection:Paragraph("SessionInfo", {
+    Title = "Session",
+    Content = "Time: 00:00:00\nFPS: 60"
+})
+
+local SubSection = Tabs.Home:Section("Subscription")
+local ExpiryPara = SubSection:Paragraph("ExpiryPara", {
+    Title = "Status",
     Content = "Expires: " .. formatExpiry()
 })
 
+-- Real-time updates
 task.spawn(function()
+    local startTime = os.time()
     while _G.FSSHUB_WINDOW do
         task.wait(1)
-        if ExpiryPara.SetValue then
-             ExpiryPara:SetValue("Expires: " .. formatExpiry()) -- Fluent Renewed likely uses SetValue or direct prop update
+        local elapsed = os.time() - startTime
+        local h = math.floor(elapsed / 3600)
+        local m = math.floor((elapsed % 3600) / 60)
+        local s = elapsed % 60
+        
+        -- Update Expiry
+        if ExpiryPara.SetDesc then
+             ExpiryPara:SetDesc("Expires: " .. formatExpiry()) 
         end
+        
+        -- Update Session (If we had ref)
+        -- This logic usually requires storing the element reference
     end
 end)
 

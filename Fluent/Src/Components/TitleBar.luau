@@ -101,21 +101,21 @@ return function(Config)
 
 	TitleBar.Title = New("TextLabel", {
 		RichText = true,
-		Text = Config.Title,
+		Text = Config.Title or "FSSHUB",
 		Parent = TitleBar.TitleHolder,
 		FontFace = Font.new(
 			"rbxasset://fonts/families/GothamSSm.json",
-			Enum.FontWeight.Regular,
+			Enum.FontWeight.Bold, -- Bolder font for brand
 			Enum.FontStyle.Normal
 		),
-		TextSize = 12,
+		TextSize = 16, -- Increased size
 		TextXAlignment = "Left",
 		TextYAlignment = "Center",
 		Size = UDim2.fromScale(0, 1),
 		AutomaticSize = Enum.AutomaticSize.X,
 		BackgroundTransparency = 1,
 		ThemeTag = {
-			TextColor3 = "Text",
+			TextColor3 = "Accent", -- Brand color accent
 		}
 	})
 
@@ -129,7 +129,7 @@ return function(Config)
 			Enum.FontWeight.Regular,
 			Enum.FontStyle.Normal
 		),
-		TextSize = 12,
+		TextSize = 13,
 		TextXAlignment = "Left",
 		TextYAlignment = "Center",
 		Size = UDim2.fromScale(0, 1),

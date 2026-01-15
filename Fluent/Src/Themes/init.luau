@@ -9,6 +9,7 @@ local ThemeNames = {
 	"Aqua",
 	"Amethyst",
 	"Rose",
+	"Cyber",
 }
 
 -- Internal cache untuk lazy-loaded themes
