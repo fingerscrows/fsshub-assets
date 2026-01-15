@@ -1,9 +1,15 @@
+--!optimize 2
 local TweenService, UserInputService = game:GetService("TweenService"), game:GetService("UserInputService")
 local Root = script.Parent.Parent
 local Creator = require(Root.Modules.Creator)
  
 local New = Creator.New
 local Components = Root.Components
+
+-- Pre-cached animation constants
+local TOGGLE_TWEEN_INFO = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local TOGGLE_ON_POS = UDim2.new(0, 19, 0.5, 0)
+local TOGGLE_OFF_POS = UDim2.new(0, 2, 0.5, 0)
 
 local Element = {}
 Element.__index = Element
@@ -74,16 +80,16 @@ function Element:New(Idx, Config)
 		Creator.OverrideTag(ToggleCircle, { ImageColor3 = Toggle.Value and "ToggleToggled" or "ToggleSlider" })
 
 		ToggleCircle:TweenPosition(
-			UDim2.new(0, Toggle.Value and 19 or 2, 0.5, 0),
+			Toggle.Value and TOGGLE_ON_POS or TOGGLE_OFF_POS,
 			Enum.EasingDirection.Out,
 			Enum.EasingStyle.Quint,
-			.25,
+			0.25,
 			true
 		)
 
 		TweenService:Create(
 			ToggleSlider,
-			TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+			TOGGLE_TWEEN_INFO,
 			{ BackgroundTransparency = Toggle.Value and 0 or 1 }
 		):Play()
 

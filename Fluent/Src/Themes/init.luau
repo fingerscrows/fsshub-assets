@@ -1,22 +1,53 @@
-local Themes = {
-	Names = {
-		"Vynixu",
-		"Dark",
-		"Light",
-		"Aqua",
-		"Amethyst",
-		"Rose",
-	}
+--!optimize 2
+--!strict
+
+-- Pre-define theme names
+local ThemeNames = {
+	"Vynixu",
+	"Dark",
+	"Light",
+	"Aqua",
+	"Amethyst",
+	"Rose",
 }
 
--- Prompt to generate the themes, best used with cursor: "@Themes Create new luau Themes for every JSON file ill provide. The Theme name should be the Name from the JSON, always create a new File in the Themes Directory where the other luau files are and always add the name of the Theme in the init.luau list"
+-- Internal cache untuk lazy-loaded themes
+local ThemeCache: {[string]: {[string]: any}} = {}
 
-for _, Theme in next, Themes.Names do
-	local ThemeData = require(script[Theme])
+local Themes = {
+	Names = ThemeNames,
+}
 
-	ThemeData.Name = Theme
-
-	Themes[ThemeData.Name] = ThemeData
+-- Lazy loading: theme hanya di-load saat dibutuhkan
+function Themes:Get(Name: string): {[string]: any}?
+	if not table.find(ThemeNames, Name) then
+		return nil
+	end
+	
+	if not ThemeCache[Name] then
+		local ThemeData = require(script[Name])
+		ThemeData.Name = Name
+		ThemeCache[Name] = ThemeData
+	end
+	
+	return ThemeCache[Name]
 end
+
+-- Preload specific theme (useful for default theme)
+function Themes:Preload(Name: string)
+	if table.find(ThemeNames, Name) then
+		self:Get(Name)
+	end
+end
+
+-- Metatable untuk backward compatibility (Themes["Dark"] still works)
+setmetatable(Themes, {
+	__index = function(self, key: string)
+		if table.find(ThemeNames, key) then
+			return self:Get(key)
+		end
+		return nil
+	end
+})
 
 return Themes

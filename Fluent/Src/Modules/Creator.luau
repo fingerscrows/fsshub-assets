@@ -1,7 +1,17 @@
+--!optimize 2
 local Root = script.Parent.Parent
 local Themes = require(Root.Themes)
 local Flipper, Ripple = require(Root.Packages.Flipper), require(Root.Packages.Ripple)
 local Signal = require(Root.Packages.Signal)
+
+-- Cached library reference to avoid repeated require calls
+local CachedLibrary = nil
+local function GetLibrary()
+	if not CachedLibrary then
+		CachedLibrary = require(Root)
+	end
+	return CachedLibrary
+end
 
 local Creator = {
 	Registry = {},
@@ -96,10 +106,11 @@ function Creator.Disconnect()
 end
 
 function Creator.GetThemeProperty(Property)
-	if Themes[require(Root).Theme][Property] then
-		return Themes[require(Root).Theme][Property]
+	local currentTheme = GetLibrary().Theme
+	local themeData = Themes[currentTheme]
+	if themeData and themeData[Property] then
+		return themeData[Property]
 	end
-
 	return Themes["Dark"][Property]
 end
 
@@ -113,7 +124,7 @@ function Creator.UpdateTheme(RegistryIndex: Instance?)
 	local Count = 0
 
 	if typeof(RegistryIndex) == "Instance" and Creator.Registry[RegistryIndex] then
-		for Property, ColorIdx in next, Creator.Registry[RegistryIndex].Properties do
+		for Property, ColorIdx in pairs(Creator.Registry[RegistryIndex].Properties) do
 			Count += 1
 
 			if Count % 135 == 0 then
@@ -123,14 +134,14 @@ function Creator.UpdateTheme(RegistryIndex: Instance?)
 			RegistryIndex[Property] = Creator.GetThemeProperty(ColorIdx)
 		end
 	else
-		for _, Object in next, Creator.Registry do
+		for _, Object in pairs(Creator.Registry) do
 			Count += 1
 
 			if Count % 135 == 0 then
 				task.wait()
 			end
 
-			for Property, ColorIdx in next, Object.Properties do
+			for Property, ColorIdx in pairs(Object.Properties) do
 				Count += 1
 
 				if Count % 135 == 0 then
@@ -142,7 +153,7 @@ function Creator.UpdateTheme(RegistryIndex: Instance?)
 		end
 	end	
 
-	for Idx: number, Motor in next, Creator.TransparencyMotors do
+	for Idx: number, Motor in pairs(Creator.TransparencyMotors) do
 		if Idx % 135 == 0 then
 			task.wait()
 		end

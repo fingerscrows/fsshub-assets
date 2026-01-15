@@ -1,3 +1,4 @@
+--!optimize 2
 local function Clone<Original>(ToClone: any & Original): (Original, boolean)
 	local Type = typeof(ToClone)
 
@@ -39,11 +40,20 @@ local function Clone<Original>(ToClone: any & Original): (Original, boolean)
 	end
 end
 
-local MarketplaceService = Clone(game:GetService("MarketplaceService"))
-local TweenService = Clone(game:GetService("TweenService"))
-local Camera = Clone(game:GetService("Workspace")).CurrentCamera
-local UserInputService = Clone(game:GetService("UserInputService"))
-local GuiService = Clone(game:GetService("GuiService"))
+-- Service caching to avoid repeated Clone calls
+local ServiceCache = {}
+local function GetService(serviceName: string)
+	if not ServiceCache[serviceName] then
+		ServiceCache[serviceName] = Clone(game:GetService(serviceName))
+	end
+	return ServiceCache[serviceName]
+end
+
+local MarketplaceService = GetService("MarketplaceService")
+local TweenService = GetService("TweenService")
+local Camera = GetService("Workspace").CurrentCamera
+local UserInputService = GetService("UserInputService")
+local GuiService = GetService("GuiService")
 
 local Root = script
 local Components = Root.Components
@@ -230,8 +240,10 @@ Elements.__namecall = function(Table, Key, ...)
 	return Elements[Key](...)
 end
 
-for _, ElementComponent in next, ElementsTable do
-	Elements[`Create{ElementComponent.__type}`] = function(self, Idx, Config)
+-- Numeric loop for array-based ElementsTable
+for i = 1, #ElementsTable do
+	local ElementComponent = ElementsTable[i]
+	local createFn = function(self, Idx, Config)
 		ElementComponent.Container = self.Container
 		ElementComponent.Type = self.Type
 		ElementComponent.ScrollFrame = self.ScrollFrame
@@ -240,8 +252,9 @@ for _, ElementComponent in next, ElementsTable do
 		return ElementComponent:New(Idx, Config)
 	end
 
-	Elements[`Add{ElementComponent.__type}`] = Elements[`Create{ElementComponent.__type}`]
-	Elements[ElementComponent.__type] = Elements[`Create{ElementComponent.__type}`]
+	Elements[`Create{ElementComponent.__type}`] = createFn
+	Elements[`Add{ElementComponent.__type}`] = createFn
+	Elements[ElementComponent.__type] = createFn
 end
 
 Library.Elements = Elements
