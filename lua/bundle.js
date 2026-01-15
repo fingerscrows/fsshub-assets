@@ -9,7 +9,7 @@ const CONFIG = {
     output: path.join(__dirname, 'loader.luau')
 };
 
-// Helper: Recursively get all .luau files
+// Helper: Recursively get all .lua and .luau files
 function getFiles(dir, fileList = []) {
     const files = fs.readdirSync(dir);
     files.forEach(file => {
@@ -18,7 +18,8 @@ function getFiles(dir, fileList = []) {
         if (stat.isDirectory()) {
             getFiles(filePath, fileList);
         } else {
-            if (filePath.endsWith('.luau')) {
+            // Include both .lua and .luau files
+            if (filePath.endsWith('.luau') || filePath.endsWith('.lua')) {
                 fileList.push(filePath);
             }
         }
@@ -50,7 +51,7 @@ function bundle() {
         // "init.luau" -> "Root" ??
         
         let relPath = path.relative(CONFIG.fluentSrc, filepath);
-        let moduleName = relPath.replace(/\\/g, '/').replace(/\.luau$/, '');
+        let moduleName = relPath.replace(/\\/g, '/').replace(/\.luau$/, '').replace(/\.lua$/, '');
         
         // Handle init.luau files (e.g. "Components/init" -> "Components")
         if (moduleName.endsWith('/init')) {
