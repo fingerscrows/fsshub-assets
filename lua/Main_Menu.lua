@@ -25,6 +25,57 @@ _G.FSSHUB_WINDOW = nil
 
 local Info = getgenv().FSSHUB_INFO
 
+-- Loading GUI
+local function CreateLoadingGui()
+    if _G.FSSHUB_LOADING_GUI then pcall(function() _G.FSSHUB_LOADING_GUI:Destroy() end) end
+    
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "FSSHUB_Loading"
+    gui.IgnoreGuiInset = true
+    gui.ResetOnSpawn = false
+    
+    local parent = gethui and gethui() or game:GetService("CoreGui")
+    pcall(function() gui.Parent = parent end)
+    
+    _G.FSSHUB_LOADING_GUI = gui
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.fromScale(1, 1)
+    frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    frame.BackgroundTransparency = 0.4
+    frame.Parent = gui
+    
+    local container = Instance.new("Frame")
+    container.Size = UDim2.fromOffset(200, 50)
+    container.Position = UDim2.fromScale(0.5, 0.45)
+    container.AnchorPoint = Vector2.new(0.5, 0.5)
+    container.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    container.BorderSizePixel = 0
+    container.Parent = frame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = container
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(60, 60, 60)
+    stroke.Thickness = 1
+    stroke.Parent = container
+    
+    local text = Instance.new("TextLabel")
+    text.Size = UDim2.new(1, 0, 1, 0)
+    text.BackgroundTransparency = 1
+    text.Text = "Loading FSSHUB..."
+    text.TextColor3 = Color3.fromRGB(240, 240, 240)
+    text.TextSize = 16
+    text.Font = Enum.Font.GothamBold
+    text.Parent = container
+    
+    return gui
+end
+
+CreateLoadingGui()
+
 -- LOAD FLUENT RENEWED (v4.0.8 with FSSHUBLibrary workspace)
 local Fluent
 local loadStart = tick()
@@ -45,6 +96,14 @@ if not Fluent then
 end
 
 Log("Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")
+
+-- Remove Loading GUI
+if _G.FSSHUB_LOADING_GUI then
+    task.delay(0.5, function()
+        pcall(function() _G.FSSHUB_LOADING_GUI:Destroy() end)
+        _G.FSSHUB_LOADING_GUI = nil
+    end)
+end
 
 -- Event System
 -- Event Bus (Centralized in Payload)
