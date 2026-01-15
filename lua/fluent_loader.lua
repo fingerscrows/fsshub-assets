@@ -1,21 +1,28 @@
 --[[
-    Fluent Renewed Loader - V4.0.6 (Optimized Bundle + Local Cache + Pre-load Support)
+    Fluent Renewed Loader - V4.0.7 (Xeno Workspace Cache + Performance)
     
     This loader fetches the pre-bundled Fluent UI library from GitHub.
-    It also caches the bundle locally on the executor for instant subsequent loads.
+    It caches the bundle in Xeno workspace for instant subsequent loads.
     
-    V4.0.6 Changes:
-    - Bundle Optimization: Replaced runtime loadstring with function wrapping (Critical Perf Fix)
-    - Support for payload pre-loading (parallel download optimization)
-    - Uses pre-bundled fluent_bundle.lua (all 97 modules in one file)
+    V4.0.7 Changes:
+    - Cache path moved to FSSHUB/cache/ (Xeno workspace)
+    - Force refresh support: getgenv().FSSHUB_FORCE_REFRESH = true
+    - Production mode: getgenv().FSSHUB_PRODUCTION = true (disables verbose logs)
+    - Prometheus obfuscation compatible patterns
 ]]
 
-local CACHE_VERSION = "v4.0.6"
+local CACHE_VERSION = "v4.0.7"
 local BUNDLE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_bundle.lua?v=" .. CACHE_VERSION
-local CACHE_FILE = "fsshub_cache/fluent_" .. CACHE_VERSION .. ".lua"
+local CACHE_DIR = "FSSHUB/cache"
+local CACHE_FILE = CACHE_DIR .. "/fluent_" .. CACHE_VERSION .. ".lua"
+
+-- Production mode: disable verbose logging
+local PRODUCTION = getgenv().FSSHUB_PRODUCTION or false
 
 local function Log(msg)
-    print("[Fluent Loader] " .. tostring(msg))
+    if not PRODUCTION then
+        print("[Fluent Loader] " .. tostring(msg))
+    end
 end
 
 -- Check if local cache exists and is valid
@@ -46,12 +53,23 @@ local function saveToCache(content)
     end
     
     pcall(function()
+        -- Create FSSHUB directory structure
         if makefolder then
-            makefolder("fsshub_cache")
+            makefolder("FSSHUB")
+            makefolder(CACHE_DIR)
         end
         writefile(CACHE_FILE, content)
-        Log("Saved to local cache (" .. math.floor(#content / 1024) .. " KB)")
+        Log("Saved to cache (" .. math.floor(#content / 1024) .. " KB)")
     end)
+end
+
+-- Force refresh support: clear cache if requested
+if getgenv().FSSHUB_FORCE_REFRESH then
+    Log("Force refresh requested, clearing cache...")
+    pcall(function()
+        if delfile then delfile(CACHE_FILE) end
+    end)
+    getgenv().FSSHUB_FORCE_REFRESH = nil -- Reset flag
 end
 
 -- Main loading logic

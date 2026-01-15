@@ -1,12 +1,18 @@
 --[[
-    FSSHUB Main Menu - Fluent Renewed
+    FSSHUB Main Menu - Fluent Renewed (v4.0.7)
     Universal FREE + PREMIUM Features
 ]]
 
+-- Production mode: disable verbose logging (set by payload)
+local PRODUCTION = getgenv().FSSHUB_PRODUCTION or false
+local function Log(msg)
+    if not PRODUCTION then
+        print("[FSSHUB] " .. tostring(msg))
+    end
+end
+
 if not getgenv().FSSHUB_INFO then
     warn("[FSSHUB] Error: FSSHUB_INFO not found.")
-    -- Mock for testing if needed
-    -- getgenv().FSSHUB_INFO = { User = { IsPremium = true, Username = "TestUser", Tier = "Developer", ExpiryTimestamp = os.time() + 86400 }, Game = { Name = "Universal", Slug = "universal" }, Version = "v3.5.0" }
     return
 end
 
@@ -18,26 +24,26 @@ _G.FSSHUB_WINDOW = nil
 
 local Info = getgenv().FSSHUB_INFO
 
--- LOAD FLUENT RENEWED (v4.0.5 with pre-load support)
+-- LOAD FLUENT RENEWED (v4.0.7 with Xeno workspace cache)
 local Fluent
 local loadStart = tick()
 
 -- Check if Fluent was pre-loaded by payload (parallel loading optimization)
 if getgenv().FSSHUB_GET_FLUENT then
-    print("[FSSHUB] Checking for pre-loaded Fluent...")
+    Log("Checking for pre-loaded Fluent...")
     Fluent = getgenv().FSSHUB_GET_FLUENT(8) -- Wait up to 8 seconds
     if Fluent then
-        print("[FSSHUB] Using pre-loaded Fluent (instant!)")
+        Log("Using pre-loaded Fluent (instant!)")
     end
 end
 
 -- Fallback to normal loading if pre-load failed
 if not Fluent then
-    print("[FSSHUB] Fallback: Loading Fluent normally...")
-    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.6"))()
+    Log("Fallback: Loading Fluent normally...")
+    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.7"))()
 end
 
-print("[FSSHUB] Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")
+Log("Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")
 
 -- Event System
 -- Event Bus (Centralized in Payload)
