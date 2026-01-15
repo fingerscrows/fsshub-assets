@@ -8,11 +8,82 @@ local __CACHE = {}
 
 
 -- Create script proxy for Roblox-style requires (script.Parent, script.Components, etc.)
+-- Enhanced to support :GetChildren(), :FindFirstChild(), and .Name
 local function createScriptProxy(path)
+    -- Helper function to get children for this script path
+    local function getChildrenForPath()
+        local children = {}
+        local prefix = path == "Root" and "" or (path .. "/")
+        local seenChildren = {}
+        
+        for key, _ in pairs(__MODULES) do
+            local childName = nil
+            
+            if prefix == "" then
+                -- Root level: match keys that are direct children (no "/" in them, except for nested paths)
+                local firstSlash = key:find("/")
+                if firstSlash then
+                    childName = key:sub(1, firstSlash - 1)
+                elseif key ~= "Root" then
+                    childName = key
+                end
+            else
+                -- Match keys that start with our prefix
+                if key:sub(1, #prefix) == prefix then
+                    local remaining = key:sub(#prefix + 1)
+                    local firstSlash = remaining:find("/")
+                    if firstSlash then
+                        childName = remaining:sub(1, firstSlash - 1)
+                    else
+                        childName = remaining
+                    end
+                end
+            end
+            
+            if childName and not seenChildren[childName] then
+                seenChildren[childName] = true
+                local childPath = prefix == "" and childName or (path .. "/" .. childName)
+                children[#children + 1] = createScriptProxy(childPath)
+            end
+        end
+        
+        return children
+    end
+    
     local proxy = newproxy(true)
     local meta = getmetatable(proxy)
     
     meta.__index = function(_, key)
+        -- Handle Roblox Instance methods
+        if key == "GetChildren" then
+            return function()
+                return getChildrenForPath()
+            end
+        end
+        
+        if key == "FindFirstChild" then
+            return function(_, childName)
+                local childPath = (path == "Root") and childName or (path .. "/" .. childName)
+                -- Check if module exists directly or as a parent path
+                if __MODULES[childPath] then
+                    return createScriptProxy(childPath)
+                end
+                -- Check if any module starts with this path (it's a directory)
+                for key, _ in pairs(__MODULES) do
+                    if key:sub(1, #childPath + 1) == childPath .. "/" then
+                        return createScriptProxy(childPath)
+                    end
+                end
+                return nil
+            end
+        end
+        
+        if key == "Name" then
+            -- Return the last component of the path
+            local name = path:match("([^/]+)$") or path
+            return name
+        end
+        
         if key == "Parent" then
             if path == "Root" then return nil end
             local lastSep = path:match("^.*()/")
