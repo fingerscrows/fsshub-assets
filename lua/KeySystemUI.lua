@@ -89,14 +89,14 @@ function UI.Initialize(options)
     mainCentering.BackgroundTransparency = 1
     mainCentering.Parent = gui
     
-    container = Instance.new("Frame")
+    container = Instance.new("CanvasGroup")
     container.Name = "Container"
-    container.Size = UDim2.new(0, 480, 0, 320)
+    container.Size = UDim2.new(0, 420, 0, 260)
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Colors.surface
     container.BackgroundTransparency = 0.1
-    container.ClipsDescendants = true
+    container.GroupTransparency = 1 -- Start transparent for animation
     container.Parent = mainCentering
     
     local aspectRatio = Instance.new("UIAspectRatioConstraint")
@@ -104,7 +104,7 @@ function UI.Initialize(options)
     aspectRatio.Parent = container
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 16)
+    corner.CornerRadius = UDim.new(0, 12)
     corner.Parent = container
     
     local stroke = Instance.new("UIStroke")
@@ -134,9 +134,9 @@ function UI.Initialize(options)
     dropShadow.Parent = container
     
     local glassOverlay = Instance.new("Frame")
-    glassOverlay.Size = UDim2.new(1, 0, 0.5, 0)
+    glassOverlay.Size = UDim2.new(1, 0, 0.6, 0)
     glassOverlay.BackgroundColor3 = Colors.glass
-    glassOverlay.BackgroundTransparency = 0.95
+    glassOverlay.BackgroundTransparency = 0.96
     glassOverlay.BorderSizePixel = 0
     glassOverlay.Parent = container
     
@@ -151,21 +151,21 @@ function UI.Initialize(options)
     -- Top Bar
     local topBar = Instance.new("Frame")
     topBar.Name = "TopBar"
-    topBar.Size = UDim2.new(1, 0, 0, 40)
+    topBar.Size = UDim2.new(1, 0, 0, 36)
     topBar.BackgroundColor3 = Colors.surfaceLight
-    topBar.BackgroundTransparency = 0.5
+    topBar.BackgroundTransparency = 0.8
     topBar.BorderSizePixel = 0
     topBar.Parent = container
 
     local iconContainer = Instance.new("Frame")
-    iconContainer.Size = UDim2.new(0, 48, 0, 48)
-    iconContainer.Position = UDim2.new(0, 16, 0.5, 0)
+    iconContainer.Size = UDim2.new(0, 32, 0, 32)
+    iconContainer.Position = UDim2.new(0, 12, 0.5, 0)
     iconContainer.AnchorPoint = Vector2.new(0, 0.5)
     iconContainer.BackgroundTransparency = 1
     iconContainer.Parent = topBar
     
     local mainIcon = createIconImage(IconAssets.shield)
-    mainIcon.Size = UDim2.new(1, -12, 1, -12)
+    mainIcon.Size = UDim2.new(1, -8, 1, -8)
     mainIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
     mainIcon.AnchorPoint = Vector2.new(0.5, 0.5)
     mainIcon.Parent = iconContainer
@@ -182,11 +182,11 @@ function UI.Initialize(options)
     titleText.Text = UI.Keys.MainTitle
     titleText.TextColor3 = Colors.textPrimary
     titleText.Font = Enum.Font.GothamBold
-    titleText.TextSize = 16
+    titleText.TextSize = 14
     titleText.TextXAlignment = Enum.TextXAlignment.Left
     titleText.BackgroundTransparency = 1
-    titleText.Size = UDim2.new(1, -70, 0, 20)
-    titleText.Position = UDim2.new(0, 60, 0.5, -9)
+    titleText.Size = UDim2.new(1, -50, 0, 16)
+    titleText.Position = UDim2.new(0, 50, 0.5, -7)
     titleText.Parent = topBar
     
     local subtitleText = Instance.new("TextLabel")
@@ -197,12 +197,12 @@ function UI.Initialize(options)
     subtitleText.TextTransparency = 0.4
     subtitleText.TextXAlignment = Enum.TextXAlignment.Left
     subtitleText.BackgroundTransparency = 1
-    subtitleText.Size = UDim2.new(1, -70, 0, 14)
-    subtitleText.Position = UDim2.new(0, 60, 0.5, 9)
+    subtitleText.Size = UDim2.new(1, -50, 0, 12)
+    subtitleText.Position = UDim2.new(0, 50, 0.5, 7)
     subtitleText.Parent = topBar
     
     local closeButton = Instance.new("ImageButton")
-    closeButton.Size = UDim2.new(0, 40, 0, 40)
+    closeButton.Size = UDim2.new(0, 36, 0, 36)
     closeButton.Position = UDim2.new(1, 0, 0, 0)
     closeButton.AnchorPoint = Vector2.new(1, 0)
     closeButton.BackgroundTransparency = 1
@@ -217,14 +217,14 @@ function UI.Initialize(options)
     
     -- Input Section
     inputSection = Instance.new("Frame")
-    inputSection.Size = UDim2.new(1, -64, 1, -80)
-    inputSection.Position = UDim2.new(0.5, 0, 0.5, 20)
+    inputSection.Size = UDim2.new(1, -40, 1, -70)
+    inputSection.Position = UDim2.new(0.5, 0, 0.5, 18)
     inputSection.AnchorPoint = Vector2.new(0.5, 0.5)
     inputSection.BackgroundTransparency = 1
     inputSection.Parent = container
     
     local keyInputContainer = Instance.new("Frame")
-    keyInputContainer.Size = UDim2.new(1, 0, 0, 42)
+    keyInputContainer.Size = UDim2.new(1, 0, 0, 38)
     keyInputContainer.BackgroundColor3 = Colors.surfaceLight
     keyInputContainer.BackgroundTransparency = 0.5
     keyInputContainer.Parent = inputSection
@@ -263,8 +263,8 @@ function UI.Initialize(options)
     
     -- Buttons
     local buttonSection = Instance.new("Frame")
-    buttonSection.Size = UDim2.new(1, 0, 0, 38)
-    buttonSection.Position = UDim2.new(0, 0, 0, 50)
+    buttonSection.Size = UDim2.new(1, 0, 0, 32)
+    buttonSection.Position = UDim2.new(0, 0, 0, 48)
     buttonSection.BackgroundTransparency = 1
     buttonSection.Parent = inputSection
     
@@ -490,12 +490,12 @@ function UI.SetupAnimations()
 end
 
 function UI.AnimateEntrance()
-    container.Size = UDim2.new(0, 460, 0, 300)
+    container.Size = UDim2.new(0, 400, 0, 240)
     container.GroupTransparency = 1
     backdrop.BackgroundTransparency = 1
     
     TweenService:Create(container, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 480, 0, 320),
+        Size = UDim2.new(0, 420, 0, 260),
         GroupTransparency = 0
     }):Play()
     
