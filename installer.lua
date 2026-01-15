@@ -16,8 +16,7 @@ local function LoadBundle()
     
     local success, result = pcall(function()
         -- User should replace this with actual URL in production
-        -- For now we simulate that 'loader.luau' content is executed
-        return loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/loader.luau"))()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/loader.luau"))()
     end)
     
     if not success then

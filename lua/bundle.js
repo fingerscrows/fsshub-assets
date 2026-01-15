@@ -1,71 +1,75 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Configuration
 const CONFIG = {
-    fluentSrc: path.join(__dirname, '../Fluent/Src'),
-    keySystem: path.join(__dirname, 'KeySystemUI.lua'),
-    mainMenu: path.join(__dirname, 'Main_Menu.lua'),
-    output: path.join(__dirname, 'loader.luau')
+  fluentSrc: path.join(__dirname, "../Fluent/Src"),
+  keySystem: path.join(__dirname, "KeySystemUI.lua"),
+  mainMenu: path.join(__dirname, "Main_Menu.lua"),
+  output: path.join(__dirname, "../loader.luau"), // Output to root
 };
 
 // Helper: Recursively get all .lua and .luau files
 function getFiles(dir, fileList = []) {
-    const files = fs.readdirSync(dir);
-    files.forEach(file => {
-        const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath);
-        if (stat.isDirectory()) {
-            getFiles(filePath, fileList);
-        } else {
-            // Include both .lua and .luau files
-            if (filePath.endsWith('.luau') || filePath.endsWith('.lua')) {
-                fileList.push(filePath);
-            }
-        }
-    });
-    return fileList;
+  const files = fs.readdirSync(dir);
+  files.forEach((file) => {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    if (stat.isDirectory()) {
+      getFiles(filePath, fileList);
+    } else {
+      // Include both .lua and .luau files
+      if (filePath.endsWith(".luau") || filePath.endsWith(".lua")) {
+        fileList.push(filePath);
+      }
+    }
+  });
+  return fileList;
 }
 
 // Helper: Escape Lua string
 function escapeLuaString(str) {
-    return str.replace(/\\/g, '\\\\')
-              .replace(/"/g, '\\"')
-              .replace(/\n/g, '\\n')
-              .replace(/\r/g, '\\r');
+  return str
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r");
 }
 
 // Main Bundling Logic
 function bundle() {
-    console.log("Starting Bundle Process...");
-    
-    let modules = {};
-    const fluentFiles = getFiles(CONFIG.fluentSrc);
-    
-    console.log(`Found ${fluentFiles.length} Fluent modules.`);
+  console.log("Starting Bundle Process...");
 
-    // 1. Bundle Fluent UI Modules
-    fluentFiles.forEach(filepath => {
-        // Calculate module path relative to Src root
-        // e.g. "Components/Button.luau" -> "Components/Button"
-        // "init.luau" -> "Root" ??
-        
-        let relPath = path.relative(CONFIG.fluentSrc, filepath);
-        let moduleName = relPath.replace(/\\/g, '/').replace(/\.luau$/, '').replace(/\.lua$/, '');
-        
-        // Handle init.luau files (e.g. "Components/init" -> "Components")
-        if (moduleName.endsWith('/init')) {
-            moduleName = moduleName.substring(0, moduleName.length - 5);
-        } else if (moduleName === 'init') {
-            moduleName = 'Root';
-        }
-        
-        let content = fs.readFileSync(filepath, 'utf8');
-        modules[moduleName] = content;
-    });
+  let modules = {};
+  const fluentFiles = getFiles(CONFIG.fluentSrc);
 
-    // 2. Generate Output Content
-    let output = `--[[ 
+  console.log(`Found ${fluentFiles.length} Fluent modules.`);
+
+  // 1. Bundle Fluent UI Modules
+  fluentFiles.forEach((filepath) => {
+    // Calculate module path relative to Src root
+    // e.g. "Components/Button.luau" -> "Components/Button"
+    // "init.luau" -> "Root" ??
+
+    let relPath = path.relative(CONFIG.fluentSrc, filepath);
+    let moduleName = relPath
+      .replace(/\\/g, "/")
+      .replace(/\.luau$/, "")
+      .replace(/\.lua$/, "");
+
+    // Handle init.luau files (e.g. "Components/init" -> "Components")
+    if (moduleName.endsWith("/init")) {
+      moduleName = moduleName.substring(0, moduleName.length - 5);
+    } else if (moduleName === "init") {
+      moduleName = "Root";
+    }
+
+    let content = fs.readFileSync(filepath, "utf8");
+    modules[moduleName] = content;
+  });
+
+  // 2. Generate Output Content
+  let output = `--[[ 
     FSSHUB Loader Bundle
     Generated: ${new Date().toISOString()}
 ]]
@@ -178,9 +182,9 @@ end
 -- MODULE DEFINITIONS
 `;
 
-    // Write modules
-    for (const [name, content] of Object.entries(modules)) {
-        output += `
+  // Write modules
+  for (const [name, content] of Object.entries(modules)) {
+    output += `
 __MODULES["${name}"] = function()
     local script = createScriptProxy("Root/${name}")
     local function require(p) 
@@ -196,23 +200,23 @@ ${content}
     end)()
 end
 `;
-    }
+  }
 
-    // 3. Append Entry Logic
-    output += `
+  // 3. Append Entry Logic
+  output += `
 -- MAIN LOGIC
 local FSSHUB_UI = __REQUIRE("Root") -- Load init.luau (stored as Root)
 
 -- Load KeySystem
 local KeySystem = (function()
     local Fluent = FSSHUB_UI
-    ${fs.readFileSync(CONFIG.keySystem, 'utf8')}
+    ${fs.readFileSync(CONFIG.keySystem, "utf8")}
 end)()
 
 -- Load Main Menu (only if validated, but for bundle we define it)
 local MainMenu = function()
     local Fluent = FSSHUB_UI
-    ${fs.readFileSync(CONFIG.mainMenu, 'utf8')}
+    ${fs.readFileSync(CONFIG.mainMenu, "utf8")}
 end
 
 -- Export
@@ -223,8 +227,8 @@ return {
 }
 `;
 
-    fs.writeFileSync(CONFIG.output, output);
-    console.log(`Bundle written to ${CONFIG.output}`);
+  fs.writeFileSync(CONFIG.output, output);
+  console.log(`Bundle written to ${CONFIG.output}`);
 }
 
 bundle();
