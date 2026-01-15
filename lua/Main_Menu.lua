@@ -1,6 +1,7 @@
 --[[
-    FSSHUB Main Menu - Fluent Renewed (v4.0.7)
+    FSSHUB Main Menu - Fluent Renewed (v4.0.8)
     Universal FREE + PREMIUM Features
+    Workspace: FSSHUBLibrary/
 ]]
 
 -- Production mode: disable verbose logging (set by payload)
@@ -24,7 +25,7 @@ _G.FSSHUB_WINDOW = nil
 
 local Info = getgenv().FSSHUB_INFO
 
--- LOAD FLUENT RENEWED (v4.0.7 with Xeno workspace cache)
+-- LOAD FLUENT RENEWED (v4.0.8 with FSSHUBLibrary workspace)
 local Fluent
 local loadStart = tick()
 
@@ -40,7 +41,7 @@ end
 -- Fallback to normal loading if pre-load failed
 if not Fluent then
     Log("Fallback: Loading Fluent normally...")
-    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.7"))()
+    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
 end
 
 Log("Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")

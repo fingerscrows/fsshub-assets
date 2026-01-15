@@ -1,20 +1,28 @@
 --[[
-    Fluent Renewed Loader - V4.0.7 (Xeno Workspace Cache + Performance)
+    Fluent Renewed Loader - V4.0.8 (FSSHUBLibrary Workspace)
     
     This loader fetches the pre-bundled Fluent UI library from GitHub.
-    It caches the bundle in Xeno workspace for instant subsequent loads.
+    It caches the bundle in FSSHUBLibrary workspace for instant subsequent loads.
     
-    V4.0.7 Changes:
-    - Cache path moved to FSSHUB/cache/ (Xeno workspace)
-    - Force refresh support: getgenv().FSSHUB_FORCE_REFRESH = true
-    - Production mode: getgenv().FSSHUB_PRODUCTION = true (disables verbose logs)
-    - Prometheus obfuscation compatible patterns
+    V4.0.8 Changes:
+    - Workspace renamed to FSSHUBLibrary (like SentinelLibrary)
+    - Folder structure: Bin/, Configs/, Assets/
+    - Bundle cached in Bin/ folder
+    - Force refresh: getgenv().FSSHUB_FORCE_REFRESH = true
+    - Production mode: getgenv().FSSHUB_PRODUCTION = true
 ]]
 
-local CACHE_VERSION = "v4.0.7"
+local CACHE_VERSION = "v4.0.8"
 local BUNDLE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_bundle.lua?v=" .. CACHE_VERSION
-local CACHE_DIR = "FSSHUB/cache"
-local CACHE_FILE = CACHE_DIR .. "/fluent_" .. CACHE_VERSION .. ".lua"
+
+-- Workspace paths (like SentinelLibrary structure)
+local WORKSPACE = "FSSHUBLibrary"
+local BIN_DIR = WORKSPACE .. "/Bin"
+local CONFIGS_DIR = WORKSPACE .. "/Configs"
+local ASSETS_DIR = WORKSPACE .. "/Assets"
+
+-- Cache file in Bin folder (not nested cache subfolder)
+local CACHE_FILE = BIN_DIR .. "/fluent_bundle_" .. CACHE_VERSION .. ".lua"
 
 -- Production mode: disable verbose logging
 local PRODUCTION = getgenv().FSSHUB_PRODUCTION or false
@@ -23,6 +31,18 @@ local function Log(msg)
     if not PRODUCTION then
         print("[Fluent Loader] " .. tostring(msg))
     end
+end
+
+-- Create FSSHUBLibrary directory structure
+local function ensureDirectories()
+    if not makefolder then return end
+    
+    pcall(function()
+        makefolder(WORKSPACE)
+        makefolder(BIN_DIR)
+        makefolder(CONFIGS_DIR)
+        makefolder(ASSETS_DIR)
+    end)
 end
 
 -- Check if local cache exists and is valid
@@ -37,7 +57,7 @@ local function loadFromCache()
     end)
     
     if ok and content and #content > 10000 then -- Bundle should be >1MB
-        Log("Loaded from local cache (" .. math.floor(#content / 1024) .. " KB)")
+        Log("Loaded from cache (" .. math.floor(#content / 1024) .. " KB)")
         return content
     end
     
@@ -52,12 +72,9 @@ local function saveToCache(content)
         return 
     end
     
+    ensureDirectories()
+    
     pcall(function()
-        -- Create FSSHUB directory structure
-        if makefolder then
-            makefolder("FSSHUB")
-            makefolder(CACHE_DIR)
-        end
         writefile(CACHE_FILE, content)
         Log("Saved to cache (" .. math.floor(#content / 1024) .. " KB)")
     end)
