@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-15T18:49:32.125Z
+    Generated: 2026-01-15T18:53:57.268Z
 ]]
 
 local __MODULES = {}
@@ -59843,42 +59843,13 @@ local FSSHUB_UI = __REQUIRE("Root") -- Load init.luau (stored as Root)
 local KeySystem = (function()
     local Fluent = FSSHUB_UI
     -- KeySystemUI.lua
--- Complete Key System with UI + Junkie SDK Logic
--- This module will be bundled into loader.luau and hosted on Junkie CDN
+-- Pure UI component for Key System
+-- Designed to be controlled by an external Logic Controller (CF Worker Loader)
+-- API: Initialize(options), Authorize(), Fail(), ShowError(msg)
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
-
--- JUNKIE SDK INTEGRATION
-local Junkie = loadstring(game:HttpGet("https://jnkie.com/sdk/library.lua"))()
-Junkie.service = "FSSHUB Official"
-Junkie.identifier = "1000139"
-Junkie.provider = "FSSHUB - KEY SYSTEM"
-
--- FILE SYSTEM HELPERS
-local fileSystemSupported = type(writefile) == "function" and type(readfile) == "function" and type(isfile) == "function"
-
-local function saveVerifiedKey(key)
-    if fileSystemSupported then
-        pcall(writefile, "verified_key.txt", key)
-    end
-end
-
-local function loadVerifiedKey()
-    if fileSystemSupported and isfile("verified_key.txt") then
-        local s, k = pcall(readfile, "verified_key.txt")
-        if s then return k end
-    end
-    return nil
-end
-
-local function clearSavedKey()
-    if fileSystemSupported and isfile("verified_key.txt") then
-        pcall(delfile, "verified_key.txt")
-    end
-end
 
 -- COLOR PALETTE
 local Colors = {
@@ -59887,28 +59858,21 @@ local Colors = {
     surfaceLight = Color3.fromRGB(30, 36, 44),
     primary = Color3.fromRGB(88, 166, 255),
     primaryDark = Color3.fromRGB(58, 136, 225),
-    primaryGlow = Color3.fromRGB(120, 180, 255),
-    accent = Color3.fromRGB(136, 87, 224),
     success = Color3.fromRGB(47, 183, 117),
-    successDark = Color3.fromRGB(37, 153, 97),
-    successGlow = Color3.fromRGB(67, 203, 137),
     error = Color3.fromRGB(248, 81, 73),
     textPrimary = Color3.fromRGB(230, 237, 243),
     textSecondary = Color3.fromRGB(139, 148, 158),
     textMuted = Color3.fromRGB(110, 118, 129),
-    border = Color3.fromRGB(48, 54, 61),
     borderLight = Color3.fromRGB(63, 71, 79),
     glass = Color3.fromRGB(255, 255, 255),
-    neonBlue = Color3.fromRGB(0, 229, 255),
-    neonPurple = Color3.fromRGB(187, 134, 252)
+    neonBlue = Color3.fromRGB(0, 229, 255)
 }
 
 local IconAssets = {
     shield = "rbxassetid://84528813312016",
     x = "rbxassetid://73070135088117",
     key = "rbxassetid://128426502701541",
-    link = "rbxassetid://73034596791310",
-    check = "rbxassetid://83827110621355"
+    link = "rbxassetid://73034596791310"
 }
 
 local function createIconImage(id)
@@ -59919,21 +59883,25 @@ local function createIconImage(id)
     return icon
 end
 
--- UI MODULE
+-- UI Module
 local UI = {}
-UI.__index = UI
+UI.Keys = {
+    MainTitle = "FSSHUB Official",
+    MainDesc = "SECURITY GATEWAY"
+}
 
-function UI.new(options)
-    local self = setmetatable({}, UI)
-    self.options = options or {}
-    self.title = self.options.title or Junkie.service
-    self.subtitle = self.options.subtitle or "SECURITY GATEWAY"
-    self.onSuccess = self.options.onSuccess -- Callback when key is verified
-    return self
-end
+-- Internal State
+local gui, backdrop, blur, container, keyInput, verifyButton, getLinkButton, inputSection, iconGradient
+local validateCallback = nil
+local keyLink = nil
 
-function UI:CreateUI()
-    local gui = Instance.new("ScreenGui")
+function UI.Initialize(options)
+    options = options or {}
+    keyLink = options.KeyLink
+    validateCallback = options.Function
+    
+    -- Create UI
+    gui = Instance.new("ScreenGui")
     gui.Name = "KeyVerificationUI"
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -59949,24 +59917,23 @@ function UI:CreateUI()
         gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
     end
     
-    local backdrop = Instance.new("Frame")
+    backdrop = Instance.new("Frame")
     backdrop.Name = "Backdrop"
     backdrop.Size = UDim2.new(1, 0, 1, 0)
     backdrop.BackgroundColor3 = Colors.background
     backdrop.BackgroundTransparency = 0.3
     backdrop.Parent = gui
     
-    local blur = Instance.new("BlurEffect")
+    blur = Instance.new("BlurEffect")
     blur.Size = 15
     blur.Parent = Lighting
 
     local mainCentering = Instance.new("Frame")
-    mainCentering.Name = "Centering"
     mainCentering.Size = UDim2.new(1, 0, 1, 0)
     mainCentering.BackgroundTransparency = 1
     mainCentering.Parent = gui
     
-    local container = Instance.new("Frame")
+    container = Instance.new("Frame")
     container.Name = "Container"
     container.Size = UDim2.new(0, 480, 0, 320)
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -59990,11 +59957,10 @@ function UI:CreateUI()
     stroke.Transparency = 0.5
     stroke.Parent = container
     
-    local glowTween = TweenService:Create(stroke, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+    TweenService:Create(stroke, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
         Color = Colors.primary,
         Transparency = 0.2
-    })
-    glowTween:Play()
+    }):Play()
     
     local dropShadow = Instance.new("ImageLabel")
     dropShadow.Name = "Shadow"
@@ -60012,7 +59978,6 @@ function UI:CreateUI()
     dropShadow.Parent = container
     
     local glassOverlay = Instance.new("Frame")
-    glassOverlay.Name = "GlassOverlay"
     glassOverlay.Size = UDim2.new(1, 0, 0.5, 0)
     glassOverlay.BackgroundColor3 = Colors.glass
     glassOverlay.BackgroundTransparency = 0.95
@@ -60027,6 +59992,7 @@ function UI:CreateUI()
     })
     glassGradient.Parent = glassOverlay
     
+    -- Top Bar
     local topBar = Instance.new("Frame")
     topBar.Name = "TopBar"
     topBar.Size = UDim2.new(1, 0, 0, 40)
@@ -60036,7 +60002,6 @@ function UI:CreateUI()
     topBar.Parent = container
 
     local iconContainer = Instance.new("Frame")
-    iconContainer.Name = "IconContainer"
     iconContainer.Size = UDim2.new(0, 48, 0, 48)
     iconContainer.Position = UDim2.new(0, 16, 0.5, 0)
     iconContainer.AnchorPoint = Vector2.new(0, 0.5)
@@ -60049,7 +60014,7 @@ function UI:CreateUI()
     mainIcon.AnchorPoint = Vector2.new(0.5, 0.5)
     mainIcon.Parent = iconContainer
     
-    local iconGradient = Instance.new("UIGradient")
+    iconGradient = Instance.new("UIGradient")
     iconGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Colors.primary),
         ColorSequenceKeypoint.new(1, Colors.neonBlue)
@@ -60058,8 +60023,7 @@ function UI:CreateUI()
     iconGradient.Parent = mainIcon
     
     local titleText = Instance.new("TextLabel")
-    titleText.Name = "Title"
-    titleText.Text = self.title
+    titleText.Text = UI.Keys.MainTitle
     titleText.TextColor3 = Colors.textPrimary
     titleText.Font = Enum.Font.GothamBold
     titleText.TextSize = 16
@@ -60067,12 +60031,10 @@ function UI:CreateUI()
     titleText.BackgroundTransparency = 1
     titleText.Size = UDim2.new(1, -70, 0, 20)
     titleText.Position = UDim2.new(0, 60, 0.5, -9)
-    titleText.AnchorPoint = Vector2.new(0, 0)
     titleText.Parent = topBar
     
     local subtitleText = Instance.new("TextLabel")
-    subtitleText.Name = "Subtitle"
-    subtitleText.Text = self.subtitle
+    subtitleText.Text = UI.Keys.MainDesc
     subtitleText.TextColor3 = Colors.primary
     subtitleText.Font = Enum.Font.GothamMedium
     subtitleText.TextSize = 10
@@ -60084,7 +60046,6 @@ function UI:CreateUI()
     subtitleText.Parent = topBar
     
     local closeButton = Instance.new("ImageButton")
-    closeButton.Name = "Close"
     closeButton.Size = UDim2.new(0, 40, 0, 40)
     closeButton.Position = UDim2.new(1, 0, 0, 0)
     closeButton.AnchorPoint = Vector2.new(1, 0)
@@ -60093,11 +60054,13 @@ function UI:CreateUI()
     closeButton.ImageColor3 = Colors.textSecondary
     closeButton.ImageTransparency = 0.4
     closeButton.ScaleType = Enum.ScaleType.Fit
-    closeButton.SliceScale = 0.4
     closeButton.Parent = topBar
+    closeButton.MouseButton1Click:Connect(function()
+        UI.Close()
+    end)
     
-    local inputSection = Instance.new("Frame")
-    inputSection.Name = "InputSection"
+    -- Input Section
+    inputSection = Instance.new("Frame")
     inputSection.Size = UDim2.new(1, -64, 1, -80)
     inputSection.Position = UDim2.new(0.5, 0, 0.5, 20)
     inputSection.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -60105,7 +60068,6 @@ function UI:CreateUI()
     inputSection.Parent = container
     
     local keyInputContainer = Instance.new("Frame")
-    keyInputContainer.Name = "KeyInputContainer"
     keyInputContainer.Size = UDim2.new(1, 0, 0, 42)
     keyInputContainer.BackgroundColor3 = Colors.surfaceLight
     keyInputContainer.BackgroundTransparency = 0.5
@@ -60129,8 +60091,7 @@ function UI:CreateUI()
     inputIcon.ImageTransparency = 0.2
     inputIcon.Parent = keyInputContainer
     
-    local keyInput = Instance.new("TextBox")
-    keyInput.Name = "Input"
+    keyInput = Instance.new("TextBox")
     keyInput.Size = UDim2.new(1, -40, 1, 0)
     keyInput.Position = UDim2.new(0, 36, 0, 0)
     keyInput.BackgroundTransparency = 1
@@ -60144,8 +60105,8 @@ function UI:CreateUI()
     keyInput.ClearTextOnFocus = false
     keyInput.Parent = keyInputContainer
     
+    -- Buttons
     local buttonSection = Instance.new("Frame")
-    buttonSection.Name = "Buttons"
     buttonSection.Size = UDim2.new(1, 0, 0, 38)
     buttonSection.Position = UDim2.new(0, 0, 0, 50)
     buttonSection.BackgroundTransparency = 1
@@ -60211,46 +60172,53 @@ function UI:CreateUI()
         return button
     end
     
-    local getLinkButton = createButton("GetLink", "Get Link", false, IconAssets.link)
+    getLinkButton = createButton("GetLink", "Get Link", false, IconAssets.link)
     getLinkButton.LayoutOrder = 1
     getLinkButton.Parent = buttonSection
+    getLinkButton.MouseButton1Click:Connect(function()
+        if keyLink then
+            if setclipboard then
+                setclipboard(keyLink)
+                UI.ShowStatus("Link copied!", Colors.success, 3)
+            else
+                UI.ShowStatus("Link: " .. keyLink, Colors.primary, 10)
+            end
+        else
+            UI.ShowStatus("No key link available", Colors.error, 3)
+        end
+    end)
     
-    local verifyButton = createButton("Verify", "Verify Key", true, IconAssets.key)
+    verifyButton = createButton("Verify", "Verify Key", true, IconAssets.key)
     verifyButton.LayoutOrder = 2
     verifyButton.Parent = buttonSection
+    verifyButton.MouseButton1Click:Connect(function()
+        local key = keyInput.Text:gsub("%s+", "")
+        if key == "" then
+            UI.ShowStatus("Please enter a key", Colors.error, 3)
+            UI.ShakeInput()
+            return
+        end
+        if validateCallback then
+            validateCallback(key)
+        end
+    end)
     
-    local statusBar = Instance.new("Frame")
-    statusBar.Name = "StatusBar"
-    statusBar.Size = UDim2.new(1, 0, 0, 2)
-    statusBar.Position = UDim2.new(0, 0, 1, 0)
-    statusBar.AnchorPoint = Vector2.new(0, 1)
-    statusBar.BackgroundColor3 = Colors.primary
-    statusBar.BackgroundTransparency = 1
-    statusBar.BorderSizePixel = 0
-    statusBar.Parent = container
+    -- Enter to verify
+    keyInput.FocusLost:Connect(function(enter)
+        if enter then
+            local key = keyInput.Text:gsub("%s+", "")
+            if key ~= "" and validateCallback then
+                validateCallback(key)
+            end
+        end
+    end)
     
-    -- Store elements
-    self.gui = gui
-    self.backdrop = backdrop
-    self.blur = blur
-    self.container = container
-    self.keyInput = keyInput
-    self.verifyButton = verifyButton
-    self.getLinkButton = getLinkButton
-    self.closeButton = closeButton
-    self.statusBar = statusBar
-    self.iconGradient = iconGradient
-    self.inputSection = inputSection
-    
-    -- Setup Animations
-    self:SetupAnimations()
-    self:AnimateEntrance()
-    self:BindEvents()
-    
-    return gui
+    -- Animations
+    UI.SetupAnimations()
+    UI.AnimateEntrance()
 end
 
-function UI:UpdateStatus(text, color, resetTime)
+function UI.ShowStatus(text, color, resetTime)
     local label = Instance.new("TextLabel")
     label.Text = text
     label.TextColor3 = color
@@ -60260,7 +60228,7 @@ function UI:UpdateStatus(text, color, resetTime)
     label.Position = UDim2.new(0, 0, 1, -25)
     label.BackgroundTransparency = 1
     label.TextTransparency = 1
-    label.Parent = self.container
+    label.Parent = container
     
     TweenService:Create(label, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
     
@@ -60275,104 +60243,75 @@ function UI:UpdateStatus(text, color, resetTime)
     end
 end
 
-function UI:ShakeInput()
+function UI.ShowError(msg)
+    UI.ShowStatus(msg, Colors.error, 5)
+    UI.ShakeInput()
+end
+
+function UI.ShakeInput()
     local originalPos = UDim2.new(0.5, 0, 0.5, 20)
     local intensity = 5
     for i = 1, 6 do
         local offset = (i % 2 == 0 and -intensity or intensity)
-        TweenService:Create(self.inputSection, TweenInfo.new(0.05), {Position = originalPos + UDim2.new(0, offset, 0, 0)}):Play()
+        TweenService:Create(inputSection, TweenInfo.new(0.05), {Position = originalPos + UDim2.new(0, offset, 0, 0)}):Play()
         task.wait(0.05)
     end
-    TweenService:Create(self.inputSection, TweenInfo.new(0.05), {Position = originalPos}):Play()
+    TweenService:Create(inputSection, TweenInfo.new(0.05), {Position = originalPos}):Play()
 end
 
-function UI:SetButtonLoading(isLoading)
-    local content = self.verifyButton:FindFirstChild("Content")
-    if not content then return end
+function UI.Authorize()
+    UI.ShowStatus("Key Verified!", Colors.success, 0)
     
-    if isLoading then
-        for _, child in pairs(content:GetChildren()) do
-            if child:IsA("GuiObject") then child.Visible = false end
-        end
-        
-        local spinner = Instance.new("ImageLabel")
-        spinner.Name = "Spinner"
-        spinner.Size = UDim2.new(0, 20, 0, 20)
-        spinner.Position = UDim2.new(0.5, 0, 0.5, 0)
-        spinner.AnchorPoint = Vector2.new(0.5, 0.5)
-        spinner.BackgroundTransparency = 1
-        spinner.Image = "rbxassetid://16966567539"
-        spinner.ImageColor3 = Colors.textPrimary
-        spinner.Parent = self.verifyButton
-        
-        local rotation = 0
-        task.spawn(function()
-            while spinner.Parent do
-                rotation = rotation + 15
-                TweenService:Create(spinner, TweenInfo.new(0.05, Enum.EasingStyle.Linear), {Rotation = rotation}):Play()
-                task.wait(0.05)
-            end
-        end)
-    else
-        local spinner = self.verifyButton:FindFirstChild("Spinner")
-        if spinner then spinner:Destroy() end
-        for _, child in pairs(content:GetChildren()) do
-            if child:IsA("GuiObject") then child.Visible = true end
-        end
-    end
-end
-
-function UI:AnimateSuccess()
-    TweenService:Create(self.statusBar, TweenInfo.new(0.5), {BackgroundColor3 = Colors.success}):Play()
+    local statusBar = Instance.new("Frame")
+    statusBar.Size = UDim2.new(1, 0, 0, 2)
+    statusBar.Position = UDim2.new(0, 0, 1, 0)
+    statusBar.AnchorPoint = Vector2.new(0, 1)
+    statusBar.BackgroundColor3 = Colors.success
+    statusBar.BorderSizePixel = 0
+    statusBar.Parent = container
+    
     local cover = Instance.new("Frame")
     cover.Size = UDim2.new(1, 0, 1, 0)
     cover.BackgroundColor3 = Colors.success
     cover.BackgroundTransparency = 1
-    cover.Parent = self.container
+    cover.Parent = container
+    
     TweenService:Create(cover, TweenInfo.new(0.5), {BackgroundTransparency = 0.8}):Play()
     task.wait(0.5)
     TweenService:Create(cover, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
     task.wait(0.5)
     cover:Destroy()
+    
+    -- Close UI after success animation
+    task.delay(1, function()
+        UI.Close()
+    end)
 end
 
-function UI:Close()
-    if self.blur then self.blur:Destroy() end
-    if self.gui then self.gui:Destroy() end
+function UI.Fail()
+    UI.ShowStatus("Invalid Key", Colors.error, 3)
+    UI.ShakeInput()
 end
 
-function UI:SetupAnimations()
-    local hoverInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    
-    for _, btn in pairs({self.getLinkButton, self.verifyButton, self.closeButton}) do
-        btn.MouseEnter:Connect(function()
-            TweenService:Create(btn, hoverInfo, {ImageTransparency = 0, BackgroundTransparency = btn == self.closeButton and 1 or (btn.Name == "Verify" and 0 or 0.4)}):Play()
-        end)
-        btn.MouseLeave:Connect(function()
-            TweenService:Create(btn, hoverInfo, {ImageTransparency = 0.4, BackgroundTransparency = btn == self.closeButton and 1 or (btn.Name == "Verify" and 0.1 or 0.5)}):Play()
-        end)
-    end
-    
-    self.keyInput.Focused:Connect(function()
-        TweenService:Create(self.keyInput.Parent.UIStroke, hoverInfo, {Color = Colors.primary, Transparency = 0}):Play()
-    end)
-    self.keyInput.FocusLost:Connect(function()
-        TweenService:Create(self.keyInput.Parent.UIStroke, hoverInfo, {Color = Colors.borderLight, Transparency = 0.5}):Play()
-    end)
-    
+function UI.Close()
+    if blur then blur:Destroy() end
+    if gui then gui:Destroy() end
+end
+
+function UI.SetupAnimations()
     -- Icon Gradient Animation
     task.spawn(function()
-        while self.gui and self.gui.Parent do
-            local rotTween = TweenService:Create(self.iconGradient, TweenInfo.new(2, Enum.EasingStyle.Linear), {Rotation = 360 + 45})
+        while gui and gui.Parent do
+            local rotTween = TweenService:Create(iconGradient, TweenInfo.new(2, Enum.EasingStyle.Linear), {Rotation = 360 + 45})
             rotTween:Play()
             rotTween.Completed:Wait()
-            self.iconGradient.Rotation = 45
+            iconGradient.Rotation = 45
         end
     end)
     
     -- Particles
     task.spawn(function()
-        while self.gui and self.gui.Parent do
+        while gui and gui.Parent do
             local p = Instance.new("Frame")
             p.BackgroundColor3 = Colors.primary
             p.BackgroundTransparency = 0.8
@@ -60380,7 +60319,7 @@ function UI:SetupAnimations()
             local size = math.random(2, 4)
             p.Size = UDim2.new(0, size, 0, size)
             p.Position = UDim2.new(math.random(), 0, 1, 10)
-            p.Parent = self.container
+            p.Parent = container
             
             local duration = math.random(30, 60) / 10
             local tween = TweenService:Create(p, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
@@ -60394,115 +60333,20 @@ function UI:SetupAnimations()
     end)
 end
 
-function UI:AnimateEntrance()
-    self.container.Size = UDim2.new(0, 460, 0, 300)
-    self.container.GroupTransparency = 1
-    self.backdrop.BackgroundTransparency = 1
+function UI.AnimateEntrance()
+    container.Size = UDim2.new(0, 460, 0, 300)
+    container.GroupTransparency = 1
+    backdrop.BackgroundTransparency = 1
     
-    TweenService:Create(self.container, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    TweenService:Create(container, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
         Size = UDim2.new(0, 480, 0, 320),
         GroupTransparency = 0
     }):Play()
     
-    TweenService:Create(self.backdrop, TweenInfo.new(0.4), {BackgroundTransparency = 0.3}):Play()
+    TweenService:Create(backdrop, TweenInfo.new(0.4), {BackgroundTransparency = 0.3}):Play()
 end
 
-function UI:BindEvents()
-    -- Verify Button
-    self.verifyButton.MouseButton1Click:Connect(function()
-        self:HandleVerify()
-    end)
-    
-    -- Enter to Verify
-    self.keyInput.FocusLost:Connect(function(enter)
-        if enter then self:HandleVerify() end
-    end)
-    
-    -- Get Link Button
-    self.getLinkButton.MouseButton1Click:Connect(function()
-        self:HandleGetLink()
-    end)
-    
-    -- Close Button
-    self.closeButton.MouseButton1Click:Connect(function()
-        self:Close()
-    end)
-end
-
-function UI:HandleVerify()
-    local key = self.keyInput.Text:gsub("%s+", "")
-    
-    if key == "" then
-        self:UpdateStatus("Please enter a key", Colors.error, 3)
-        self:ShakeInput()
-        return
-    end
-    
-    self:SetButtonLoading(true)
-    self:UpdateStatus("Verifying...", Colors.primary, 0)
-    
-    task.spawn(function()
-        local result = Junkie.check_key(key)
-        self:SetButtonLoading(false)
-        
-        if result and result.valid then
-            saveVerifiedKey(key)
-            getgenv().SCRIPT_KEY = key
-            self:UpdateStatus("Key Verified!", Colors.success, 0)
-            self:AnimateSuccess()
-            task.wait(1.5)
-            self:Close()
-            
-            if self.onSuccess then
-                self.onSuccess(key)
-            end
-        else
-            self:UpdateStatus("Invalid Key", Colors.error, 3)
-            self:ShakeInput()
-        end
-    end)
-end
-
-function UI:HandleGetLink()
-    local link = Junkie.get_key_link()
-    if link then
-        if setclipboard then
-            setclipboard(link)
-            self:UpdateStatus("Link copied!", Colors.success, 3)
-        else
-            self:UpdateStatus("Link: " .. link, Colors.primary, 10)
-        end
-    else
-        self:UpdateStatus("Failed to get link", Colors.error, 3)
-    end
-end
-
--- MAIN START FUNCTION
-local function Start(onSuccess)
-    -- Check saved key first
-    local savedKey = loadVerifiedKey()
-    if savedKey then
-        local result = Junkie.check_key(savedKey)
-        if result and result.valid then
-            getgenv().SCRIPT_KEY = savedKey
-            if onSuccess then onSuccess(savedKey) end
-            return savedKey
-        else
-            clearSavedKey()
-        end
-    end
-    
-    -- Show UI if no valid saved key
-    local ui = UI.new({onSuccess = onSuccess})
-    ui:CreateUI()
-    
-    return nil -- Will be returned async via onSuccess callback
-end
-
-return {
-    Start = Start,
-    UI = UI
-}
+return UI
 
 end)()
 

@@ -1,29 +1,35 @@
 -- Installer.lua
--- Thin loader that fetches loader.luau from Junkie CDN
+-- Entry point for FSSHUB
+-- In production, the CF Worker Loader (source.ts) handles the complete flow.
+-- This installer is a simplified loader that calls the worker's /loader endpoint.
 
 local FSSHUB_INFO = {
     Version = "1.0.0",
     Status = "Stable",
-    Updated = "2024-01-16",
-    LoaderVersion = "2.0.0"
+    Updated = "2024-01-16"
 }
 getgenv().FSSHUB_INFO = FSSHUB_INFO
 
--- Load the consolidated bundle from Junkie CDN
--- Note: Replace this URL with the actual Junkie CDN URL when deployed
-local Bundle = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/loader.luau"))()
+-- Load the worker loader script
+-- This script contains the Junkie SDK integration and UI binding logic
+local loaderUrl = "https://script.fsshub-services.workers.dev/loader"
 
-if not Bundle then
-    warn("[FSSHUB] Failed to load bundle")
+local success, result = pcall(function()
+    return game:HttpGet(loaderUrl)
+end)
+
+if not success then
+    warn("[FSSHUB] Failed to fetch loader: " .. tostring(result))
     return
 end
 
-local KeySystem = Bundle.KeySystem
-local MainMenu = Bundle.MainMenu
+local chunk, err = loadstring(result)
+if not chunk then
+    warn("[FSSHUB] Failed to compile loader: " .. tostring(err))
+    return
+end
 
--- Start Key System, it will handle showing UI and validating keys
--- When a valid key is found (saved or entered), onSuccess is called
-KeySystem.Start(function(key)
-    -- Key is valid, launch main menu
-    MainMenu()
-end)
+local execSuccess, execErr = pcall(chunk)
+if not execSuccess then
+    warn("[FSSHUB] Failed to execute loader: " .. tostring(execErr))
+end
