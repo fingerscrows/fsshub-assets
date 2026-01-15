@@ -43,27 +43,10 @@ local KeySystem = Bundle.KeySystem
 local MainMenu = Bundle.MainMenu
 
 -- Start Key System
--- Key System Validation Logic
--- The actual validation is handled below
+local key = KeySystem.Start()
 
-
--- Main Menu is loaded after validation inside KeySystem check or manually called?
--- In our bundled structure, MainMenu is just a function wrapper from Main_Menu.lua
--- We need to check how Main_Menu.lua behaves. It runs immediately.
--- So we actually need to change Main_Menu.lua to be a function OR handle it here.
-
--- Correction: Main_Menu.lua content is wrapped in a function in bundle.js:
--- local MainMenu = function() ... end
-
--- Hook validation to load menu
-KeySystem.SetCallback(function(key)
-    -- Mock validation
-    wait(1)
-    if key == "test" or #key > 0 then
-        task.defer(function()
-             MainMenu() -- Launch Main Menu
-        end)
-        return true
-    end
-    return false
-end)
+if key then
+    task.defer(function()
+        MainMenu()
+    end)
+end
