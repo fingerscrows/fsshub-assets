@@ -22,18 +22,25 @@ local Info = getgenv().FSSHUB_INFO
 local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.4"))()
 
 -- Event System
-local Events = {
-    listeners = {},
-    Emit = function(self, name, ...)
-        if self.listeners[name] then
-            for _, cb in ipairs(self.listeners[name]) do pcall(cb, ...) end
+-- Event Bus (Centralized in Payload)
+if not _G.FSSHUB_EVENTS then
+    warn("[FSSHUB] Global Event Bus not found! Critical features may fail.")
+    -- Fallback for testing/standalone
+    _G.FSSHUB_EVENTS = {
+        listeners = {},
+        Emit = function(self, name, ...)
+             if self.listeners[name] then
+                for _, cb in ipairs(self.listeners[name]) do pcall(cb, ...) end
+            end
+        end,
+        On = function(self, name, cb)
+            self.listeners[name] = self.listeners[name] or {}
+            table.insert(self.listeners[name], cb)
         end
-    end,
-    On = function(self, name, cb)
-        self.listeners[name] = self.listeners[name] or {}
-        table.insert(self.listeners[name], cb)
-    end
-}
+    }
+end
+
+local Events = _G.FSSHUB_EVENTS
 _G.FSSHUB_EVENTS = Events
 
 -- Context
