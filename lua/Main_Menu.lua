@@ -19,7 +19,7 @@ _G.FSSHUB_WINDOW = nil
 local Info = getgenv().FSSHUB_INFO
 
 -- LOAD FLUENT RENEWED (v4.0.3 with cache busting)
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.3"))()
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.4"))()
 
 -- Event System
 local Events = {

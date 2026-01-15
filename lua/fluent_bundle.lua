@@ -60658,10 +60658,10 @@ __MODULES["Themes"] = function()
 		"DuoTone Dark Space",
 		"DuoTone Dark Forest",
 		"DuoTone Dark Earth",
-		"VSC Dark+",
+		"VSC DarkPlus",
 		"VSC Dark Modern",
 		"VSC Dark High Contrast",
-		"VSC Light+",
+		"VSC LightPlus",
 		"VSC Light Modern",
 		"VSC Light High Contrast",
 		"VSC Red",
@@ -62161,7 +62161,7 @@ __MODULES["Themes/VSC Dark Modern"] = function()
     return __fn()
 end
 
-__MODULES["Themes/VSC Dark+"] = function()
+__MODULES["Themes/VSC DarkPlus"] = function()
     local __MODULE_SOURCE = [[return {
     Accent = Color3.fromHex("#DCDCAA"), -- Based on function declarations color
 
@@ -62208,11 +62208,11 @@ __MODULES["Themes/VSC Dark+"] = function()
     Hover = Color3.fromHex("#2A2D2E"),
     HoverChange = 0.05
 }]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Dark+")
-    if not __fn then error("Compile error in Themes/VSC Dark+: " .. tostring(__err)) end
+    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC DarkPlus")
+    if not __fn then error("Compile error in Themes/VSC DarkPlus: " .. tostring(__err)) end
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
-        script = createScriptProxy("Themes/VSC Dark+"),
+        script = createScriptProxy("Themes/VSC DarkPlus"),
         require = function(mod) return __REQUIRE(mod) end
     }, { __index = getfenv() })
     setfenv(__fn, env)
@@ -62335,7 +62335,7 @@ __MODULES["Themes/VSC Light Modern"] = function()
     return __fn()
 end
 
-__MODULES["Themes/VSC Light+"] = function()
+__MODULES["Themes/VSC LightPlus"] = function()
     local __MODULE_SOURCE = [[return {
     Accent = Color3.fromHex("#795E26"), -- Function declarations color
 
@@ -62382,11 +62382,11 @@ __MODULES["Themes/VSC Light+"] = function()
     Hover = Color3.fromHex("#E8E8E8"), -- list.hoverBackground
     HoverChange = 0.1
 } ]]
-    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC Light+")
-    if not __fn then error("Compile error in Themes/VSC Light+: " .. tostring(__err)) end
+    local __fn, __err = loadstring(__MODULE_SOURCE, "Themes/VSC LightPlus")
+    if not __fn then error("Compile error in Themes/VSC LightPlus: " .. tostring(__err)) end
     -- Create environment with proxy script and overridden require
     local env = setmetatable({
-        script = createScriptProxy("Themes/VSC Light+"),
+        script = createScriptProxy("Themes/VSC LightPlus"),
         require = function(mod) return __REQUIRE(mod) end
     }, { __index = getfenv() })
     setfenv(__fn, env)
