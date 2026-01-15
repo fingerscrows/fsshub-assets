@@ -4,25 +4,8 @@ local Themes = {
 		"Dark",
 		"Light",
 		"Aqua",
-		"Tomorrow Night Blue",
-		"Abyss",
 		"Amethyst",
 		"Rose",
-		"Yaru",
-		"Ambiance",
-		"Typewriter",
-		"Kimbie Dark",
-		"Solarized Dark",
-		"Solarized Light",
-		"DuoTone Dark Sea",
-		"DuoTone Dark Sky",
-		"DuoTone Dark Space",
-		"DuoTone Dark Forest",
-		"DuoTone Dark Earth",
-		"Viow Flat",
-		"Viow Light",
-		"Viow Mars",
-		"Viow Neon"
 	}
 }
 
