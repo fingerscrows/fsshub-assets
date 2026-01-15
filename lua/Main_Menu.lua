@@ -91,8 +91,8 @@ local function CreateLoadingGui()
     
     local theme = GetSavedTheme()
 
-    -- Main Container (Bottom Center) - Using CanvasGroup for GroupTransparency
-    local container = Instance.new("CanvasGroup")
+    -- Main Container (Bottom Center) - Reverted to Frame for performance
+    local container = Instance.new("Frame")
     container.Name = "Container"
     container.Size = UDim2.fromOffset(300, 70)
     container.Position = UDim2.fromScale(0.5, 0.85) -- Bottom center
@@ -176,8 +176,6 @@ local function CreateLoadingGui()
     gradient.Parent = barFill
     
     -- Animations
-    container.GroupTransparency = 1
-    TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
     container.Position = UDim2.fromScale(0.5, 0.9)
     TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.fromScale(0.5, 0.85)}):Play()
     
@@ -208,7 +206,8 @@ local function CreateLoadingGui()
             TweenService:Create(barFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.fromScale(math.clamp(progress, 0, 1), 1)}):Play()
         end,
         Destroy = function()
-            TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1, Position = UDim2.fromScale(0.5, 0.9)}):Play()
+            -- Slide down animation (Performance friendly, no GroupTransparency)
+            TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.fromScale(0.5, 0.9)}):Play()
             task.delay(0.3, function()
                 if gui and gui.Parent then gui:Destroy() end
                 _G.FSSHUB_LOADING_GUI = nil
@@ -229,7 +228,7 @@ Loading.Update(0.1, "Checking resources...")
 if getgenv().FSSHUB_GET_FLUENT then
     Loading.Update(0.2, "Syncing resources...")
     Log("Checking for pre-loaded Fluent...")
-    Fluent = getgenv().FSSHUB_GET_FLUENT(8) -- Wait up to 8 seconds
+    Fluent = getgenv().FSSHUB_GET_FLUENT(30) -- Wait up to 30 seconds (Increased from 8s)
     if Fluent then
         Loading.Update(0.8, "Resources synced (Instant)")
         Log("Using pre-loaded Fluent (instant!)")
