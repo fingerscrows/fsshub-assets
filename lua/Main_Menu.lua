@@ -245,13 +245,7 @@ end
 Loading.Update(0.9, "Initializing UI...")
 Log("Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")
 
--- Remove Loading GUI
-if _G.FSSHUB_LOADING_GUI then
-    Loading.Update(1, "Launching...")
-    task.delay(0.5, function()
-        Loading.Destroy()
-    end)
-end
+-- Loading GUI destruction moved to end of script
 
 -- Event System
 -- Event Bus (Centralized in Payload)
@@ -296,6 +290,7 @@ local function formatExpiry()
 end
 
 -- Window
+Loading.Update(0.95, "Creating Interface...")
 local Window = Fluent:Window({
     Title = isPremium and "FSSHUB 👑 | " .. gameName or "FSSHUB | " .. gameName,
     SubTitle = version .. (isPremium and " Premium" or ""),
@@ -481,6 +476,14 @@ InterfaceSection:Keybind("MenuKeybind", {
 })
 
 Window:SelectTab(1)
+
+-- Remove Loading GUI (Now that window is ready)
+if _G.FSSHUB_LOADING_GUI then
+    Loading.Update(1, "Ready!")
+    task.delay(0.2, function()
+        Loading.Destroy()
+    end)
+end
 
 Fluent:Notify({
     Title = "FSSHUB Loaded",
