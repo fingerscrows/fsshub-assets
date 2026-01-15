@@ -1,7 +1,6 @@
-local Root = script.Parent.Parent
-local Fluent = require(Root)
-local SaveManager = require(Root.Addons.SaveManager)
-local InterfaceManager = require(Root.Addons.InterfaceManager)
+-- Fluent is passed from the bundle wrapper
+-- local Fluent = (already defined in parent scope by bundle.js)
+local _SaveManager, _InterfaceManager = nil, nil -- Not needed for KeySystem
 
 local Window = Fluent:Window({
     Title = "FSSHUB",

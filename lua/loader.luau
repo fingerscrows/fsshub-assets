@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-15T15:27:06.257Z
+    Generated: 2026-01-15T16:36:52.384Z
 ]]
 
 local __MODULES = {}
@@ -59842,10 +59842,9 @@ local FSSHUB_UI = __REQUIRE("Root") -- Load init.luau (stored as Root)
 -- Load KeySystem
 local KeySystem = (function()
     local Fluent = FSSHUB_UI
-    local Root = script.Parent.Parent
-local Fluent = require(Root)
-local SaveManager = require(Root.Addons.SaveManager)
-local InterfaceManager = require(Root.Addons.InterfaceManager)
+    -- Fluent is passed from the bundle wrapper
+-- local Fluent = (already defined in parent scope by bundle.js)
+local _SaveManager, _InterfaceManager = nil, nil -- Not needed for KeySystem
 
 local Window = Fluent:Window({
     Title = "FSSHUB",
