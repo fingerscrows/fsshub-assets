@@ -59207,6 +59207,10 @@ function Connection:disconnect()
 	end
 end
 
+function Connection:Disconnect()
+	self:disconnect()
+end
+
 local Signal = {}
 Signal.__index = Signal
 
@@ -59229,15 +59233,27 @@ function Signal:fire(...)
 	self._threads = {}
 end
 
+function Signal:Fire(...)
+	self:fire(...)
+end
+
 function Signal:connect(handler)
 	local connection = Connection.new(self, handler)
 	table.insert(self._connections, connection)
 	return connection
 end
 
+function Signal:Connect(handler)
+	return self:connect(handler)
+end
+
 function Signal:wait()
 	table.insert(self._threads, coroutine.running())
 	return coroutine.yield()
+end
+
+function Signal:Wait()
+	return self:wait()
 end
 
 return Signal
