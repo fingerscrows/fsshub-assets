@@ -18,8 +18,26 @@ _G.FSSHUB_WINDOW = nil
 
 local Info = getgenv().FSSHUB_INFO
 
--- LOAD FLUENT RENEWED (v4.0.3 with cache busting)
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.4"))()
+-- LOAD FLUENT RENEWED (v4.0.5 with pre-load support)
+local Fluent
+local loadStart = tick()
+
+-- Check if Fluent was pre-loaded by payload (parallel loading optimization)
+if getgenv().FSSHUB_GET_FLUENT then
+    print("[FSSHUB] Checking for pre-loaded Fluent...")
+    Fluent = getgenv().FSSHUB_GET_FLUENT(8) -- Wait up to 8 seconds
+    if Fluent then
+        print("[FSSHUB] Using pre-loaded Fluent (instant!)")
+    end
+end
+
+-- Fallback to normal loading if pre-load failed
+if not Fluent then
+    print("[FSSHUB] Fallback: Loading Fluent normally...")
+    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.5"))()
+end
+
+print("[FSSHUB] Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")
 
 -- Event System
 -- Event Bus (Centralized in Payload)
