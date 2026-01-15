@@ -10,8 +10,8 @@
     - ~90% faster than dynamic module loading
 ]]
 
+local CACHE_VERSION = "v4.0.3"
 local BUNDLE_URL = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_bundle.lua?v=" .. CACHE_VERSION
-local CACHE_VERSION = "v4.0.2"
 local CACHE_FILE = "fsshub_cache/fluent_" .. CACHE_VERSION .. ".lua"
 
 local function Log(msg)
