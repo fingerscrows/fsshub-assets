@@ -25,6 +25,54 @@ _G.FSSHUB_WINDOW = nil
 
 local Info = getgenv().FSSHUB_INFO
 
+-- Theme Configuration
+local THEME_FILE = "FSSHUBLibrary/theme.cfg"
+local FluentThemes = {
+    Dark = {
+        Main = Color3.fromRGB(45, 45, 45), -- Dialog Color
+        Stroke = Color3.fromRGB(70, 70, 70), -- Dialog Border
+        Text = Color3.fromRGB(240, 240, 240),
+        SubText = Color3.fromRGB(170, 170, 170),
+        Accent = Color3.fromRGB(96, 205, 255)
+    },
+    Light = {
+        Main = Color3.fromRGB(255, 255, 255),
+        Stroke = Color3.fromRGB(140, 140, 140),
+        Text = Color3.fromRGB(41, 41, 41),
+        SubText = Color3.fromRGB(40, 40, 40),
+        Accent = Color3.fromRGB(0, 103, 192)
+    },
+    Amethyst = {
+        Main = Color3.fromRGB(60, 45, 80),
+        Stroke = Color3.fromRGB(85, 70, 100),
+        Text = Color3.fromRGB(240, 240, 240),
+        SubText = Color3.fromRGB(170, 170, 170),
+        Accent = Color3.fromRGB(97, 62, 167)
+    },
+    Rose = {
+        Main = Color3.fromRGB(120, 50, 75),
+        Stroke = Color3.fromRGB(100, 70, 90),
+        Text = Color3.fromRGB(240, 240, 240),
+        SubText = Color3.fromRGB(170, 170, 170),
+        Accent = Color3.fromRGB(180, 55, 90)
+    }
+}
+
+local function GetSavedTheme()
+    if not readfile then return FluentThemes.Dark end
+    local success, themeName = pcall(readfile, THEME_FILE)
+    if success and FluentThemes[themeName] then
+        return FluentThemes[themeName]
+    end
+    return FluentThemes.Dark
+end
+
+local function SaveTheme(themeName)
+    if writefile then
+        pcall(writefile, THEME_FILE, themeName)
+    end
+end
+
 -- Loading GUI
 local function CreateLoadingGui()
     if _G.FSSHUB_LOADING_GUI then pcall(function() _G.FSSHUB_LOADING_GUI:Destroy() end) end
@@ -41,13 +89,15 @@ local function CreateLoadingGui()
     
     _G.FSSHUB_LOADING_GUI = gui
     
-    -- Main Container (Bottom Center)
-    local container = Instance.new("Frame")
+    local theme = GetSavedTheme()
+
+    -- Main Container (Bottom Center) - Using CanvasGroup for GroupTransparency
+    local container = Instance.new("CanvasGroup")
     container.Name = "Container"
     container.Size = UDim2.fromOffset(300, 70)
     container.Position = UDim2.fromScale(0.5, 0.85) -- Bottom center
     container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    container.BackgroundColor3 = theme.Main
     container.BackgroundTransparency = 0.1
     container.BorderSizePixel = 0
     container.Parent = gui
@@ -57,7 +107,7 @@ local function CreateLoadingGui()
     corner.Parent = container
 
     local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(60, 60, 60)
+    stroke.Color = theme.Stroke
     stroke.Thickness = 1
     stroke.Parent = container
     
@@ -68,7 +118,7 @@ local function CreateLoadingGui()
     title.Position = UDim2.new(0, 10, 0, 10)
     title.BackgroundTransparency = 1
     title.Text = "FSSHUB"
-    title.TextColor3 = Color3.fromRGB(240, 240, 240)
+    title.TextColor3 = theme.Text
     title.TextSize = 16
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
@@ -81,7 +131,7 @@ local function CreateLoadingGui()
     status.Position = UDim2.new(0, 10, 0, 30)
     status.BackgroundTransparency = 1
     status.Text = "Initializing..."
-    status.TextColor3 = Color3.fromRGB(160, 160, 160)
+    status.TextColor3 = theme.SubText
     status.TextSize = 12
     status.Font = Enum.Font.Gotham
     status.TextXAlignment = Enum.TextXAlignment.Left
@@ -104,7 +154,7 @@ local function CreateLoadingGui()
     local barFill = Instance.new("Frame")
     barFill.Name = "BarFill"
     barFill.Size = UDim2.fromScale(0, 1) -- Start at 0 width
-    barFill.BackgroundColor3 = Color3.fromRGB(0, 120, 215) -- Fluent Blue
+    barFill.BackgroundColor3 = Color3.new(1, 1, 1) -- White for gradient tint
     barFill.BorderSizePixel = 0
     barFill.Parent = barBg
     
@@ -112,11 +162,16 @@ local function CreateLoadingGui()
     fillCorner.CornerRadius = UDim.new(0, 2)
     fillCorner.Parent = barFill
 
-    -- Gradient for extra polish
+    -- Gradient for extra polish + Shimmer
     local gradient = Instance.new("UIGradient")
+    local accentH, accentS, accentV = theme.Accent:ToHSV()
     gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 160, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 190))
+        ColorSequenceKeypoint.new(0, Color3.fromHSV(accentH, accentS * 0.8, math.min(accentV * 1.2, 1))),
+        ColorSequenceKeypoint.new(1, theme.Accent)
+    }
+    gradient.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0),
+        NumberSequenceKeypoint.new(1, 0)
     }
     gradient.Parent = barFill
     
@@ -125,6 +180,25 @@ local function CreateLoadingGui()
     TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
     container.Position = UDim2.fromScale(0.5, 0.9)
     TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.fromScale(0.5, 0.85)}):Play()
+    
+    -- Shimmer Loop
+    task.spawn(function()
+        local shimmer = Instance.new("UIGradient")
+        shimmer.Color = ColorSequence.new(Color3.new(1,1,1))
+        shimmer.Transparency = NumberSequence.new{
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.5, 0.3),
+            NumberSequenceKeypoint.new(1, 1)
+        }
+        shimmer.Rotation = 45
+        shimmer.Parent = barFill
+        
+        while container.Parent do
+             shimmer.Offset = Vector2.new(-1, 0)
+             TweenService:Create(shimmer, TweenInfo.new(1, Enum.EasingStyle.Linear), {Offset = Vector2.new(1, 0)}):Play()
+             task.wait(2)
+        end
+    end)
     
     return {
         Gui = gui,
@@ -391,6 +465,7 @@ InterfaceSection:Dropdown("InterfaceTheme", {
     Default = Fluent.Theme,
     Callback = function(Value)
         Fluent:SetTheme(Value)
+        -- Theme saving is handled by the ThemeChanged event below
     end
 })
 
@@ -417,5 +492,27 @@ Fluent:Notify({
 _G.FSSHUB_WINDOW = Window
 _G.FSSHUB_FLUENT = Fluent
 _G.FSSHUB_OPTIONS = Options
+
+-- Hook into Fluent's native ThemeChanged signal for robust syncing
+if Fluent.ThemeChanged then
+    Fluent.ThemeChanged:Connect(function(ThemeName)
+        SaveTheme(ThemeName)
+        -- We could also update specific UI elements here if needed, 
+        -- but Fluent handles most things internally.
+    end)
+end
+
+-- Initialize saved theme
+local savedTheme = GetSavedTheme()
+if savedTheme and savedTheme ~= "Dark" then -- Dark is default
+    -- We need to reverse lookup the name from our table or just use the string read from file
+    -- Since GetSavedTheme returns the table, let's fix that function logic or just read directly
+    if readfile then
+       local success, themeName = pcall(readfile, THEME_FILE)
+       if success and Fluent.Themes and table.find(Fluent.Themes, themeName) then
+           Fluent:SetTheme(themeName)
+       end
+    end
+end
 
 print("[FSSHUB] Main Menu loaded with Fluent Renewed")
