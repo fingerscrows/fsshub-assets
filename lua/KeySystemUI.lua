@@ -7,19 +7,20 @@ local UI = {}
 
 -- FSS Purple Theme (Matches Logo)
 local Colors = {
-    Background = Color3.fromRGB(15, 15, 20),       -- Deep Dark
-    MainStroke = Color3.fromRGB(140, 120, 210),    -- Lighter Purple for contrast
-    Accent = Color3.fromRGB(127, 106, 196),        -- Purple
-    Secondary = Color3.fromRGB(160, 140, 230),     -- Light Purple
-    Error = Color3.fromRGB(255, 80, 100),          -- Soft Red
+    Background = Color3.fromRGB(15, 15, 20),    -- Deep Dark
+    MainStroke = Color3.fromRGB(140, 120, 210), -- Lighter Purple for contrast
+    Accent = Color3.fromRGB(127, 106, 196),     -- Purple
+    Secondary = Color3.fromRGB(160, 140, 230),  -- Light Purple
+    Error = Color3.fromRGB(255, 80, 100),       -- Soft Red
     TextLight = Color3.fromRGB(240, 240, 255),
     TextDim = Color3.fromRGB(140, 140, 170),
     InputBg = Color3.fromRGB(20, 20, 30),
-    ButtonBg = Color3.fromRGB(30, 25, 45)
+    ButtonBg = Color3.fromRGB(30, 25, 45),
+    Success = Color3.fromRGB(0, 255, 100) -- Bright Green for success
 }
 
 UI.Keys = {
-    MainTitle = "FSSHUB", 
+    MainTitle = "FSSHUB",
     MainDesc = "KEYSYSTEM GATEWAY",
     Assets = {
         Logo = { ID = nil, Size = UDim2.new(0, 80, 0, 80) }
@@ -55,15 +56,27 @@ end
 local function glitchText(label, finalStats)
     task.spawn(function()
         local originalText = finalStats.Text or label.Text
+        local targetColor = finalStats.TextColor3 or label.TextColor3 or Colors.TextLight
+
+        -- Determine Glitch Color
+        local glitchColor
+        if targetColor == Colors.Error then
+            glitchColor = Colors.Error
+        elseif targetColor == Colors.Success then
+            glitchColor = Colors.Success
+        else
+            glitchColor = Color3.fromRGB(0, 255, 255) -- Cyan for general info
+        end
+
         for i = 1, 10 do
             if not label or not label.Parent then break end
             label.Text = randomString(#originalText)
-            label.TextColor3 = (i % 2 == 0) and Colors.Secondary or Colors.Error
+            label.TextColor3 = (i % 2 == 0) and Colors.Secondary or glitchColor
             task.wait(0.05)
         end
         if label and label.Parent then
             label.Text = originalText
-            label.TextColor3 = finalStats.TextColor3 or Colors.TextLight
+            label.TextColor3 = targetColor
         end
     end)
 end
@@ -73,16 +86,17 @@ function UI.Initialize(config)
     local keyLink = config.KeyLink or config.keyLink or "https://fsshub.com/getkey"
 
     if gui then gui:Destroy() end
-    
+
     -- Cleanup Lazy Loader if present
-    local lazy = CoreGui:FindFirstChild("FSSHUB_Lazy_Loader") or (gethui and gethui():FindFirstChild("FSSHUB_Lazy_Loader"))
+    local lazy = CoreGui:FindFirstChild("FSSHUB_Lazy_Loader") or
+        (gethui and gethui():FindFirstChild("FSSHUB_Lazy_Loader"))
     if lazy then lazy:Destroy() end
 
     gui = Instance.new("ScreenGui")
     gui.Name = "FSSHUB_Cyber_Loader"
     gui.IgnoreGuiInset = true
     gui.DisplayOrder = 10000
-    
+
     if syn and syn.protect_gui then
         syn.protect_gui(gui)
         gui.Parent = CoreGui
@@ -96,12 +110,12 @@ function UI.Initialize(config)
     blur = Instance.new("BlurEffect")
     blur.Size = 0
     blur.Parent = game:GetService("Lighting")
-    TweenService:Create(blur, TweenInfo.new(0.5), {Size = 20}):Play()
+    TweenService:Create(blur, TweenInfo.new(0.5), { Size = 20 }):Play()
 
     -- Determine container size based on logo
     local hasLogo = UI.Keys.Assets and UI.Keys.Assets.Logo and UI.Keys.Assets.Logo.ID
-    local containerHeight = hasLogo and 310 or 250
-    
+    local containerHeight = hasLogo and 340 or 280
+
     -- Main Container
     container = Instance.new("Frame")
     container.Name = "MainContainer"
@@ -110,7 +124,7 @@ function UI.Initialize(config)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Colors.Background
     container.BorderSizePixel = 0
-    container.BackgroundTransparency = 0.4 -- Thinner Glass Effect
+    container.BackgroundTransparency = 0.6 -- Glass Effect
     container.Parent = gui
     container.ClipsDescendants = true
 
@@ -118,7 +132,7 @@ function UI.Initialize(config)
     local containerCorner = Instance.new("UICorner")
     containerCorner.CornerRadius = UDim.new(0, 12)
     containerCorner.Parent = container
-    
+
     -- Main Gradient
     local mainGradient = Instance.new("UIGradient")
     mainGradient.Rotation = 45
@@ -130,7 +144,7 @@ function UI.Initialize(config)
 
     -- Neon Stroke around Container
     local mainStroke = addNeonStroke(container, Colors.MainStroke, 2)
-    
+
     -- Stroke Gradient (Professional Look)
     local strokeGradient = Instance.new("UIGradient")
     strokeGradient.Rotation = 45
@@ -147,7 +161,7 @@ function UI.Initialize(config)
     galaxyContainer.Size = UDim2.new(1, 0, 1, 0)
     galaxyContainer.BackgroundTransparency = 1
     galaxyContainer.ClipsDescendants = true
-    
+
     local galaxyCorner = Instance.new("UICorner") -- mask content
     galaxyCorner.CornerRadius = UDim.new(0, 8)
     galaxyCorner.Parent = galaxyContainer
@@ -155,7 +169,8 @@ function UI.Initialize(config)
 
     -- Spawn "Galaxy Particles"
     task.spawn(function()
-        local particleColors = {Colors.Accent, Colors.Secondary, Color3.fromRGB(150, 50, 255), Color3.fromRGB(255, 255, 255)}
+        local particleColors = { Colors.Accent, Colors.Secondary, Color3.fromRGB(150, 50, 255), Color3.fromRGB(255, 255,
+            255) }
         while gui and gui.Parent do
             if not galaxyContainer.Parent then break end -- Safety check
             if math.random() > 0.5 then
@@ -166,22 +181,23 @@ function UI.Initialize(config)
                 particle.BackgroundColor3 = particleColors[math.random(1, #particleColors)]
                 particle.BorderSizePixel = 0
                 particle.BackgroundTransparency = math.random(0.3, 0.7)
-                
+
                 local corner = Instance.new("UICorner")
                 corner.CornerRadius = UDim.new(1, 0)
                 corner.Parent = particle
-                
+
                 particle.Parent = galaxyContainer
 
                 -- Twinkle & Drift
                 local duration = math.random(3, 8)
                 local endPos = particle.Position + UDim2.new(math.random(-0.1, 0.1), 0, math.random(-0.1, 0.1), 0)
-                
-                TweenService:Create(particle, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                    Position = endPos,
-                    BackgroundTransparency = 1
-                }):Play()
-                
+
+                TweenService:Create(particle, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+                    {
+                        Position = endPos,
+                        BackgroundTransparency = 1
+                    }):Play()
+
                 task.delay(duration, function() particle:Destroy() end)
             end
             task.wait(0.05)
@@ -194,23 +210,23 @@ function UI.Initialize(config)
     highlight.Size = UDim2.new(1, 0, 1, 0)
     highlight.BackgroundTransparency = 1
     highlight.Parent = container
-    
+
     local highlightCorner = Instance.new("UICorner")
     highlightCorner.CornerRadius = UDim.new(0, 12)
     highlightCorner.Parent = highlight
-    
+
     local highlightStroke = Instance.new("UIStroke")
     highlightStroke.Thickness = 1.5
     highlightStroke.Transparency = 0.5
     highlightStroke.Color = Colors.TextLight
     highlightStroke.Parent = highlight
-    
+
     local highlightGrad = Instance.new("UIGradient")
     highlightGrad.Rotation = 90
     highlightGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150,150,150)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(50,50,50))
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 150, 150)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))
     })
     highlightGrad.Transparency = NumberSequence.new({
         NumberSequenceKeypoint.new(0, 0.4),
@@ -236,7 +252,7 @@ function UI.Initialize(config)
     -- Logo Image (with round corners)
     local logoImage = nil
     local logoYOffset = 25
-    
+
     if UI.Keys.Assets and UI.Keys.Assets.Logo and UI.Keys.Assets.Logo.ID then
         logoImage = Instance.new("ImageLabel")
         logoImage.Image = UI.Keys.Assets.Logo.ID
@@ -245,17 +261,17 @@ function UI.Initialize(config)
         logoImage.AnchorPoint = Vector2.new(0.5, 0)
         logoImage.BackgroundTransparency = 1
         logoImage.ImageTransparency = 1 -- Start invisible
-        logoImage.ZIndex = 5 -- Ensure it is on top
+        logoImage.ZIndex = 5            -- Ensure it is on top
         logoImage.Parent = container
-        
+
         -- Round corners for logo
         local logoCorner = Instance.new("UICorner")
         logoCorner.CornerRadius = UDim.new(0, 12)
         logoCorner.Parent = logoImage
-        
+
         logoYOffset = 110 -- Adjust text position if logo exists
     end
-    
+
     -- Logo Text / Header
     local logoLabel = Instance.new("TextLabel")
     logoLabel.Text = UI.Keys.MainTitle or "FSSHUB"
@@ -267,7 +283,7 @@ function UI.Initialize(config)
     logoLabel.BackgroundTransparency = 1
     logoLabel.TextTransparency = 1 -- Start invisible
     logoLabel.Parent = container
-    
+
     -- Subheader
     local subLabel = Instance.new("TextLabel")
     subLabel.Text = UI.Keys.MainDesc or "KEYSYSTEM GATEWAY"
@@ -280,21 +296,35 @@ function UI.Initialize(config)
     subLabel.TextTransparency = 1 -- Start invisible
     subLabel.Parent = container
 
+    -- Greeting
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    local greetingLabel = Instance.new("TextLabel")
+    greetingLabel.Text = "Welcome, @" .. (LocalPlayer and LocalPlayer.Name or "User")
+    greetingLabel.Font = Enum.Font.GothamMedium
+    greetingLabel.TextSize = 13
+    greetingLabel.TextColor3 = Colors.Accent
+    greetingLabel.Size = UDim2.new(1, 0, 0, 20)
+    greetingLabel.Position = UDim2.new(0, 0, 0, logoImage and 155 or 85)
+    greetingLabel.BackgroundTransparency = 1
+    greetingLabel.TextTransparency = 1 -- Start invisible
+    greetingLabel.Parent = container
+
     -- Input Field (position adjusted for logo)
-    local inputYPos = logoImage and 170 or 100
+    local inputYPos = logoImage and 195 or 125
     inputSection = Instance.new("Frame")
     inputSection.Size = UDim2.new(0.85, 0, 0, 42)
     inputSection.Position = UDim2.new(0.5, 0, 0, inputYPos)
     inputSection.AnchorPoint = Vector2.new(0.5, 0)
     inputSection.BackgroundColor3 = Colors.InputBg
-    inputSection.BackgroundTransparency = 0.5 -- More transparent
+    inputSection.BackgroundTransparency = 0 -- Solid for readability
     inputSection.Parent = container
-    inputSection.Visible = false -- Start hidden
-    
+    inputSection.Visible = false            -- Start hidden
+
     local inputCorner = Instance.new("UICorner")
     inputCorner.CornerRadius = UDim.new(0, 6)
     inputCorner.Parent = inputSection
-    
+
     addNeonStroke(inputSection, Colors.TextDim, 1)
 
     local keyInput = Instance.new("TextBox")
@@ -303,9 +333,9 @@ function UI.Initialize(config)
     keyInput.BackgroundTransparency = 1
     keyInput.Font = Enum.Font.Code
     keyInput.Text = ""
-    keyInput.PlaceholderText = "_ENTER_KEY_CODE"
+    keyInput.PlaceholderText = "INPUT_KEY_HERE"
     keyInput.PlaceholderColor3 = Color3.fromRGB(60, 80, 80)
-    keyInput.TextColor3 = Colors.Secondary 
+    keyInput.TextColor3 = Colors.Secondary
     keyInput.TextSize = 14
     keyInput.Parent = inputSection
 
@@ -316,77 +346,80 @@ function UI.Initialize(config)
         btn.AnchorPoint = Vector2.new(0.5, 0)
         btn.Position = pos
         btn.BackgroundColor3 = Colors.ButtonBg
-        btn.BackgroundTransparency = 0.3 -- Semi-transparent
+        btn.BackgroundTransparency = 0    -- Solid button
         btn.Text = text
         btn.Font = Enum.Font.GothamMedium -- Professional font
         btn.TextColor3 = isPrimary and Colors.Accent or Colors.TextDim
         btn.TextSize = 14
         btn.Parent = container
         btn.Visible = false -- Start hidden
-        
+
         local btnCorner = Instance.new("UICorner")
         btnCorner.CornerRadius = UDim.new(0, 8)
         btnCorner.Parent = btn
-        
+
         local stroke = addNeonStroke(btn, isPrimary and Colors.Accent or Colors.TextDim, 1)
 
         -- Hover Glitch Effect
         btn.MouseEnter:Connect(function()
-            TweenService:Create(stroke, TweenInfo.new(0.2), {Color = isPrimary and Colors.Secondary or Colors.TextLight}):Play()
+            TweenService:Create(stroke, TweenInfo.new(0.2),
+                { Color = isPrimary and Colors.Secondary or Colors.TextLight })
+                :Play()
             btn.TextColor3 = isPrimary and Colors.Secondary or Colors.TextLight
-            btn.Position = pos + UDim2.new(0, math.random(-2,2), 0, math.random(-2,2))
+            btn.Position = pos + UDim2.new(0, math.random(-2, 2), 0, math.random(-2, 2))
             task.delay(0.05, function() btn.Position = pos end)
         end)
-        
+
         btn.MouseLeave:Connect(function()
-            TweenService:Create(stroke, TweenInfo.new(0.2), {Color = isPrimary and Colors.Accent or Colors.TextDim}):Play()
+            TweenService:Create(stroke, TweenInfo.new(0.2), { Color = isPrimary and Colors.Accent or Colors.TextDim })
+                :Play()
             btn.TextColor3 = isPrimary and Colors.Accent or Colors.TextDim
         end)
 
-        btn.MouseButton1Click:Connect(function() 
+        btn.MouseButton1Click:Connect(function()
             action()
             local flash = Instance.new("Frame")
-            flash.Size = UDim2.new(1,0,1,0)
+            flash.Size = UDim2.new(1, 0, 1, 0)
             flash.BackgroundColor3 = Colors.TextLight
             flash.BackgroundTransparency = 0.5
             flash.Parent = btn
             local flashCorner = Instance.new("UICorner")
             flashCorner.CornerRadius = UDim.new(0, 6)
             flashCorner.Parent = flash
-            TweenService:Create(flash, TweenInfo.new(0.2), {BackgroundTransparency=1}):Play()
+            TweenService:Create(flash, TweenInfo.new(0.2), { BackgroundTransparency = 1 }):Play()
             task.delay(0.2, function() flash:Destroy() end)
         end)
         return btn
     end
 
     -- Button positions adjusted for logo
-    local buttonYPos = logoImage and 230 or 160
-    
+    local buttonYPos = logoImage and 255 or 185
+
     local btnGet = createCyberButton("GET KEY", UDim2.new(0.28, 0, 0, buttonYPos), false, function()
         if setclipboard then
             setclipboard(keyLink)
             UI.ShowStatus("LINK_COPIED", Colors.Secondary)
         else
-            UI.ShowStatus("LINK: "..keyLink, Colors.Accent)
+            UI.ShowStatus("LINK: " .. keyLink, Colors.Accent)
         end
     end)
 
     local btnVerify = createCyberButton("VERIFY", UDim2.new(0.72, 0, 0, buttonYPos), true, function()
         local input = keyInput.Text:gsub("%s+", "")
         if input == "" then
-             UI.ShowStatus("NO_KEY_ENTERED", Colors.Error)
-             return
+            UI.ShowStatus("NO_KEY_ENTERED", Colors.Error)
+            return
         end
         if validateCallback then validateCallback(input) end
     end)
-    
+
     keyInput.FocusLost:Connect(function(enter)
         if enter then
-             local input = keyInput.Text:gsub("%s+", "")
-             if input ~= "" and validateCallback then validateCallback(input) end
+            local input = keyInput.Text:gsub("%s+", "")
+            if input ~= "" and validateCallback then validateCallback(input) end
         end
     end)
-    
+
     -- "Loading" -> Immediate Show
     -- Start small, "Loading..." text
     container.Size = UDim2.new(0, 150, 0, 50)
@@ -396,7 +429,7 @@ function UI.Initialize(config)
     loadLabel.Font = Enum.Font.Code
     loadLabel.TextSize = 12
     loadLabel.TextColor3 = Colors.Secondary
-    loadLabel.Size = UDim2.new(1,0,1,0)
+    loadLabel.Size = UDim2.new(1, 0, 1, 0)
     loadLabel.BackgroundTransparency = 1
     loadLabel.Parent = container
 
@@ -404,26 +437,28 @@ function UI.Initialize(config)
     task.spawn(function()
         task.wait(0.4) -- Short fake load
         loadLabel:Destroy()
-        
+
         -- Expansion
-        local targetSize = UDim2.new(0, 400, 0, logoImage and 310 or 250)
-        TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+        local targetSize = UDim2.new(0, 400, 0, logoImage and 340 or 280)
+        TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+            { Size = targetSize }):Play()
         task.wait(0.35)
-        
+
         -- Fade Elements In
         if logoImage then
-            TweenService:Create(logoImage, TweenInfo.new(0.3), {ImageTransparency = 0}):Play()
+            TweenService:Create(logoImage, TweenInfo.new(0.3), { ImageTransparency = 0 }):Play()
         end
-        TweenService:Create(logoLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-        TweenService:Create(subLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+        TweenService:Create(logoLabel, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
+        TweenService:Create(subLabel, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
+        TweenService:Create(greetingLabel, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
         inputSection.Visible = true
         btnGet.Visible = true
         btnVerify.Visible = true
-        
+
         -- Subtle pulse effect on logo text
         task.spawn(function()
             task.wait(0.2)
-            glitchText(logoLabel, {Text = UI.Keys.MainTitle or "FSSHUB", TextColor3 = Colors.Accent})
+            glitchText(logoLabel, { Text = UI.Keys.MainTitle or "FSSHUB", TextColor3 = Colors.Accent })
         end)
     end)
 end
@@ -442,18 +477,18 @@ function UI.ShowStatus(msg, color)
     statusFrame.BackgroundTransparency = 0.3
     statusFrame.BorderSizePixel = 0
     statusFrame.Parent = container
-    
+
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = statusFrame
-    
+
     local stroke = Instance.new("UIStroke")
     stroke.Color = color
     stroke.Thickness = 1
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Transparency = 0
     stroke.Parent = statusFrame
-    
+
     local label = Instance.new("TextLabel")
     label.Text = string.upper(msg)
     label.TextColor3 = color
@@ -463,22 +498,24 @@ function UI.ShowStatus(msg, color)
     label.BackgroundTransparency = 1
     label.TextTransparency = 1 -- Start hidden
     label.Parent = statusFrame
-    
+
     -- Animate In
-    local tweenSize = TweenService:Create(statusFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0.9, 0, 0, 26)})
+    local tweenSize = TweenService:Create(statusFrame,
+        TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.new(0.9, 0, 0, 26) })
     tweenSize:Play()
-    
+
     task.delay(0.2, function()
-        TweenService:Create(label, TweenInfo.new(0.2), {TextTransparency = 0}):Play()
+        TweenService:Create(label, TweenInfo.new(0.2), { TextTransparency = 0 }):Play()
     end)
-    
+
     task.delay(3, function()
         if statusFrame.Parent then
-             TweenService:Create(label, TweenInfo.new(0.2), {TextTransparency = 1}):Play()
-             local tweenOut = TweenService:Create(statusFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(0,0,0,26)})
-             tweenOut:Play()
-             tweenOut.Completed:Wait()
-             statusFrame:Destroy()
+            TweenService:Create(label, TweenInfo.new(0.2), { TextTransparency = 1 }):Play()
+            local tweenOut = TweenService:Create(statusFrame,
+                TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), { Size = UDim2.new(0, 0, 0, 26) })
+            tweenOut:Play()
+            tweenOut.Completed:Wait()
+            statusFrame:Destroy()
         end
     end)
 end
@@ -487,15 +524,15 @@ function UI.ShowError(msg)
     UI.ShowStatus(msg, Colors.Error)
     -- Shake Container
     local orig = UDim2.new(0.5, 0, 0.5, 0)
-    for i=1,6 do
-        container.Position = orig + UDim2.new(0, math.random(-5,5), 0, math.random(-5,5))
+    for i = 1, 6 do
+        container.Position = orig + UDim2.new(0, math.random(-5, 5), 0, math.random(-5, 5))
         task.wait(0.04)
     end
     container.Position = orig
 end
 
 function UI.Authorize()
-    UI.ShowStatus("ACCESS_GRANTED... LOADING_MODULES", Colors.Secondary)
+    UI.ShowStatus("ACCESS_GRANTED... LOADING_MODULES", Colors.Success)
     task.wait(1.5)
     UI.Close()
 end
@@ -505,10 +542,11 @@ function UI.Fail()
 end
 
 function UI.Close()
-    if blur then TweenService:Create(blur, TweenInfo.new(0.3), {Size = 0}):Play() end
+    if blur then TweenService:Create(blur, TweenInfo.new(0.3), { Size = 0 }):Play() end
     if container then
         -- Shrink to center
-        local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
+        local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            { Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1 })
         tween:Play()
         tween.Completed:Wait()
     end
