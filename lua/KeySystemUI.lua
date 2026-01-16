@@ -20,7 +20,7 @@ local Colors = {
 
 UI.Keys = {
     MainTitle = "SYSTEM ACCESS", 
-    MainDesc = "AUTHENTICATION REQUIRED"
+    MainDesc = "KEYSYSTEM GATEWAY"
 }
 
 local gui, container, inputSection

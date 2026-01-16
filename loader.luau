@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-16T05:17:45.561Z
+    Generated: 2026-01-16T05:22:03.441Z
 ]]
 
 local __MODULES = {}
@@ -59864,7 +59864,7 @@ local Colors = {
 
 UI.Keys = {
     MainTitle = "SYSTEM ACCESS", 
-    MainDesc = "AUTHENTICATION REQUIRED"
+    MainDesc = "KEYSYSTEM GATEWAY"
 }
 
 local gui, container, inputSection
