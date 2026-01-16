@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-16T08:49:11.275Z
+    Generated: 2026-01-16T09:26:28.864Z
 ]]
 
 -- Load Time Tracking
@@ -60227,6 +60227,12 @@ local Info = getgenv().FSSHUB_INFO
 
 -- Theme Configuration
 local THEME_FILE = "FSSHUBLibrary/theme.cfg"
+
+-- Ensure folder exists for config storage
+if makefolder then
+    pcall(function() makefolder("FSSHUBLibrary") end)
+end
+
 local FluentThemes = {
     Dark = {
         Main = Color3.fromRGB(45, 45, 45), -- Dialog Color
@@ -60777,7 +60783,9 @@ if KeySystem and KeySystem.Initialize then
     end)
 end
 
--- Export
+-- Export to global for payload invocation
+_G.FSSHUB_MAIN_MENU = MainMenu
+
 return {
     UI = FSSHUB_UI,
     KeySystem = KeySystem,

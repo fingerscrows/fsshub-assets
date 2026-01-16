@@ -282,7 +282,9 @@ if KeySystem and KeySystem.Initialize then
     end)
 end
 
--- Export
+-- Export to global for payload invocation
+_G.FSSHUB_MAIN_MENU = MainMenu
+
 return {
     UI = FSSHUB_UI,
     KeySystem = KeySystem,

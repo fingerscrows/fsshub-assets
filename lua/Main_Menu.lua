@@ -27,6 +27,12 @@ local Info = getgenv().FSSHUB_INFO
 
 -- Theme Configuration
 local THEME_FILE = "FSSHUBLibrary/theme.cfg"
+
+-- Ensure folder exists for config storage
+if makefolder then
+    pcall(function() makefolder("FSSHUBLibrary") end)
+end
+
 local FluentThemes = {
     Dark = {
         Main = Color3.fromRGB(45, 45, 45), -- Dialog Color
