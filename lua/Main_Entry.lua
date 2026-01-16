@@ -11,7 +11,7 @@
     Target Size: < 5KB
 ]]
 
-local INSTALLER_VERSION = "1.0.0"
+local INSTALLER_VERSION = "2.0.0"
 
 local CONFIG = {
     -- Worker Endpoints
