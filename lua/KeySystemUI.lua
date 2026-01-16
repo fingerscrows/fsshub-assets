@@ -5,58 +5,76 @@ local CoreGui = game:GetService("CoreGui")
 
 local UI = {}
 
--- Sentinel Style Colors
+-- Cyber Neon Palette
 local Colors = {
-    Background = Color3.fromRGB(15, 15, 20),      -- LoaderBg
-    InputBg = Color3.fromRGB(15, 15, 15),         -- InputBg
-    Button = Color3.fromRGB(47, 47, 47),          -- ButtonStatic
-    Stroke = Color3.fromRGB(29, 29, 29),          -- StrokeLight
-    Accent = Color3.fromRGB(113, 56, 255),        -- StrokeAccent / Primary
-    TextWhite = Color3.fromRGB(255, 255, 255),
-    TextDim = Color3.fromRGB(220, 220, 220),
-    TextPlaceholder = Color3.fromRGB(68, 63, 79),
-    Success = Color3.fromRGB(83, 156, 70),
-    Error = Color3.fromRGB(156, 63, 99)
+    Background = Color3.fromRGB(10, 10, 15),       -- Deep Dark
+    MainStroke = Color3.fromRGB(0, 255, 255),      -- Cyan Neon
+    Accent = Color3.fromRGB(0, 255, 255),          -- Cyan
+    Secondary = Color3.fromRGB(57, 255, 20),       -- Neon Green (Matrix)
+    Error = Color3.fromRGB(255, 0, 85),            -- Neon Pink/Red
+    TextLight = Color3.fromRGB(220, 255, 255),
+    TextDim = Color3.fromRGB(100, 150, 150),
+    InputBg = Color3.fromRGB(5, 5, 10),
+    ButtonBg = Color3.fromRGB(15, 20, 25)
 }
 
 UI.Keys = {
-    MainTitle = "Junkie", -- Default, will be overwritten by loader
-    MainDesc = "Please enter your key to continue"
-}
-
--- Icons (RBXAssetIDs)
-local Icons = {
-    Close = "rbxassetid://6031094678"
+    MainTitle = "SYSTEM ACCESS", 
+    MainDesc = "AUTHENTICATION REQUIRED"
 }
 
 local gui, container, inputSection
 local blur
 local connections = {}
 
-local function createGradient(parent, color1, color2)
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, color1),
-        ColorSequenceKeypoint.new(1, color2)
-    }
-    gradient.Parent = parent
-    return gradient
+-- Utility: Random String Generator for glitch effect
+local function randomString(len)
+    local s = ""
+    for i = 1, len do
+        s = s .. string.char(math.random(65, 90)) -- A-Z
+    end
+    return s
+end
+
+-- Utility: Create Neon Stroke
+local function addNeonStroke(parent, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = thickness or 1
+    stroke.Color = color
+    stroke.Transparency = 0.2
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Parent = parent
+    return stroke
+end
+
+-- Utility: Glitch Text Effect
+local function glitchText(label, finalStats)
+    task.spawn(function()
+        local originalText = finalStats.Text or label.Text
+        for i = 1, 10 do
+            if not label or not label.Parent then break end
+            label.Text = randomString(#originalText)
+            label.TextColor3 = (i % 2 == 0) and Colors.Secondary or Colors.Error
+            task.wait(0.05)
+        end
+        if label and label.Parent then
+            label.Text = originalText
+            label.TextColor3 = finalStats.TextColor3 or Colors.TextLight
+        end
+    end)
 end
 
 function UI.Initialize(config)
-    -- Fix Logic: Map 'Function' from Sentinel style to 'validateCallback'
     local validateCallback = config.Function or config.validateCallback
-    -- Fix Logic: Handle both Case types for KeyLink
     local keyLink = config.KeyLink or config.keyLink or "https://fsshub.com/getkey"
 
     if gui then gui:Destroy() end
 
     gui = Instance.new("ScreenGui")
-    gui.Name = "FSSHUB_Sentinel_Loader"
+    gui.Name = "FSSHUB_Cyber_Loader"
     gui.IgnoreGuiInset = true
     gui.DisplayOrder = 10000
     
-    -- Protect GUI
     if syn and syn.protect_gui then
         syn.protect_gui(gui)
         gui.Parent = CoreGui
@@ -66,188 +84,198 @@ function UI.Initialize(config)
         gui.Parent = CoreGui
     end
 
-    -- Blur
+    -- Background Blur
     blur = Instance.new("BlurEffect")
     blur.Size = 0
     blur.Parent = game:GetService("Lighting")
-    TweenService:Create(blur, TweenInfo.new(0.5), {Size = 25}):Play()
+    TweenService:Create(blur, TweenInfo.new(0.5), {Size = 20}):Play()
 
-    -- Main Container (Sentinel Style + Glassmorphism)
+    -- Main Container (Cyber Box)
     container = Instance.new("Frame")
     container.Name = "MainContainer"
-    container.Size = UDim2.new(0, 500, 0, 350) 
+    container.Size = UDim2.new(0, 480, 0, 280) 
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Colors.Background
     container.BorderSizePixel = 0
-    container.BackgroundTransparency = 0.1 -- Glassmorphism: Semi-transparent
+    container.BackgroundTransparency = 0.05
     container.Parent = gui
 
-    local uiCorner = Instance.new("UICorner")
-    uiCorner.CornerRadius = UDim.new(0, 6)
-    uiCorner.Parent = container
+    -- Rounded Corners for Container
+    local containerCorner = Instance.new("UICorner")
+    containerCorner.CornerRadius = UDim.new(0, 8)
+    containerCorner.Parent = container
 
-    -- Stroke with Gradient
-    local uiStroke = Instance.new("UIStroke")
-    uiStroke.Thickness = 1.5
-    uiStroke.Transparency = 0
-    uiStroke.Parent = container
-    local mainGradient = createGradient(uiStroke, Colors.Accent, Color3.fromRGB(145, 99, 240)) -- AccentGradient
+    -- Neon Stroke around Container
+    local mainStroke = addNeonStroke(container, Colors.MainStroke, 2)
 
-    -- Cancel Button (Top Right)
-    local closeBtn = Instance.new("ImageButton")
-    closeBtn.Name = "CloseButton"
-    closeBtn.Image = Icons.Close
-    closeBtn.BackgroundTransparency = 1
-    closeBtn.ImageColor3 = Colors.TextDim
-    closeBtn.Size = UDim2.new(0, 20, 0, 20)
-    closeBtn.Position = UDim2.new(1, -30, 0, 10)
-    closeBtn.Parent = container
-    closeBtn.MouseButton1Click:Connect(function()
-        UI.Close()
+    -- Binary/Digital Background Effect
+    local binContainer = Instance.new("Frame")
+    binContainer.Name = "BinaryBg"
+    binContainer.Size = UDim2.new(1, 0, 1, 0)
+    binContainer.BackgroundTransparency = 1
+    binContainer.ClipsDescendants = true
+    binContainer.Parent = container
+    
+    local binCorner = Instance.new("UICorner") -- mask content
+    binCorner.CornerRadius = UDim.new(0, 8)
+    binCorner.Parent = binContainer
+
+    -- Spawn "Code Rain"
+    task.spawn(function()
+        while gui and gui.Parent do
+            if math.random() > 0.8 then
+                local column = Instance.new("TextLabel")
+                column.Text = table.concat({math.random(0,1), math.random(0,1), math.random(0,1), math.random(0,1)}, "\n")
+                column.Font = Enum.Font.Code
+                column.TextSize = 14
+                column.TextColor3 = Colors.Secondary -- Matrix Green
+                column.TextTransparency = 0.8
+                column.BackgroundTransparency = 1
+                column.Size = UDim2.new(0, 20, 0, 100)
+                column.Position = UDim2.new(math.random(), 0, -0.5, 0)
+                column.Parent = binContainer
+                
+                local endPos = UDim2.new(column.Position.X.Scale, 0, 1.2, 0)
+                local duration = math.random(2, 5)
+                local t = TweenService:Create(column, TweenInfo.new(duration, Enum.EasingStyle.Linear), {Position = endPos})
+                t:Play()
+                t.Completed:Connect(function() column:Destroy() end)
+            end
+            task.wait(0.1)
+        end
     end)
 
-    -- Elegant 'F' Logo (Text Based)
+    -- Close Button (X)
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Text = "X"
+    closeBtn.TextColor3 = Colors.TextDim
+    closeBtn.Font = Enum.Font.Code
+    closeBtn.TextSize = 18
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -30, 0, 0)
+    closeBtn.Parent = container
+    closeBtn.MouseButton1Click:Connect(UI.Close)
+    closeBtn.MouseEnter:Connect(function() closeBtn.TextColor3 = Colors.Error end)
+    closeBtn.MouseLeave:Connect(function() closeBtn.TextColor3 = Colors.TextDim end)
+
+    -- Logo / Header
     local logoLabel = Instance.new("TextLabel")
-    logoLabel.Name = "LogoF"
-    logoLabel.Text = "F"
-    -- Try to use Bodoni, fall back gracefully if needed (though Bodoni is standard Roblox font now)
-    logoLabel.Font = Enum.Font.Bodoni 
-    logoLabel.TextSize = 90
-    logoLabel.TextColor3 = Colors.TextWhite
-    logoLabel.Size = UDim2.new(0, 100, 0, 100)
-    logoLabel.Position = UDim2.new(0.5, 0, 0, 30)
-    logoLabel.AnchorPoint = Vector2.new(0.5, 0)
+    logoLabel.Text = "FSSHUB"
+    logoLabel.Font = Enum.Font.Sarpanch -- "Sci-fi" look
+    logoLabel.TextSize = 36
+    logoLabel.TextColor3 = Colors.Accent
+    logoLabel.Size = UDim2.new(1, 0, 0, 60)
+    logoLabel.Position = UDim2.new(0, 0, 0, 20)
     logoLabel.BackgroundTransparency = 1
     logoLabel.Parent = container
     
-    -- Gradient for Logo
-    local logoGradient = createGradient(logoLabel, Colors.Accent, Color3.new(1,1,1))
-    logoGradient.Rotation = 45
+    -- Subheader
+    local subLabel = Instance.new("TextLabel")
+    subLabel.Text = UI.Keys.MainDesc
+    subLabel.Font = Enum.Font.Code
+    subLabel.TextSize = 12
+    subLabel.TextColor3 = Colors.TextDim
+    subLabel.Size = UDim2.new(1, 0, 0, 20)
+    subLabel.Position = UDim2.new(0, 0, 0, 65)
+    subLabel.BackgroundTransparency = 1
+    subLabel.Parent = container
 
-    -- Title
-    local title = Instance.new("TextLabel")
-    title.Name = "Title"
-    title.Text = UI.Keys.MainTitle
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 24
-    title.TextColor3 = Colors.TextWhite
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.Position = UDim2.new(0, 0, 0, 120)
-    title.BackgroundTransparency = 1
-    title.Parent = container
-
-    -- Description
-    local desc = Instance.new("TextLabel")
-    desc.Name = "Description"
-    desc.Text = UI.Keys.MainDesc
-    desc.Font = Enum.Font.Gotham
-    desc.TextSize = 14
-    desc.TextColor3 = Colors.TextDim
-    desc.Size = UDim2.new(1, 0, 0, 20)
-    desc.Position = UDim2.new(0, 0, 0, 150)
-    desc.BackgroundTransparency = 1
-    desc.Parent = container
-
-    -- Input Box
+    -- Input Field
     inputSection = Instance.new("Frame")
-    inputSection.Name = "InputSection"
-    inputSection.Size = UDim2.new(1, -60, 0, 45)
-    inputSection.Position = UDim2.new(0.5, 0, 0, 200)
+    inputSection.Size = UDim2.new(0.8, 0, 0, 40)
+    inputSection.Position = UDim2.new(0.5, 0, 0, 110)
     inputSection.AnchorPoint = Vector2.new(0.5, 0)
     inputSection.BackgroundColor3 = Colors.InputBg
+    inputSection.BackgroundTransparency = 0.5
     inputSection.Parent = container
-
+    
     local inputCorner = Instance.new("UICorner")
-    inputCorner.CornerRadius = UDim.new(0, 4)
+    inputCorner.CornerRadius = UDim.new(0, 6)
     inputCorner.Parent = inputSection
-
-    local inputStroke = Instance.new("UIStroke")
-    inputStroke.Color = Colors.Stroke
-    inputStroke.Thickness = 1
-    inputStroke.Parent = inputSection
+    
+    addNeonStroke(inputSection, Colors.TextDim, 1)
 
     local keyInput = Instance.new("TextBox")
-    keyInput.Name = "KeyInput"
     keyInput.Size = UDim2.new(1, -20, 1, 0)
     keyInput.Position = UDim2.new(0, 10, 0, 0)
     keyInput.BackgroundTransparency = 1
-    keyInput.Font = Enum.Font.Gotham
+    keyInput.Font = Enum.Font.Code
     keyInput.Text = ""
-    keyInput.PlaceholderText = "Enter Key"
-    keyInput.PlaceholderColor3 = Colors.TextPlaceholder
-    keyInput.TextColor3 = Colors.TextWhite
+    keyInput.PlaceholderText = "_ENTER_KEY_CODE"
+    keyInput.PlaceholderColor3 = Color3.fromRGB(60, 80, 80)
+    keyInput.TextColor3 = Colors.Secondary -- Terminal Green typing
     keyInput.TextSize = 14
     keyInput.Parent = inputSection
 
-    -- Buttons Logic
-    local function createButton(text, pos, primary, callback)
+    -- Button Creator
+    local function createCyberButton(text, pos, isPrimary, action)
         local btn = Instance.new("TextButton")
-        btn.Name = text
-        btn.Size = UDim2.new(0.5, -35, 0, 40)
+        btn.Size = UDim2.new(0.35, 0, 0, 35)
+        btn.AnchorPoint = Vector2.new(0.5, 0)
         btn.Position = pos
-        btn.BackgroundColor3 = Colors.Button
+        btn.BackgroundColor3 = Colors.ButtonBg
         btn.Text = text
-        btn.Font = Enum.Font.GothamBold
-        btn.TextColor3 = Colors.TextWhite
-        btn.TextSize = 14
+        btn.Font = Enum.Font.Sarpanch
+        btn.TextColor3 = isPrimary and Colors.Accent or Colors.TextDim
+        btn.TextSize = 16
         btn.Parent = container
         
         local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.CornerRadius = UDim.new(0, 6)
         btnCorner.Parent = btn
+        
+        local stroke = addNeonStroke(btn, isPrimary and Colors.Accent or Colors.TextDim, 1)
 
-        local btnStroke = Instance.new("UIStroke")
-        btnStroke.Color = Colors.Stroke
-        btnStroke.Thickness = 1
-        btnStroke.Parent = btn
-
-        if primary then
-             btnStroke.Color = Colors.Accent
-        end
-
-        -- Hover Effects
+        -- Hover Glitch Effect
         btn.MouseEnter:Connect(function()
-            TweenService:Create(btnStroke, TweenInfo.new(0.3), {Color = Colors.Accent}):Play()
-            TweenService:Create(btn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
-        end)
-        btn.MouseLeave:Connect(function()
-            TweenService:Create(btnStroke, TweenInfo.new(0.3), {Color = primary and Colors.Accent or Colors.Stroke}):Play()
-            TweenService:Create(btn, TweenInfo.new(0.3), {BackgroundColor3 = Colors.Button}):Play()
+            TweenService:Create(stroke, TweenInfo.new(0.2), {Color = isPrimary and Colors.Secondary or Colors.TextLight}):Play()
+            btn.TextColor3 = isPrimary and Colors.Secondary or Colors.TextLight
+            -- Random slight offset
+            btn.Position = pos + UDim2.new(0, math.random(-2,2), 0, math.random(-2,2))
+            task.delay(0.05, function() btn.Position = pos end)
         end)
         
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(stroke, TweenInfo.new(0.2), {Color = isPrimary and Colors.Accent or Colors.TextDim}):Play()
+            btn.TextColor3 = isPrimary and Colors.Accent or Colors.TextDim
+        end)
+
         btn.MouseButton1Click:Connect(function() 
-            callback()
-             -- Squish effect
-            local originalSize = btn.Size
-            TweenService:Create(btn, TweenInfo.new(0.1), {Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset - 2, originalSize.Y.Scale, originalSize.Y.Offset - 2)}):Play()
-            task.wait(0.1)
-            TweenService:Create(btn, TweenInfo.new(0.1), {Size = originalSize}):Play()
+            action()
+            -- Click Flash
+            local flash = Instance.new("Frame")
+            flash.Size = UDim2.new(1,0,1,0)
+            flash.BackgroundColor3 = Colors.TextLight
+            flash.BackgroundTransparency = 0.5
+            flash.Parent = btn
+            local flashCorner = Instance.new("UICorner")
+            flashCorner.CornerRadius = UDim.new(0, 6)
+            flashCorner.Parent = flash
+            TweenService:Create(flash, TweenInfo.new(0.2), {BackgroundTransparency=1}):Play()
+            task.delay(0.2, function() flash:Destroy() end)
         end)
     end
 
-    -- Get Key Button
-    createButton("Get Key", UDim2.new(0, 30, 0, 260), false, function()
+    createCyberButton("GET KEY", UDim2.new(0.3, 0, 0, 180), false, function()
         if setclipboard then
             setclipboard(keyLink)
-            UI.ShowStatus("Copied to clipboard!", Colors.Success)
+            UI.ShowStatus("LINK_COPIED_TO_CLIPBOARD", Colors.Secondary)
         else
-            UI.ShowStatus("Link: "..keyLink, Colors.Accent)
+            UI.ShowStatus("LINK: "..keyLink, Colors.Accent)
         end
     end)
 
-    -- Check Key Button
-    createButton("Check Key", UDim2.new(0.5, 5, 0, 260), true, function()
+    createCyberButton("VERIFY", UDim2.new(0.7, 0, 0, 180), true, function()
         local input = keyInput.Text:gsub("%s+", "")
         if input == "" then
-             UI.ShowStatus("Please enter a key", Colors.Error)
-             UI.ShakeInput()
+             UI.ShowStatus("ERROR: NO_INPUT_DETECTED", Colors.Error)
              return
         end
         if validateCallback then validateCallback(input) end
     end)
     
-    -- Auto-check on Enter
     keyInput.FocusLost:Connect(function(enter)
         if enter then
              local input = keyInput.Text:gsub("%s+", "")
@@ -255,140 +283,69 @@ function UI.Initialize(config)
         end
     end)
     
-    -- Restore Effects (Particles & Rotations)
-    UI.SetupAnimations(logoGradient, container)
-    UI.AnimateEntrance(container)
-end
-
-function UI.SetupAnimations(logoGradient, container)
-    -- Logo Gradient Rotation
-    task.spawn(function()
-        while gui and gui.Parent do
-             local rotTween = TweenService:Create(logoGradient, TweenInfo.new(2, Enum.EasingStyle.Linear), {Rotation = 360 + 45})
-             rotTween:Play()
-             rotTween.Completed:Wait()
-             logoGradient.Rotation = 45
-        end
-    end)
-
-    -- Particles Background
-    task.spawn(function()
-        while gui and gui.Parent do
-            local p = Instance.new("Frame")
-            p.BackgroundColor3 = Colors.Accent
-            p.BackgroundTransparency = 0.8
-            p.BorderSizePixel = 0
-            local size = math.random(2, 5)
-            p.Size = UDim2.new(0, size, 0, size)
-            p.Position = UDim2.new(math.random(), 0, 1, 10)
-            p.Parent = container
-            
-            local duration = math.random(30, 60) / 10
-            local tween = TweenService:Create(p, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
-                Position = UDim2.new(math.random(), 0, -0.2, 0),
-                BackgroundTransparency = 1
-            })
-            tween:Play()
-            tween.Completed:Connect(function() p:Destroy() end)
-            task.wait(0.5)
-        end
-    end)
+    -- "Terminal" Reveal
+    container.Size = UDim2.new(0, 0, 0, 2)
+    container.BackgroundTransparency = 1
+    
+    TweenService:Create(container, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 480, 0, 2), BackgroundTransparency = 0.2}):Play()
+    task.wait(0.4)
+    TweenService:Create(container, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 480, 0, 280)}):Play()
 end
 
 function UI.ShowStatus(msg, color)
     local label = Instance.new("TextLabel")
-    label.Text = msg
+    label.Text = "> " .. string.upper(msg)
     label.TextColor3 = color
-    label.Font = Enum.Font.GothamMedium
-    label.TextSize = 13
+    label.Font = Enum.Font.Code
+    label.TextSize = 14
     label.Size = UDim2.new(1, 0, 0, 20)
-    label.Position = UDim2.new(0, 0, 0, 310)
+    label.Position = UDim2.new(0, 0, 0, 240)
     label.BackgroundTransparency = 1
-    label.TextTransparency = 1
+    label.TextTransparency = 0
     label.Parent = container
     
-    TweenService:Create(label, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-    task.delay(2, function()
-        TweenService:Create(label, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-         task.wait(0.3)
-         label:Destroy()
-    end)
+    -- Glitch in
+    glitchText(label, {Text = label.Text})
     
-    if color == Colors.Error then
-         -- Auto reset input logic
-         local input = container:FindFirstChild("InputSection") and container.InputSection:FindFirstChild("KeyInput")
-         if input then task.delay(0.5, function() input.Text = "" end) end
-    end
-end
-
-function UI.ShakeInput()
-   -- Simple shake
-   local input = container:FindFirstChild("InputSection") 
-   if not input then return end
-   local originalPos = UDim2.new(0.5, 0, 0, 200)
-    for i=1,6 do
-        local offset = (i%2==0 and -5 or 5)
-        input.Position = originalPos + UDim2.new(0, offset, 0, 0)
-        task.wait(0.05)
-    end
-     input.Position = originalPos
+    task.delay(3, function()
+        TweenService:Create(label, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+        task.wait(0.5)
+        label:Destroy()
+    end)
 end
 
 function UI.ShowError(msg)
     UI.ShowStatus(msg, Colors.Error)
-    UI.ShakeInput()
-end
-
-function UI.AnimateEntrance(frame)
-   frame.Position = UDim2.new(0.5, 0, 0.45, 0)
-   frame.BackgroundTransparency = 1
-   -- Fade In + Slide Up
-   TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        BackgroundTransparency = 0.1 -- Glassmorphism
-   }):Play()
-   
-   -- Fade in descendants (manual loop)
-   for _, child in pairs(frame:GetDescendants()) do
-      if child:IsA("GuiObject") then
-           local originalTrans = child.BackgroundTransparency
-           local originalTextTrans = 0
-           if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
-                originalTextTrans = child.TextTransparency
-                -- Only fade in if it was meant to be visible (not transparent already)
-                if originalTextTrans < 1 then
-                     child.TextTransparency = 1
-                     TweenService:Create(child, TweenInfo.new(0.5), {TextTransparency = originalTextTrans}):Play()
-                end
-           end
-           if (child:IsA("ImageLabel") or child:IsA("ImageButton")) and child.ImageTransparency < 1 then
-                local imgTrans = child.ImageTransparency
-                child.ImageTransparency = 1
-                TweenService:Create(child, TweenInfo.new(0.5), {ImageTransparency = imgTrans}):Play()
-           end
-      end
-   end
+    -- Shake Container
+    local orig = UDim2.new(0.5, 0, 0.5, 0)
+    for i=1,6 do
+        container.Position = orig + UDim2.new(0, math.random(-5,5), 0, math.random(-5,5))
+        task.wait(0.04)
+    end
+    container.Position = orig
 end
 
 function UI.Authorize()
-    UI.ShowStatus("Successfully Verified!", Colors.Success)
-    task.wait(1)
+    UI.ShowStatus("ACCESS_GRANTED... LOADING_MODULES", Colors.Secondary)
+    task.wait(1.5)
     UI.Close()
 end
 
 function UI.Fail()
-   UI.ShowStatus("Invalid Key", Colors.Error)
-   UI.ShakeInput()
+    UI.ShowError("ACCESS_DENIED: INVALID_KEY")
 end
 
 function UI.Close()
-   if blur then TweenService:Create(blur, TweenInfo.new(0.5), {Size = 0}):Play() end
-   if container then
-       TweenService:Create(container, TweenInfo.new(0.5), {Position = UDim2.new(0.5, 0, 0.45, 0), BackgroundTransparency = 1}):Play()
-   end
-   task.wait(0.5)
-   if gui then gui:Destroy() end
-   if blur then blur:Destroy() end
+    if blur then TweenService:Create(blur, TweenInfo.new(0.5), {Size = 0}):Play() end
+    if container then
+        -- Collapse effect
+        TweenService:Create(container, TweenInfo.new(0.3), {Size = UDim2.new(0, 480, 0, 2)}):Play()
+        task.wait(0.3)
+        TweenService:Create(container, TweenInfo.new(0.2), {Size = UDim2.new(0,0,0,0), BackgroundTransparency=1}):Play()
+    end
+    task.wait(0.5)
+    if gui then gui:Destroy() end
+    if blur then blur:Destroy() end
 end
 
 return UI
