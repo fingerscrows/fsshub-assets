@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-15T20:16:21.516Z
+    Generated: 2026-01-16T01:10:20.000Z
 ]]
 
 local __MODULES = {}
@@ -60066,7 +60066,17 @@ function UI.Initialize(options)
     inputSection.AnchorPoint = Vector2.new(0.5, 0.5)
     inputSection.BackgroundTransparency = 1
     inputSection.Parent = container
-    
+
+    local instructionLabel = Instance.new("TextLabel")
+    instructionLabel.Text = "Enter your license key below to access the script"
+    instructionLabel.TextColor3 = Colors.textSecondary
+    instructionLabel.Font = Enum.Font.Gotham
+    instructionLabel.TextSize = 11
+    instructionLabel.TextTransparency = 0.4
+    instructionLabel.Size = UDim2.new(1, 0, 0, 14)
+    instructionLabel.Position = UDim2.new(0, 0, 0, -20)
+    instructionLabel.BackgroundTransparency = 1
+    instructionLabel.Parent = inputSection
     local keyInputContainer = Instance.new("Frame")
     keyInputContainer.Size = UDim2.new(1, 0, 0, 38)
     keyInputContainer.BackgroundColor3 = Colors.surfaceLight
@@ -60172,7 +60182,30 @@ function UI.Initialize(options)
         return button
     end
     
+    local function applyButtonEffects(button, originalColor)
+        local hover = false
+        
+        button.MouseEnter:Connect(function()
+            hover = true
+            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = originalColor:Lerp(Color3.new(1,1,1), 0.1)}):Play()
+        end)
+        
+        button.MouseLeave:Connect(function()
+            hover = false
+            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = originalColor}):Play()
+        end)
+        
+        button.MouseButton1Down:Connect(function()
+            TweenService:Create(button, TweenInfo.new(0.1), {Size = UDim2.new(0.5, -7, 1, -2)}):Play()
+        end)
+        
+        button.MouseButton1Up:Connect(function()
+            TweenService:Create(button, TweenInfo.new(0.1), {Size = UDim2.new(0.5, -5, 1, 0)}):Play()
+        end)
+    end
+    
     getLinkButton = createButton("GetLink", "Get Link", false, IconAssets.link)
+    applyButtonEffects(getLinkButton, Colors.surfaceLight)
     getLinkButton.LayoutOrder = 1
     getLinkButton.Parent = buttonSection
     getLinkButton.MouseButton1Click:Connect(function()
@@ -60189,6 +60222,7 @@ function UI.Initialize(options)
     end)
     
     verifyButton = createButton("Verify", "Verify Key", true, IconAssets.key)
+    applyButtonEffects(verifyButton, Colors.primary)
     verifyButton.LayoutOrder = 2
     verifyButton.Parent = buttonSection
     verifyButton.MouseButton1Click:Connect(function()
@@ -60239,6 +60273,12 @@ function UI.ShowStatus(text, color, resetTime)
                 task.wait(0.3)
                 label:Destroy()
             end
+        end)
+    end
+    
+    if color == Colors.error and keyInput then
+        task.delay(0.5, function()
+            keyInput.Text = ""
         end)
     end
 end
