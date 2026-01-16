@@ -46,8 +46,8 @@ local function createGradient(parent, color1, color2)
 end
 
 function UI.Initialize(config)
-    local validateCallback = config.validateCallback
-    local keyLink = config.keyLink or "https://fsshub.com/getkey"
+    local validateCallback = config.Function or config.validateCallback
+    local keyLink = config.KeyLink or config.keyLink or "https://fsshub.com/getkey"
 
     if gui then gui:Destroy() end
 
@@ -94,17 +94,23 @@ function UI.Initialize(config)
     uiStroke.Parent = container
     createGradient(uiStroke, Colors.Accent, Color3.fromRGB(145, 99, 240)) -- AccentGradient
 
-    -- Logo Section
-    local logoSize = 95
-    local logoContainer = Instance.new("ImageLabel")
-    logoContainer.Name = "Logo"
-    logoContainer.Size = UDim2.new(0, logoSize, 0, logoSize)
-    logoContainer.Position = UDim2.new(0.5, 0, 0, 30)
-    logoContainer.AnchorPoint = Vector2.new(0.5, 0)
-    logoContainer.BackgroundTransparency = 1
-    logoContainer.Image = Icons.Logo
-    logoContainer.Parent = container
+    -- Elegant 'F' Logo
+    local logoLabel = Instance.new("TextLabel")
+    logoLabel.Name = "LogoF"
+    logoLabel.Text = "F"
+    logoLabel.Font = Enum.Font.Bodoni
+    logoLabel.TextSize = 80
+    logoLabel.TextColor3 = Colors.Accent
+    logoLabel.Size = UDim2.new(0, 100, 0, 100)
+    logoLabel.Position = UDim2.new(0.5, 0, 0, 20)
+    logoLabel.AnchorPoint = Vector2.new(0.5, 0)
+    logoLabel.BackgroundTransparency = 1
+    logoLabel.Parent = container
     
+    -- Gradient for Logo
+    local logoGradient = createGradient(logoLabel, Colors.Accent, Color3.new(1,1,1))
+    logoGradient.Rotation = 45
+
     -- Title
     local title = Instance.new("TextLabel")
     title.Name = "Title"
@@ -113,7 +119,7 @@ function UI.Initialize(config)
     title.TextSize = 24
     title.TextColor3 = Colors.TextWhite
     title.Size = UDim2.new(1, 0, 0, 30)
-    title.Position = UDim2.new(0, 0, 0, 135)
+    title.Position = UDim2.new(0, 0, 0, 110)
     title.BackgroundTransparency = 1
     title.Parent = container
 
@@ -125,7 +131,7 @@ function UI.Initialize(config)
     desc.TextSize = 14
     desc.TextColor3 = Colors.TextDim
     desc.Size = UDim2.new(1, 0, 0, 20)
-    desc.Position = UDim2.new(0, 0, 0, 165)
+    desc.Position = UDim2.new(0, 0, 0, 140)
     desc.BackgroundTransparency = 1
     desc.Parent = container
 
