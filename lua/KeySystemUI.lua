@@ -7,15 +7,15 @@ local UI = {}
 
 -- FSS Purple Theme (Matches Logo)
 local Colors = {
-    Background = Color3.fromRGB(10, 10, 15),       -- Deep Dark
-    MainStroke = Color3.fromRGB(127, 106, 196),    -- Purple (FSS Brand)
+    Background = Color3.fromRGB(15, 15, 20),       -- Deep Dark
+    MainStroke = Color3.fromRGB(140, 120, 210),    -- Lighter Purple for contrast
     Accent = Color3.fromRGB(127, 106, 196),        -- Purple
-    Secondary = Color3.fromRGB(150, 130, 220),     -- Light Purple
-    Error = Color3.fromRGB(255, 70, 100),          -- Soft Red
-    TextLight = Color3.fromRGB(230, 225, 255),
-    TextDim = Color3.fromRGB(120, 110, 150),
-    InputBg = Color3.fromRGB(15, 12, 25),
-    ButtonBg = Color3.fromRGB(25, 20, 40)
+    Secondary = Color3.fromRGB(160, 140, 230),     -- Light Purple
+    Error = Color3.fromRGB(255, 80, 100),          -- Soft Red
+    TextLight = Color3.fromRGB(240, 240, 255),
+    TextDim = Color3.fromRGB(140, 140, 170),
+    InputBg = Color3.fromRGB(20, 20, 30),
+    ButtonBg = Color3.fromRGB(30, 25, 45)
 }
 
 UI.Keys = {
@@ -100,27 +100,46 @@ function UI.Initialize(config)
 
     -- Determine container size based on logo
     local hasLogo = UI.Keys.Assets and UI.Keys.Assets.Logo and UI.Keys.Assets.Logo.ID
-    local containerHeight = hasLogo and 340 or 280
+    local containerHeight = hasLogo and 310 or 250
     
     -- Main Container
     container = Instance.new("Frame")
     container.Name = "MainContainer"
-    container.Size = UDim2.new(0, 420, 0, containerHeight)
+    container.Size = UDim2.new(0, 400, 0, containerHeight)
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Colors.Background
     container.BorderSizePixel = 0
-    container.BackgroundTransparency = 0.02
+    container.BackgroundTransparency = 0.25 -- Semi-transparent (Glass effect)
     container.Parent = gui
     container.ClipsDescendants = true
 
     -- Rounded Corners for Container
     local containerCorner = Instance.new("UICorner")
-    containerCorner.CornerRadius = UDim.new(0, 8)
+    containerCorner.CornerRadius = UDim.new(0, 12)
     containerCorner.Parent = container
+    
+    -- Main Gradient
+    local mainGradient = Instance.new("UIGradient")
+    mainGradient.Rotation = 45
+    mainGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 25)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 15))
+    })
+    mainGradient.Parent = container
 
     -- Neon Stroke around Container
     local mainStroke = addNeonStroke(container, Colors.MainStroke, 2)
+    
+    -- Stroke Gradient (Professional Look)
+    local strokeGradient = Instance.new("UIGradient")
+    strokeGradient.Rotation = 45
+    strokeGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Colors.Secondary),
+        ColorSequenceKeypoint.new(0.5, Colors.Accent),
+        ColorSequenceKeypoint.new(1, Colors.Secondary)
+    })
+    strokeGradient.Parent = mainStroke
 
     -- Galaxy Particle Background Effect
     local galaxyContainer = Instance.new("Frame")
@@ -195,6 +214,7 @@ function UI.Initialize(config)
         logoImage.AnchorPoint = Vector2.new(0.5, 0)
         logoImage.BackgroundTransparency = 1
         logoImage.ImageTransparency = 1 -- Start invisible
+        logoImage.ZIndex = 5 -- Ensure it is on top
         logoImage.Parent = container
         
         -- Round corners for logo
@@ -236,7 +256,7 @@ function UI.Initialize(config)
     inputSection.Position = UDim2.new(0.5, 0, 0, inputYPos)
     inputSection.AnchorPoint = Vector2.new(0.5, 0)
     inputSection.BackgroundColor3 = Colors.InputBg
-    inputSection.BackgroundTransparency = 0.3
+    inputSection.BackgroundTransparency = 0.5 -- More transparent
     inputSection.Parent = container
     inputSection.Visible = false -- Start hidden
     
@@ -265,15 +285,16 @@ function UI.Initialize(config)
         btn.AnchorPoint = Vector2.new(0.5, 0)
         btn.Position = pos
         btn.BackgroundColor3 = Colors.ButtonBg
+        btn.BackgroundTransparency = 0.3 -- Semi-transparent
         btn.Text = text
-        btn.Font = Enum.Font.Sarpanch
+        btn.Font = Enum.Font.GothamMedium -- Professional font
         btn.TextColor3 = isPrimary and Colors.Accent or Colors.TextDim
-        btn.TextSize = 16
+        btn.TextSize = 14
         btn.Parent = container
         btn.Visible = false -- Start hidden
         
         local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 6)
+        btnCorner.CornerRadius = UDim.new(0, 8)
         btnCorner.Parent = btn
         
         local stroke = addNeonStroke(btn, isPrimary and Colors.Accent or Colors.TextDim, 1)
@@ -354,7 +375,7 @@ function UI.Initialize(config)
         loadLabel:Destroy()
         
         -- Expansion
-        local targetSize = UDim2.new(0, 420, 0, logoImage and 340 or 280)
+        local targetSize = UDim2.new(0, 400, 0, logoImage and 310 or 250)
         TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize}):Play()
         task.wait(0.35)
         
@@ -377,24 +398,57 @@ function UI.Initialize(config)
 end
 
 function UI.ShowStatus(msg, color)
-    local label = Instance.new("TextLabel")
-    label.Text = "> " .. string.upper(msg)
-    label.TextColor3 = color
-    label.Font = Enum.Font.Code
-    label.TextSize = 14
-    label.Size = UDim2.new(1, 0, 0, 20)
-    label.Position = UDim2.new(0, 0, 0, 240)
-    label.BackgroundTransparency = 1
-    label.TextTransparency = 0
-    label.Parent = container
+    -- Remove existing status if any
+    local existing = container:FindFirstChild("StatusFrame")
+    if existing then existing:Destroy() end
+
+    local statusFrame = Instance.new("Frame")
+    statusFrame.Name = "StatusFrame"
+    statusFrame.Size = UDim2.new(0, 0, 0, 26) -- Start width 0 for animation
+    statusFrame.Position = UDim2.new(0.5, 0, 1, -12)
+    statusFrame.AnchorPoint = Vector2.new(0.5, 1)
+    statusFrame.BackgroundColor3 = Colors.InputBg
+    statusFrame.BackgroundTransparency = 0.3
+    statusFrame.BorderSizePixel = 0
+    statusFrame.Parent = container
     
-    -- Glitch in
-    glitchText(label, {Text = label.Text})
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = statusFrame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color
+    stroke.Thickness = 1
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Transparency = 0
+    stroke.Parent = statusFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Text = string.upper(msg)
+    label.TextColor3 = color
+    label.Font = Enum.Font.GothamMedium
+    label.TextSize = 12
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextTransparency = 1 -- Start hidden
+    label.Parent = statusFrame
+    
+    -- Animate In
+    local tweenSize = TweenService:Create(statusFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0.9, 0, 0, 26)})
+    tweenSize:Play()
+    
+    task.delay(0.2, function()
+        TweenService:Create(label, TweenInfo.new(0.2), {TextTransparency = 0}):Play()
+    end)
     
     task.delay(3, function()
-        TweenService:Create(label, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
-        task.wait(0.5)
-        label:Destroy()
+        if statusFrame.Parent then
+             TweenService:Create(label, TweenInfo.new(0.2), {TextTransparency = 1}):Play()
+             local tweenOut = TweenService:Create(statusFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(0,0,0,26)})
+             tweenOut:Play()
+             tweenOut.Completed:Wait()
+             statusFrame:Destroy()
+        end
     end)
 end
 

@@ -245,7 +245,25 @@ end
 if not Fluent then
     Loading.Update(0.3, "Downloading library...")
     Log("Fallback: Loading Fluent normally...")
-    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
+    
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
+    end)
+    
+    if success and result then
+        Fluent = result
+    else
+        Loading.Update(0, "FAILED TO LOAD UI")
+        warn("[FSSHUB] Critical Error: Failed to load Fluent UI Library!")
+        warn("Debug: " .. tostring(result))
+        
+        task.delay(3, function()
+             if game.Players.LocalPlayer then
+                 game.Players.LocalPlayer:Kick("FSSHUB Error: UI Library failed to load.\n(Check Console F9)")
+             end
+        end)
+        return
+    end
 end
 
 Loading.Update(0.9, "Initializing UI...")
