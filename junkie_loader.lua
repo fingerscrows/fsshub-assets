@@ -62,7 +62,7 @@ local HWID = generateHWID()
 -- CONFIGURATION
 -- =====================================================
 local WorkerUrl = "https://script.fsshub-services.workers.dev"
-local LogoAsset = "rbxassetid://YOUR_LOGO_ASSET_ID"
+local LogoAsset = "rbxassetid://120860566854298"
 local LogoSize = UDim2.new(0, 80, 0, 80)
 
 -- =====================================================

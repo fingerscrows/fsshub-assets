@@ -24,7 +24,7 @@ const CONFIG = {
     workerUrl: "https://script.fsshub-services.workers.dev",
     
     // Logo Asset (user needs to upload to Roblox and replace this)
-    logoAssetId: "rbxassetid://YOUR_LOGO_ASSET_ID", // Replace with actual uploaded logo
+    logoAssetId: "rbxassetid://120860566854298", // FSS Logo
     logoSize: "UDim2.new(0, 80, 0, 80)"
 };
 
