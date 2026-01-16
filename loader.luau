@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-16T09:26:28.864Z
+    Generated: 2026-01-16T10:21:36.433Z
 ]]
 
 -- Load Time Tracking
@@ -59806,22 +59806,26 @@ local CoreGui = game:GetService("CoreGui")
 
 local UI = {}
 
--- Cyber Neon Palette
+-- FSS Purple Theme (Matches Logo)
 local Colors = {
     Background = Color3.fromRGB(10, 10, 15),       -- Deep Dark
-    MainStroke = Color3.fromRGB(0, 255, 255),      -- Cyan Neon
-    Accent = Color3.fromRGB(0, 255, 255),          -- Cyan
-    Secondary = Color3.fromRGB(57, 255, 20),       -- Neon Green (Matrix)
-    Error = Color3.fromRGB(255, 0, 85),            -- Neon Pink/Red
-    TextLight = Color3.fromRGB(220, 255, 255),
-    TextDim = Color3.fromRGB(100, 150, 150),
-    InputBg = Color3.fromRGB(5, 5, 10),
-    ButtonBg = Color3.fromRGB(15, 20, 25)
+    MainStroke = Color3.fromRGB(127, 106, 196),    -- Purple (FSS Brand)
+    Accent = Color3.fromRGB(127, 106, 196),        -- Purple
+    Secondary = Color3.fromRGB(150, 130, 220),     -- Light Purple
+    Error = Color3.fromRGB(255, 70, 100),          -- Soft Red
+    TextLight = Color3.fromRGB(230, 225, 255),
+    TextDim = Color3.fromRGB(120, 110, 150),
+    InputBg = Color3.fromRGB(15, 12, 25),
+    ButtonBg = Color3.fromRGB(25, 20, 40)
 }
 
 UI.Keys = {
-    MainTitle = "SYSTEM ACCESS", 
-    MainDesc = "KEYSYSTEM GATEWAY"
+    MainTitle = "FSSHUB", 
+    MainDesc = "KEYSYSTEM GATEWAY",
+    Assets = {
+        Logo = { ID = nil, Size = UDim2.new(0, 80, 0, 80) }
+    },
+    Directory = "FSSHUB" -- Save folder
 }
 
 local gui, container, inputSection
@@ -59895,17 +59899,21 @@ function UI.Initialize(config)
     blur.Parent = game:GetService("Lighting")
     TweenService:Create(blur, TweenInfo.new(0.5), {Size = 20}):Play()
 
-    -- Main Container (Cyber Box)
+    -- Determine container size based on logo
+    local hasLogo = UI.Keys.Assets and UI.Keys.Assets.Logo and UI.Keys.Assets.Logo.ID
+    local containerHeight = hasLogo and 340 or 280
+    
+    -- Main Container
     container = Instance.new("Frame")
     container.Name = "MainContainer"
-    container.Size = UDim2.new(0, 480, 0, 280) 
+    container.Size = UDim2.new(0, 420, 0, containerHeight)
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Colors.Background
     container.BorderSizePixel = 0
-    container.BackgroundTransparency = 0.05
+    container.BackgroundTransparency = 0.02
     container.Parent = gui
-    container.ClipsDescendants = true -- Important for clean shrink animation
+    container.ClipsDescendants = true
 
     -- Rounded Corners for Container
     local containerCorner = Instance.new("UICorner")
@@ -59976,37 +59984,60 @@ function UI.Initialize(config)
     closeBtn.MouseEnter:Connect(function() closeBtn.TextColor3 = Colors.Error end)
     closeBtn.MouseLeave:Connect(function() closeBtn.TextColor3 = Colors.TextDim end)
 
-    -- Logo / Header
+    -- Logo Image (with round corners)
+    local logoImage = nil
+    local logoYOffset = 25
+    
+    if UI.Keys.Assets and UI.Keys.Assets.Logo and UI.Keys.Assets.Logo.ID then
+        logoImage = Instance.new("ImageLabel")
+        logoImage.Image = UI.Keys.Assets.Logo.ID
+        logoImage.Size = UI.Keys.Assets.Logo.Size or UDim2.new(0, 80, 0, 80)
+        logoImage.Position = UDim2.new(0.5, 0, 0, 20)
+        logoImage.AnchorPoint = Vector2.new(0.5, 0)
+        logoImage.BackgroundTransparency = 1
+        logoImage.ImageTransparency = 1 -- Start invisible
+        logoImage.Parent = container
+        
+        -- Round corners for logo
+        local logoCorner = Instance.new("UICorner")
+        logoCorner.CornerRadius = UDim.new(0, 12)
+        logoCorner.Parent = logoImage
+        
+        logoYOffset = 110 -- Adjust text position if logo exists
+    end
+    
+    -- Logo Text / Header
     local logoLabel = Instance.new("TextLabel")
-    logoLabel.Text = "FSSHUB"
-    logoLabel.Font = Enum.Font.Sarpanch 
-    logoLabel.TextSize = 36
+    logoLabel.Text = UI.Keys.MainTitle or "FSSHUB"
+    logoLabel.Font = Enum.Font.GothamBold
+    logoLabel.TextSize = 28
     logoLabel.TextColor3 = Colors.Accent
-    logoLabel.Size = UDim2.new(1, 0, 0, 40)
-    logoLabel.Position = UDim2.new(0, 0, 0, 30)
+    logoLabel.Size = UDim2.new(1, 0, 0, 30)
+    logoLabel.Position = UDim2.new(0, 0, 0, logoImage and 105 or 30)
     logoLabel.BackgroundTransparency = 1
     logoLabel.TextTransparency = 1 -- Start invisible
     logoLabel.Parent = container
     
-    -- Subheader (KEYSYSTEM GATEWAY)
+    -- Subheader
     local subLabel = Instance.new("TextLabel")
-    subLabel.Text = "KEYSYSTEM GATEWAY"
-    subLabel.Font = Enum.Font.Code
-    subLabel.TextSize = 14
+    subLabel.Text = UI.Keys.MainDesc or "KEYSYSTEM GATEWAY"
+    subLabel.Font = Enum.Font.Gotham
+    subLabel.TextSize = 12
     subLabel.TextColor3 = Colors.TextDim
     subLabel.Size = UDim2.new(1, 0, 0, 20)
-    subLabel.Position = UDim2.new(0, 0, 0, 70)
+    subLabel.Position = UDim2.new(0, 0, 0, logoImage and 135 or 60)
     subLabel.BackgroundTransparency = 1
     subLabel.TextTransparency = 1 -- Start invisible
     subLabel.Parent = container
 
-    -- Input Field
+    -- Input Field (position adjusted for logo)
+    local inputYPos = logoImage and 170 or 100
     inputSection = Instance.new("Frame")
-    inputSection.Size = UDim2.new(0.8, 0, 0, 40)
-    inputSection.Position = UDim2.new(0.5, 0, 0, 120) 
+    inputSection.Size = UDim2.new(0.85, 0, 0, 42)
+    inputSection.Position = UDim2.new(0.5, 0, 0, inputYPos)
     inputSection.AnchorPoint = Vector2.new(0.5, 0)
     inputSection.BackgroundColor3 = Colors.InputBg
-    inputSection.BackgroundTransparency = 0.5
+    inputSection.BackgroundTransparency = 0.3
     inputSection.Parent = container
     inputSection.Visible = false -- Start hidden
     
@@ -60077,19 +60108,22 @@ function UI.Initialize(config)
         return btn
     end
 
-    local btnGet = createCyberButton("GET KEY", UDim2.new(0.3, 0, 0, 190), false, function()
+    -- Button positions adjusted for logo
+    local buttonYPos = logoImage and 230 or 160
+    
+    local btnGet = createCyberButton("GET KEY", UDim2.new(0.28, 0, 0, buttonYPos), false, function()
         if setclipboard then
             setclipboard(keyLink)
-            UI.ShowStatus("LINK_COPIED_TO_CLIPBOARD", Colors.Secondary)
+            UI.ShowStatus("LINK_COPIED", Colors.Secondary)
         else
             UI.ShowStatus("LINK: "..keyLink, Colors.Accent)
         end
     end)
 
-    local btnVerify = createCyberButton("VERIFY", UDim2.new(0.7, 0, 0, 190), true, function()
+    local btnVerify = createCyberButton("VERIFY", UDim2.new(0.72, 0, 0, buttonYPos), true, function()
         local input = keyInput.Text:gsub("%s+", "")
         if input == "" then
-             UI.ShowStatus("ERROR: NO_INPUT_DETECTED", Colors.Error)
+             UI.ShowStatus("NO_KEY_ENTERED", Colors.Error)
              return
         end
         if validateCallback then validateCallback(input) end
@@ -60117,21 +60151,29 @@ function UI.Initialize(config)
 
     -- Expand to Full UI Sequence
     task.spawn(function()
-        task.wait(0.5) -- Short fake load
+        task.wait(0.4) -- Short fake load
         loadLabel:Destroy()
+        
         -- Expansion
-        TweenService:Create(container, TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 480, 0, 280)}):Play()
-        task.wait(0.4)
+        local targetSize = UDim2.new(0, 420, 0, logoImage and 340 or 280)
+        TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+        task.wait(0.35)
         
         -- Fade Elements In
-        logoLabel.TextTransparency = 0
-        subLabel.TextTransparency = 0
+        if logoImage then
+            TweenService:Create(logoImage, TweenInfo.new(0.3), {ImageTransparency = 0}):Play()
+        end
+        TweenService:Create(logoLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+        TweenService:Create(subLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
         inputSection.Visible = true
         btnGet.Visible = true
         btnVerify.Visible = true
         
-        -- Glitch animate Logo
-        glitchText(logoLabel, {Text="FSSHUB"})
+        -- Subtle pulse effect on logo text
+        task.spawn(function()
+            task.wait(0.2)
+            glitchText(logoLabel, {Text = UI.Keys.MainTitle or "FSSHUB", TextColor3 = Colors.Accent})
+        end)
     end)
 end
 
