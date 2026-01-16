@@ -110,7 +110,7 @@ function UI.Initialize(config)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Colors.Background
     container.BorderSizePixel = 0
-    container.BackgroundTransparency = 0.25 -- Semi-transparent (Glass effect)
+    container.BackgroundTransparency = 0.4 -- Thinner Glass Effect
     container.Parent = gui
     container.ClipsDescendants = true
 
@@ -185,6 +185,47 @@ function UI.Initialize(config)
                 task.delay(duration, function() particle:Destroy() end)
             end
             task.wait(0.05)
+        end
+    end)
+
+    -- "Suction" Light Effect
+    task.spawn(function()
+        while gui and gui.Parent do
+             local suction = Instance.new("Frame")
+             suction.Name = "SuctionPulse"
+             suction.Size = UDim2.new(1.2, 0, 1.2, 0) -- Start outside
+             suction.Position = UDim2.new(0.5, 0, 0.5, 0)
+             suction.AnchorPoint = Vector2.new(0.5, 0.5)
+             suction.BackgroundColor3 = Colors.Accent
+             suction.BackgroundTransparency = 1
+             suction.BorderSizePixel = 0
+             suction.Parent = container
+             
+             local suctionCorner = Instance.new("UICorner")
+             suctionCorner.CornerRadius = UDim.new(0, 12)
+             suctionCorner.Parent = suction
+             
+             local stroke = Instance.new("UIStroke")
+             stroke.Color = Colors.Accent
+             stroke.Thickness = 2
+             stroke.Transparency = 0.5
+             stroke.Parent = suction
+             
+             -- Tween Inwards
+             local t1 = TweenService:Create(suction, TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                 Size = UDim2.new(0, 0, 0, 0),
+                 BackgroundTransparency = 1
+             })
+             
+             local t2 = TweenService:Create(stroke, TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                 Transparency = 1
+             })
+             
+             t1:Play()
+             t2:Play()
+             
+             task.delay(1.5, function() suction:Destroy() end)
+             task.wait(0.8) -- Frequency of pulses
         end
     end)
 

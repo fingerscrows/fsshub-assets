@@ -294,6 +294,148 @@ return {
 
   fs.writeFileSync(CONFIG.output, output);
   console.log(`Bundle written to ${CONFIG.output}`);
+
+  // 4. Generate Standalone Fluent Loader (fluent_loader.lua)
+  // This is required for Main_Menu.lua fallback loading
+  console.log("Generating Standalone Fluent Loader...");
+  
+  let fluentOutput = `--[[ 
+    FSSHUB Fluent UI Bundle
+    Generated: ${new Date().toISOString()}
+]]
+
+local __MODULES = {}
+local __CACHE = {}
+
+-- Create script proxy for Roblox-style requires
+local function createScriptProxy(path)
+    -- Helper function to get children for this script path
+    local function getChildrenForPath()
+        local children = {}
+        local prefix = path == "Root" and "" or (path .. "/")
+        local seenChildren = {}
+        
+        for key, _ in pairs(__MODULES) do
+            local childName = nil
+            
+            if prefix == "" then
+                -- Root level: match keys that are direct children
+                local firstSlash = key:find("/")
+                if firstSlash then
+                    childName = key:sub(1, firstSlash - 1)
+                elseif key ~= "Root" then
+                    childName = key
+                end
+            else
+                -- Match keys that start with our prefix
+                if key:sub(1, #prefix) == prefix then
+                    local remaining = key:sub(#prefix + 1)
+                    local firstSlash = remaining:find("/")
+                    if firstSlash then
+                        childName = remaining:sub(1, firstSlash - 1)
+                    else
+                        childName = remaining
+                    end
+                end
+            end
+            
+            if childName and not seenChildren[childName] then
+                seenChildren[childName] = true
+                local childPath = prefix == "" and childName or (path .. "/" .. childName)
+                children[#children + 1] = createScriptProxy(childPath)
+            end
+        end
+        return children
+    end
+    
+    local proxy = newproxy(true)
+    local meta = getmetatable(proxy)
+    
+    meta.__index = function(_, key)
+        if key == "GetChildren" then
+            return function() return getChildrenForPath() end
+        end
+        
+        if key == "FindFirstChild" then
+            return function(_, childName)
+                local childPath = (path == "Root") and childName or (path .. "/" .. childName)
+                if __MODULES[childPath] then return createScriptProxy(childPath) end
+                for key, _ in pairs(__MODULES) do
+                    if key:sub(1, #childPath + 1) == childPath .. "/" then return createScriptProxy(childPath) end
+                end
+                return nil
+            end
+        end
+        
+        if key == "Name" then
+            return path:match("([^/]+)$") or path
+        end
+        
+        if key == "Parent" then
+            if path == "Root" then return nil end
+            local lastSep = path:match("^.*()/")
+            if lastSep then return createScriptProxy(path:sub(1, lastSep - 1)) else return createScriptProxy("Root") end
+        end
+        
+        local childPath = (path == "Root") and key or (path .. "/" .. key)
+        return createScriptProxy(childPath)
+    end
+    
+    meta.__tostring = function() return path end
+    return proxy
+end
+
+local function __REQUIRE(modulePath)
+    local key = tostring(modulePath)
+    key = key:gsub("^Root/", ""):gsub("^Root$", "Root")
+    
+    if type(modulePath) == "userdata" then
+        key = tostring(modulePath):gsub("Root%.", ""):gsub("Root/", "")
+        if key == "Root" then key = "Root" end
+    end
+    
+    if __CACHE[key] then return __CACHE[key] end
+    
+    local loader = __MODULES[key]
+    if not loader then
+        error("Module not found: " .. tostring(modulePath))
+    end
+    
+    local result = loader()
+    __CACHE[key] = result
+    return result
+end
+
+-- MODULE DEFINITIONS
+`;
+
+  // Reuse modules from before
+  for (const [name, content] of Object.entries(modules)) {
+    fluentOutput += `
+__MODULES["${name}"] = function()
+    local script = createScriptProxy("Root/${name}")
+    local function require(p) 
+        local target = tostring(p)
+        target = target:gsub("Root/", "")
+        return __REQUIRE(target)
+    end
+    
+    return (function()
+${content}
+    end)()
+end
+`;
+  }
+
+  fluentOutput += `
+-- RETURN MAIN LIBRARY
+return __REQUIRE("Root")
+`;
+
+  const fluentPath = path.join(__dirname, "fluent_loader.lua");
+  fs.writeFileSync(fluentPath, fluentOutput);
+  console.log(`Fluent Loader written to ${fluentPath}`);
+
 }
 
 bundle();
