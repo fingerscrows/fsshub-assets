@@ -81,7 +81,9 @@ end
 
 -- Loading GUI
 local function CreateLoadingGui()
-    if getgenv().SKIP_LOADING_SCREEN then
+    -- Check for skip loading flags (set by loader/orchestrator)
+    local skipLoading = getgenv().FSSHUB_SKIP_LOADING or getgenv().SKIP_LOADING_SCREEN
+    if skipLoading then
         return {
             Update = function() end,
             Destroy = function() end,

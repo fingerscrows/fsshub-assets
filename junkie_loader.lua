@@ -859,6 +859,114 @@ local KeySystemUI = (function()
         end
     end
 
+    -- =====================================================
+    -- LOADING MODE (Optimized UI Transition - Returns Update Function)
+    -- =====================================================
+    function UI.ShowLoadingMode()
+        -- 1. Destroy Input Elements (Prevents overlap)
+        local elementsToClear = { "InputFrame", "BtnGet", "BtnVerify" }
+        for _, name in ipairs(elementsToClear) do
+            local el = container:FindFirstChild(name)
+            if el then el:Destroy() end
+        end
+
+        -- Also clean up any other buttons except Close (X)
+        for _, child in ipairs(container:GetChildren()) do
+            if child:IsA("TextButton") and child.Text ~= "X" then child:Destroy() end
+        end
+
+        -- Remove status frame if present
+        local existing = container:FindFirstChild("StatusFrame")
+        if existing then existing:Destroy() end
+
+        -- 2. Transform SubHeader into real-time status
+        local subLabel = container:FindFirstChild("SubLabel")
+        if subLabel then
+            subLabel.Text = "INITIALIZING..."
+            subLabel.TextColor3 = Colors.Accent
+        end
+
+        -- 3. Create Progress Bar Container
+        local barContainer = Instance.new("Frame")
+        barContainer.Name = "ProgressBarContainer"
+        barContainer.Size = UDim2.new(0.8, 0, 0, 6)
+        barContainer.Position = UDim2.new(0.5, 0, 0, 210)
+        barContainer.AnchorPoint = Vector2.new(0.5, 0)
+        barContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        barContainer.BorderSizePixel = 0
+        barContainer.Parent = container
+
+        local barCorner = Instance.new("UICorner")
+        barCorner.CornerRadius = UDim.new(0, 3)
+        barCorner.Parent = barContainer
+
+        local barFill = Instance.new("Frame")
+        barFill.Name = "BarFill"
+        barFill.Size = UDim2.new(0, 0, 1, 0)
+        barFill.BackgroundColor3 = Colors.Success
+        barFill.BorderSizePixel = 0
+        barFill.Parent = barContainer
+
+        local fillCorner = Instance.new("UICorner")
+        fillCorner.CornerRadius = UDim.new(0, 3)
+        fillCorner.Parent = barFill
+
+        -- Gradient on fill
+        local fillGradient = Instance.new("UIGradient")
+        fillGradient.Rotation = 0
+        fillGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Colors.Secondary),
+            ColorSequenceKeypoint.new(0.5, Colors.Accent),
+            ColorSequenceKeypoint.new(1, Colors.Secondary)
+        })
+        fillGradient.Parent = barFill
+
+        -- 4. Create Log Container (ScrollingFrame)
+        local logFrame = Instance.new("ScrollingFrame")
+        logFrame.Name = "LogFrame"
+        logFrame.Size = UDim2.new(0.85, 0, 0, 60)
+        logFrame.Position = UDim2.new(0.5, 0, 0, 230)
+        logFrame.AnchorPoint = Vector2.new(0.5, 0)
+        logFrame.BackgroundTransparency = 1
+        logFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        logFrame.ScrollBarThickness = 2
+        logFrame.ScrollBarImageColor3 = Colors.TextDim
+        logFrame.Parent = container
+
+        local logList = Instance.new("UIListLayout")
+        logList.SortOrder = Enum.SortOrder.LayoutOrder
+        logList.Parent = logFrame
+
+        -- Return update function
+        return function(status, percent, logMsg)
+            -- Update status label
+            if subLabel then
+                subLabel.Text = status:upper()
+            end
+
+            -- Tween progress bar
+            TweenService:Create(barFill, TweenInfo.new(0.4, Enum.EasingStyle.Quad),
+                { Size = UDim2.new(percent / 100, 0, 1, 0) }):Play()
+
+            -- Add log entry if provided
+            if logMsg then
+                local logEntry = Instance.new("TextLabel")
+                logEntry.Text = "> " .. logMsg
+                logEntry.Font = Enum.Font.Code
+                logEntry.TextSize = 10
+                logEntry.TextColor3 = Colors.TextDim
+                logEntry.Size = UDim2.new(1, 0, 0, 15)
+                logEntry.BackgroundTransparency = 1
+                logEntry.TextXAlignment = Enum.TextXAlignment.Left
+                logEntry.Parent = logFrame
+
+                -- Update canvas size for scroll
+                logFrame.CanvasSize = UDim2.new(0, 0, 0, logList.AbsoluteContentSize.Y)
+                logFrame.CanvasPosition = Vector2.new(0, logFrame.AbsoluteCanvasSize.Y)
+            end
+        end
+    end
+
     function UI.Close()
         if blur then TweenService:Create(blur, TweenInfo.new(0.3), { Size = 0 }):Play() end
         if container then
@@ -901,6 +1009,8 @@ local cachedPayload = nil
 -- =====================================================
 local prefetchedVersion = nil
 local prefetchComplete = false
+local cachedFluentLoader = nil
+local fluentPrefetchComplete = false
 local lastSuccessTime = 0
 local VALIDATION_BYPASS_SECONDS = 1800 -- 30 minutes
 
@@ -915,6 +1025,40 @@ task.spawn(function()
     end
     prefetchComplete = true
 end)
+
+-- Pre-fetch: Start downloading Fluent UI Library immediately
+task.spawn(function()
+    local success, content = pcall(function()
+        return game:HttpGet(
+            "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8")
+    end)
+    if success and content then
+        cachedFluentLoader = content
+        print("[FSSHUB] Pre-fetched Fluent UI Library")
+    else
+        warn("[FSSHUB] Failed to pre-fetch Fluent UI")
+    end
+    fluentPrefetchComplete = true
+end)
+
+-- Inject Asset Provider for Payload
+if getgenv then
+    getgenv().FSSHUB_GET_FLUENT = function(timeout)
+        local start = tick()
+        timeout = timeout or 10
+
+        -- Wait for pre-fetch to complete if needed
+        while not fluentPrefetchComplete do
+            if tick() - start > timeout then break end
+            game:GetService("RunService").Heartbeat:Wait()
+        end
+
+        if cachedFluentLoader then
+            return loadstring(cachedFluentLoader)()
+        end
+        return nil
+    end
+end
 
 -- Async workspace initialization (prepare cache folder early)
 task.spawn(function()
@@ -991,40 +1135,65 @@ local function executePayload(chunk)
 end
 
 local function fetchAndExecutePayload(key)
-    -- Suppress redundant loading screens in payload
+    -- Set suppression flag for payload (prevents double loading screens)
     if getgenv then
-        getgenv().SKIP_LOADING_SCREEN = true
+        getgenv().FSSHUB_SKIP_LOADING = true
     end
 
-    -- Show Loading Panel immediately
-    KeySystemUI.ShowLoadingPanel()
+    -- Use new ShowLoadingMode (returns updateUI function)
+    local updateUI = KeySystemUI.ShowLoadingMode()
 
-    local startClock = tick()
-    local accumulatedProgress = 0
+    local startTime = tick()
+    local currentProgress = 0
     local serverVersion = nil
     local payloadContent = nil
     local compiledChunk = nil
 
-    -- ========================================
-    -- FAKE PROGRESS LEAD-IN (Perceived Performance)
-    -- Start at 10% instantly to give user feedback
-    -- ========================================
-    accumulatedProgress = 10
-    KeySystemUI.UpdateProgress("Initializing", accumulatedProgress)
+    -- Weighted Task Configuration
+    local Tasks = {
+        { ID = "VAL",  Name = "Validating Data",       Weight = 15 },
+        { ID = "DL",   Name = "Downloading UI Bundle", Weight = 65 },
+        { ID = "INIT", Name = "Initializing System",   Weight = 10 },
+        { ID = "UI",   Name = "Preparing Main Menu",   Weight = 10 }
+    }
 
-    -- Small non-blocking wait for UI to render
-    local RunService = game:GetService("RunService")
-    RunService.Heartbeat:Wait()
+    -- Task Lookup Helper
+    local function getTask(taskID)
+        for _, t in ipairs(Tasks) do
+            if t.ID == taskID then return t end
+        end
+        return nil
+    end
 
-    -- ========================================
-    -- VALIDATION BYPASS (Super-fast boot)
-    -- Skip health check if recently validated
-    -- ========================================
+    -- runTask Helper (User's specified pattern)
+    local function runTask(taskID, func)
+        local taskObj = getTask(taskID)
+        if not taskObj then return false, "Unknown task" end
+
+        local taskStart = tick()
+        updateUI(taskObj.Name, currentProgress)
+
+        -- Non-blocking yield for UI responsiveness
+        game:GetService("RunService").Heartbeat:Wait()
+
+        local success, result = pcall(func)
+
+        local duration = tick() - taskStart
+        if success then
+            currentProgress = currentProgress + taskObj.Weight
+            updateUI(taskObj.Name, currentProgress, string.format("%s finished in %.2fs", taskObj.Name, duration))
+            print(string.format("[FSSHUB] %s completed in %.2fs", taskObj.Name, duration))
+        end
+
+        return success, result
+    end
+
+    -- Check for validation bypass
     local bypassValidation = canBypassValidation()
     if bypassValidation and cachedPayload then
         print("[FSSHUB] Validation bypass active - using cached payload")
-        accumulatedProgress = 75 -- Jump to post-download
-        KeySystemUI.UpdateProgress("Instant Load (Cached)", accumulatedProgress)
+        currentProgress = 75
+        updateUI("Instant Load (Cached)", currentProgress)
         payloadContent = cachedPayload
         serverVersion = cachedVersion
     end
@@ -1059,9 +1228,9 @@ local function fetchAndExecutePayload(key)
                 if cached then
                     payloadContent = payload
                     -- Skip download - jump progress
-                    accumulatedProgress = accumulatedProgress + 60 -- Add download weight
-                    KeySystemUI.UpdateProgress("Cache Hit - Skipping Download", accumulatedProgress + 5)
-                    return true, true                              -- Second bool = cache hit
+                    currentProgress = currentProgress + 60 -- Add download weight
+                    KeySystemUI.UpdateProgress("Cache Hit - Skipping Download", currentProgress + 5)
+                    return true, true                      -- Second bool = cache hit
                 end
                 return true, false
             end
@@ -1084,6 +1253,24 @@ local function fetchAndExecutePayload(key)
                     return true
                 else
                     return false, content
+                end
+            end
+        },
+        {
+            Name = "Preparing Assets",
+            Weight = 5,
+            Run = function()
+                -- Wait for Fluent pre-fetch to finish (up to 5s)
+                local start = tick()
+                while not fluentPrefetchComplete do
+                    if tick() - start > 5 then break end
+                    game:GetService("RunService").Heartbeat:Wait()
+                end
+
+                if cachedFluentLoader then
+                    return true
+                else
+                    return true -- Proceed anyway, payload has fallback
                 end
             end
         },
@@ -1122,11 +1309,11 @@ local function fetchAndExecutePayload(key)
         -- Skip tasks if marked (e.g., when validation bypass is active)
         if task.Skip then
             print(string.format("[FSSHUB] Skipping %s (bypass active)", task.Name))
-            accumulatedProgress = accumulatedProgress + task.Weight
-            KeySystemUI.UpdateProgress(task.Name .. " (Skipped)", accumulatedProgress, 0)
+            currentProgress = currentProgress + task.Weight
+            KeySystemUI.UpdateProgress(task.Name .. " (Skipped)", currentProgress, 0)
         else
             local taskStart = tick()
-            KeySystemUI.UpdateProgress(task.Name, accumulatedProgress)
+            KeySystemUI.UpdateProgress(task.Name, currentProgress)
 
             -- Non-blocking yield for UI responsiveness
             game:GetService("RunService").Heartbeat:Wait()
@@ -1138,9 +1325,9 @@ local function fetchAndExecutePayload(key)
             if success then
                 -- Check for cache hit skip (second return value)
                 if not (task.Name == "Checking Cache" and result == true) then
-                    accumulatedProgress = accumulatedProgress + task.Weight
+                    currentProgress = currentProgress + task.Weight
                 end
-                KeySystemUI.UpdateProgress(task.Name, accumulatedProgress, taskDuration)
+                KeySystemUI.UpdateProgress(task.Name, currentProgress, taskDuration)
                 print(string.format("[FSSHUB] %s completed in %.2fs", task.Name, taskDuration))
             else
                 failed = true
@@ -1150,7 +1337,7 @@ local function fetchAndExecutePayload(key)
         end
     end
 
-    local totalTime = tick() - startClock
+    local totalTime = tick() - startTime
 
     if failed then
         KeySystemUI.ShowError("LOAD_FAIL: " .. tostring(failError))
