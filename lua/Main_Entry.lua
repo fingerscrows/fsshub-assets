@@ -216,14 +216,19 @@ local function downloadBundle()
         return nil
     end
 
-    -- Validate bundle (basic check - should start with comment or code)
-    if #bundleContent < 100 or string.sub(bundleContent, 1, 2) == "--" then
-        if string.find(bundleContent, "Error", 1, true) then
-            Log("Bundle download returned error: " .. string.sub(bundleContent, 1, 100))
+    -- Validate bundle - reject only if it's clearly an error response
+    -- Valid bundle should be > 1000 bytes (actual bundle is ~1.5MB)
+    if #bundleContent < 1000 then
+        -- Check if it's a JSON error response
+        if string.sub(bundleContent, 1, 1) == "{" then
+            Log("Bundle download returned JSON error: " .. string.sub(bundleContent, 1, 200))
             return nil
         end
+        Log("Bundle too small, may be invalid: " .. #bundleContent .. " bytes")
+        return nil
     end
 
+    Log("Bundle downloaded: " .. #bundleContent .. " bytes")
     return bundleContent
 end
 
