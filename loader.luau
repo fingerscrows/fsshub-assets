@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-16T04:27:02.143Z
+    Generated: 2026-01-16T05:17:45.561Z
 ]]
 
 local __MODULES = {}
@@ -59953,40 +59953,49 @@ function UI.Initialize(config)
     -- Neon Stroke around Container
     local mainStroke = addNeonStroke(container, Colors.MainStroke, 2)
 
-    -- Binary/Digital Background Effect
-    local binContainer = Instance.new("Frame")
-    binContainer.Name = "BinaryBg"
-    binContainer.Size = UDim2.new(1, 0, 1, 0)
-    binContainer.BackgroundTransparency = 1
-    binContainer.ClipsDescendants = true
-    binContainer.Parent = container
+    -- Galaxy Particle Background Effect
+    local galaxyContainer = Instance.new("Frame")
+    galaxyContainer.Name = "GalaxyBg"
+    galaxyContainer.Size = UDim2.new(1, 0, 1, 0)
+    galaxyContainer.BackgroundTransparency = 1
+    galaxyContainer.ClipsDescendants = true
     
-    local binCorner = Instance.new("UICorner") -- mask content
-    binCorner.CornerRadius = UDim.new(0, 8)
-    binCorner.Parent = binContainer
+    local galaxyCorner = Instance.new("UICorner") -- mask content
+    galaxyCorner.CornerRadius = UDim.new(0, 8)
+    galaxyCorner.Parent = galaxyContainer
+    galaxyContainer.Parent = container
 
-    -- Spawn "Code Rain"
+    -- Spawn "Galaxy Particles"
     task.spawn(function()
+        local particleColors = {Colors.Accent, Colors.Secondary, Color3.fromRGB(150, 50, 255), Color3.fromRGB(255, 255, 255)}
         while gui and gui.Parent do
-            if math.random() > 0.8 then
-                local column = Instance.new("TextLabel")
-                column.Text = table.concat({math.random(0,1), math.random(0,1), math.random(0,1), math.random(0,1)}, "\n")
-                column.Font = Enum.Font.Code
-                column.TextSize = 14
-                column.TextColor3 = Colors.Secondary -- Matrix Green
-                column.TextTransparency = 0.8
-                column.BackgroundTransparency = 1
-                column.Size = UDim2.new(0, 20, 0, 100)
-                column.Position = UDim2.new(math.random(), 0, -0.5, 0)
-                column.Parent = binContainer
+            if math.random() > 0.5 then
+                local particle = Instance.new("Frame")
+                local size = math.random(2, 4)
+                particle.Size = UDim2.new(0, size, 0, size)
+                particle.Position = UDim2.new(math.random(), 0, math.random(), 0)
+                particle.BackgroundColor3 = particleColors[math.random(1, #particleColors)]
+                particle.BorderSizePixel = 0
+                particle.BackgroundTransparency = math.random(0.3, 0.7)
                 
-                local endPos = UDim2.new(column.Position.X.Scale, 0, 1.2, 0)
-                local duration = math.random(2, 5)
-                local t = TweenService:Create(column, TweenInfo.new(duration, Enum.EasingStyle.Linear), {Position = endPos})
-                t:Play()
-                t.Completed:Connect(function() column:Destroy() end)
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(1, 0)
+                corner.Parent = particle
+                
+                particle.Parent = galaxyContainer
+
+                -- Twinkle & Drift
+                local duration = math.random(3, 8)
+                local endPos = particle.Position + UDim2.new(math.random(-0.1, 0.1), 0, math.random(-0.1, 0.1), 0)
+                
+                TweenService:Create(particle, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                    Position = endPos,
+                    BackgroundTransparency = 1
+                }):Play()
+                
+                task.delay(duration, function() particle:Destroy() end)
             end
-            task.wait(0.1)
+            task.wait(0.05)
         end
     end)
 
