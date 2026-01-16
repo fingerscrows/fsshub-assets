@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-16T03:10:54.389Z
+    Generated: 2026-01-16T03:56:07.518Z
 ]]
 
 local __MODULES = {}
@@ -59870,14 +59870,12 @@ UI.Keys = {
 
 -- Icons (RBXAssetIDs)
 local Icons = {
-    Logo = "rbxassetid://101364305979184", -- Sentinel Logo as placeholder/default
-    Key = "rbxassetid://6031215978",
-    Link = "rbxassetid://6034509993",
     Close = "rbxassetid://6031094678"
 }
 
 local gui, container, inputSection
 local blur
+local connections = {}
 
 local function createGradient(parent, color1, color2)
     local gradient = Instance.new("UIGradient")
@@ -59890,7 +59888,9 @@ local function createGradient(parent, color1, color2)
 end
 
 function UI.Initialize(config)
+    -- Fix Logic: Map 'Function' from Sentinel style to 'validateCallback'
     local validateCallback = config.Function or config.validateCallback
+    -- Fix Logic: Handle both Case types for KeyLink
     local keyLink = config.KeyLink or config.keyLink or "https://fsshub.com/getkey"
 
     if gui then gui:Destroy() end
@@ -59914,9 +59914,9 @@ function UI.Initialize(config)
     blur = Instance.new("BlurEffect")
     blur.Size = 0
     blur.Parent = game:GetService("Lighting")
-    TweenService:Create(blur, TweenInfo.new(0.5), {Size = 15}):Play()
+    TweenService:Create(blur, TweenInfo.new(0.5), {Size = 25}):Play()
 
-    -- Main Container (Sentinel Style)
+    -- Main Container (Sentinel Style + Glassmorphism)
     container = Instance.new("Frame")
     container.Name = "MainContainer"
     container.Size = UDim2.new(0, 500, 0, 350) 
@@ -59924,7 +59924,7 @@ function UI.Initialize(config)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Colors.Background
     container.BorderSizePixel = 0
-    container.BackgroundTransparency = 1 -- Start hidden
+    container.BackgroundTransparency = 0.1 -- Glassmorphism: Semi-transparent
     container.Parent = gui
 
     local uiCorner = Instance.new("UICorner")
@@ -59936,17 +59936,31 @@ function UI.Initialize(config)
     uiStroke.Thickness = 1.5
     uiStroke.Transparency = 0
     uiStroke.Parent = container
-    createGradient(uiStroke, Colors.Accent, Color3.fromRGB(145, 99, 240)) -- AccentGradient
+    local mainGradient = createGradient(uiStroke, Colors.Accent, Color3.fromRGB(145, 99, 240)) -- AccentGradient
 
-    -- Elegant 'F' Logo
+    -- Cancel Button (Top Right)
+    local closeBtn = Instance.new("ImageButton")
+    closeBtn.Name = "CloseButton"
+    closeBtn.Image = Icons.Close
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.ImageColor3 = Colors.TextDim
+    closeBtn.Size = UDim2.new(0, 20, 0, 20)
+    closeBtn.Position = UDim2.new(1, -30, 0, 10)
+    closeBtn.Parent = container
+    closeBtn.MouseButton1Click:Connect(function()
+        UI.Close()
+    end)
+
+    -- Elegant 'F' Logo (Text Based)
     local logoLabel = Instance.new("TextLabel")
     logoLabel.Name = "LogoF"
     logoLabel.Text = "F"
-    logoLabel.Font = Enum.Font.Bodoni
-    logoLabel.TextSize = 80
-    logoLabel.TextColor3 = Colors.Accent
+    -- Try to use Bodoni, fall back gracefully if needed (though Bodoni is standard Roblox font now)
+    logoLabel.Font = Enum.Font.Bodoni 
+    logoLabel.TextSize = 90
+    logoLabel.TextColor3 = Colors.TextWhite
     logoLabel.Size = UDim2.new(0, 100, 0, 100)
-    logoLabel.Position = UDim2.new(0.5, 0, 0, 20)
+    logoLabel.Position = UDim2.new(0.5, 0, 0, 30)
     logoLabel.AnchorPoint = Vector2.new(0.5, 0)
     logoLabel.BackgroundTransparency = 1
     logoLabel.Parent = container
@@ -59963,7 +59977,7 @@ function UI.Initialize(config)
     title.TextSize = 24
     title.TextColor3 = Colors.TextWhite
     title.Size = UDim2.new(1, 0, 0, 30)
-    title.Position = UDim2.new(0, 0, 0, 110)
+    title.Position = UDim2.new(0, 0, 0, 120)
     title.BackgroundTransparency = 1
     title.Parent = container
 
@@ -59975,7 +59989,7 @@ function UI.Initialize(config)
     desc.TextSize = 14
     desc.TextColor3 = Colors.TextDim
     desc.Size = UDim2.new(1, 0, 0, 20)
-    desc.Position = UDim2.new(0, 0, 0, 140)
+    desc.Position = UDim2.new(0, 0, 0, 150)
     desc.BackgroundTransparency = 1
     desc.Parent = container
 
@@ -60034,7 +60048,6 @@ function UI.Initialize(config)
 
         if primary then
              btnStroke.Color = Colors.Accent
-             -- Optional: Add gradient to stroke if desired for valid button
         end
 
         -- Hover Effects
@@ -60085,8 +60098,45 @@ function UI.Initialize(config)
              if input ~= "" and validateCallback then validateCallback(input) end
         end
     end)
-
+    
+    -- Restore Effects (Particles & Rotations)
+    UI.SetupAnimations(logoGradient, container)
     UI.AnimateEntrance(container)
+end
+
+function UI.SetupAnimations(logoGradient, container)
+    -- Logo Gradient Rotation
+    task.spawn(function()
+        while gui and gui.Parent do
+             local rotTween = TweenService:Create(logoGradient, TweenInfo.new(2, Enum.EasingStyle.Linear), {Rotation = 360 + 45})
+             rotTween:Play()
+             rotTween.Completed:Wait()
+             logoGradient.Rotation = 45
+        end
+    end)
+
+    -- Particles Background
+    task.spawn(function()
+        while gui and gui.Parent do
+            local p = Instance.new("Frame")
+            p.BackgroundColor3 = Colors.Accent
+            p.BackgroundTransparency = 0.8
+            p.BorderSizePixel = 0
+            local size = math.random(2, 5)
+            p.Size = UDim2.new(0, size, 0, size)
+            p.Position = UDim2.new(math.random(), 0, 1, 10)
+            p.Parent = container
+            
+            local duration = math.random(30, 60) / 10
+            local tween = TweenService:Create(p, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+                Position = UDim2.new(math.random(), 0, -0.2, 0),
+                BackgroundTransparency = 1
+            })
+            tween:Play()
+            tween.Completed:Connect(function() p:Destroy() end)
+            task.wait(0.5)
+        end
+    end)
 end
 
 function UI.ShowStatus(msg, color)
@@ -60109,7 +60159,7 @@ function UI.ShowStatus(msg, color)
     end)
     
     if color == Colors.Error then
-         -- Auto reset input logic reused
+         -- Auto reset input logic
          local input = container:FindFirstChild("InputSection") and container.InputSection:FindFirstChild("KeyInput")
          if input then task.delay(0.5, function() input.Text = "" end) end
     end
@@ -60139,7 +60189,7 @@ function UI.AnimateEntrance(frame)
    -- Fade In + Slide Up
    TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        BackgroundTransparency = 0
+        BackgroundTransparency = 0.1 -- Glassmorphism
    }):Play()
    
    -- Fade in descendants (manual loop)
@@ -60149,14 +60199,16 @@ function UI.AnimateEntrance(frame)
            local originalTextTrans = 0
            if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
                 originalTextTrans = child.TextTransparency
-                if originalTextTrans == 0 then
+                -- Only fade in if it was meant to be visible (not transparent already)
+                if originalTextTrans < 1 then
                      child.TextTransparency = 1
-                     TweenService:Create(child, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+                     TweenService:Create(child, TweenInfo.new(0.5), {TextTransparency = originalTextTrans}):Play()
                 end
            end
-           if (child:IsA("ImageLabel") or child:IsA("ImageButton")) and child.ImageTransparency == 0 then
+           if (child:IsA("ImageLabel") or child:IsA("ImageButton")) and child.ImageTransparency < 1 then
+                local imgTrans = child.ImageTransparency
                 child.ImageTransparency = 1
-                TweenService:Create(child, TweenInfo.new(0.5), {ImageTransparency = 0}):Play()
+                TweenService:Create(child, TweenInfo.new(0.5), {ImageTransparency = imgTrans}):Play()
            end
       end
    end
