@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-16T05:22:03.441Z
+    Generated: 2026-01-16T05:53:40.632Z
 ]]
 
 local __MODULES = {}
@@ -60019,26 +60019,37 @@ function UI.Initialize(config)
     logoLabel.Font = Enum.Font.Sarpanch -- "Sci-fi" look
     logoLabel.TextSize = 36
     logoLabel.TextColor3 = Colors.Accent
-    logoLabel.Size = UDim2.new(1, 0, 0, 60)
-    logoLabel.Position = UDim2.new(0, 0, 0, 20)
+    logoLabel.Size = UDim2.new(1, 0, 0, 40)
+    logoLabel.Position = UDim2.new(0, 0, 0, 30)
     logoLabel.BackgroundTransparency = 1
     logoLabel.Parent = container
     
-    -- Subheader
+    -- Subheader (KEYSYSTEM GATEWAY) - Moved closer to FSSHUB
     local subLabel = Instance.new("TextLabel")
     subLabel.Text = UI.Keys.MainDesc
     subLabel.Font = Enum.Font.Code
-    subLabel.TextSize = 12
+    subLabel.TextSize = 14
     subLabel.TextColor3 = Colors.TextDim
     subLabel.Size = UDim2.new(1, 0, 0, 20)
-    subLabel.Position = UDim2.new(0, 0, 0, 65)
+    subLabel.Position = UDim2.new(0, 0, 0, 70)
     subLabel.BackgroundTransparency = 1
     subLabel.Parent = container
+
+    -- Footer (Powered by Junkie)
+    local footerLabel = Instance.new("TextLabel")
+    footerLabel.Text = "POWERED BY JUNKIE"
+    footerLabel.Font = Enum.Font.Code
+    footerLabel.TextSize = 10
+    footerLabel.TextColor3 = Color3.fromRGB(80, 80, 100)
+    footerLabel.Size = UDim2.new(1, 0, 0, 20)
+    footerLabel.Position = UDim2.new(0, 0, 1, -25)
+    footerLabel.BackgroundTransparency = 1
+    footerLabel.Parent = container
 
     -- Input Field
     inputSection = Instance.new("Frame")
     inputSection.Size = UDim2.new(0.8, 0, 0, 40)
-    inputSection.Position = UDim2.new(0.5, 0, 0, 110)
+    inputSection.Position = UDim2.new(0.5, 0, 0, 120) -- Slightly adjusted down
     inputSection.AnchorPoint = Vector2.new(0.5, 0)
     inputSection.BackgroundColor3 = Colors.InputBg
     inputSection.BackgroundTransparency = 0.5
@@ -60111,7 +60122,7 @@ function UI.Initialize(config)
         end)
     end
 
-    createCyberButton("GET KEY", UDim2.new(0.3, 0, 0, 180), false, function()
+    createCyberButton("GET KEY", UDim2.new(0.3, 0, 0, 190), false, function()
         if setclipboard then
             setclipboard(keyLink)
             UI.ShowStatus("LINK_COPIED_TO_CLIPBOARD", Colors.Secondary)
@@ -60120,7 +60131,7 @@ function UI.Initialize(config)
         end
     end)
 
-    createCyberButton("VERIFY", UDim2.new(0.7, 0, 0, 180), true, function()
+    createCyberButton("VERIFY", UDim2.new(0.7, 0, 0, 190), true, function()
         local input = keyInput.Text:gsub("%s+", "")
         if input == "" then
              UI.ShowStatus("ERROR: NO_INPUT_DETECTED", Colors.Error)
@@ -60137,12 +60148,10 @@ function UI.Initialize(config)
     end)
     
     -- "Terminal" Reveal
-    container.Size = UDim2.new(0, 0, 0, 2)
+    container.Size = UDim2.new(0, 0, 0, 0)
     container.BackgroundTransparency = 1
     
-    TweenService:Create(container, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 480, 0, 2), BackgroundTransparency = 0.2}):Play()
-    task.wait(0.4)
-    TweenService:Create(container, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 480, 0, 280)}):Play()
+    TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 480, 0, 280), BackgroundTransparency = 0.05}):Play()
 end
 
 function UI.ShowStatus(msg, color)
@@ -60189,14 +60198,13 @@ function UI.Fail()
 end
 
 function UI.Close()
-    if blur then TweenService:Create(blur, TweenInfo.new(0.5), {Size = 0}):Play() end
+    if blur then TweenService:Create(blur, TweenInfo.new(0.3), {Size = 0}):Play() end
     if container then
-        -- Collapse effect
-        TweenService:Create(container, TweenInfo.new(0.3), {Size = UDim2.new(0, 480, 0, 2)}):Play()
-        task.wait(0.3)
-        TweenService:Create(container, TweenInfo.new(0.2), {Size = UDim2.new(0,0,0,0), BackgroundTransparency=1}):Play()
+        -- Shrink to center
+        local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
+        tween:Play()
+        tween.Completed:Wait()
     end
-    task.wait(0.5)
     if gui then gui:Destroy() end
     if blur then blur:Destroy() end
 end
