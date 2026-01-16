@@ -83,6 +83,8 @@ local KeySystemUI = (function()
         Accent = Color3.fromRGB(127, 106, 196),     -- Purple
         Secondary = Color3.fromRGB(160, 140, 230),  -- Light Purple
         Error = Color3.fromRGB(255, 80, 100),       -- Soft Red
+        Success = Color3.fromRGB(50, 255, 120),     -- Neon Green
+        Info = Color3.fromRGB(0, 200, 255),         -- Neon Blue
         TextLight = Color3.fromRGB(240, 240, 255),
         TextDim = Color3.fromRGB(140, 140, 170),
         InputBg = Color3.fromRGB(20, 20, 30),
@@ -130,7 +132,8 @@ local KeySystemUI = (function()
             for i = 1, 10 do
                 if not label or not label.Parent then break end
                 label.Text = randomString(#originalText)
-                label.TextColor3 = (i % 2 == 0) and Colors.Secondary or Colors.Error
+                local targetColor = finalStats.TextColor3 or Colors.TextLight
+                label.TextColor3 = (i % 2 == 0) and Colors.TextLight or targetColor
                 task.wait(0.05)
             end
             if label and label.Parent then
@@ -456,9 +459,9 @@ local KeySystemUI = (function()
         local btnGet = createCyberButton("GET KEY", UDim2.new(0.28, 0, 0, buttonYPos), false, function()
             if setclipboard then
                 setclipboard(keyLink)
-                UI.ShowStatus("LINK_COPIED", Colors.Secondary)
+                UI.ShowStatus("LINK_COPIED", Colors.Info)
             else
-                UI.ShowStatus("LINK: " .. keyLink, Colors.Accent)
+                UI.ShowStatus("LINK: " .. keyLink, Colors.Info)
             end
         end)
 
@@ -592,7 +595,7 @@ local KeySystemUI = (function()
     end
 
     function UI.Authorize()
-        UI.ShowStatus("ACCESS_GRANTED... AUTHENTICATING", Colors.Secondary)
+        UI.ShowStatus("ACCESS_GRANTED... AUTHENTICATING", Colors.Success)
         -- Removed auto-close to allow loading process to show
     end
 
@@ -638,7 +641,7 @@ local function fetchAndExecutePayload(key)
     local placeId = tostring(game.PlaceId)
     local HttpService = game:GetService("HttpService")
 
-    KeySystemUI.ShowStatus("ESTABLISHING_SECURE_CONNECTION...", KeySystemUI.Colors.Secondary)
+    KeySystemUI.ShowStatus("ESTABLISHING_SECURE_CONNECTION...", KeySystemUI.Colors.Info)
 
     local requestUrl = WorkerUrl .. "/load"
         .. "?key=" .. HttpService:UrlEncode(key)
@@ -652,11 +655,11 @@ local function fetchAndExecutePayload(key)
     end)
 
     if success and content then
-        KeySystemUI.ShowStatus("DOWNLOADING_CORE_BOOTSTRAPPER...", KeySystemUI.Colors.Accent)
+        KeySystemUI.ShowStatus("DOWNLOADING_CORE_BOOTSTRAPPER...", KeySystemUI.Colors.Info)
 
         local chunk, err = loadstring(content)
         if chunk then
-            KeySystemUI.ShowStatus("INITIALIZING_FSSHUB_ENVIRONMENT...", KeySystemUI.Colors.Secondary)
+            KeySystemUI.ShowStatus("INITIALIZING_FSSHUB_ENVIRONMENT...", KeySystemUI.Colors.Info)
 
             local execSuccess, execErr = pcall(chunk)
             if not execSuccess then
@@ -664,7 +667,7 @@ local function fetchAndExecutePayload(key)
                 KeySystemUI.ShowError("EXEC_FAIL: " .. tostring(execErr))
             else
                 print("[FSSHUB] Payload executed successfully!")
-                KeySystemUI.ShowStatus("LAUNCHING_MAIN_MENU...", KeySystemUI.Colors.Accent)
+                KeySystemUI.ShowStatus("LAUNCHING_MAIN_MENU...", KeySystemUI.Colors.Success)
                 task.wait(1.5) -- UX pause to see the message
                 KeySystemUI.Close()
             end
