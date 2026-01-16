@@ -188,46 +188,36 @@ function UI.Initialize(config)
         end
     end)
 
-    -- "Suction" Light Effect
-    task.spawn(function()
-        while gui and gui.Parent do
-             local suction = Instance.new("Frame")
-             suction.Name = "SuctionPulse"
-             suction.Size = UDim2.new(1.2, 0, 1.2, 0) -- Start outside
-             suction.Position = UDim2.new(0.5, 0, 0.5, 0)
-             suction.AnchorPoint = Vector2.new(0.5, 0.5)
-             suction.BackgroundColor3 = Colors.Accent
-             suction.BackgroundTransparency = 1
-             suction.BorderSizePixel = 0
-             suction.Parent = container
-             
-             local suctionCorner = Instance.new("UICorner")
-             suctionCorner.CornerRadius = UDim.new(0, 12)
-             suctionCorner.Parent = suction
-             
-             local stroke = Instance.new("UIStroke")
-             stroke.Color = Colors.Accent
-             stroke.Thickness = 2
-             stroke.Transparency = 0.5
-             stroke.Parent = suction
-             
-             -- Tween Inwards
-             local t1 = TweenService:Create(suction, TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-                 Size = UDim2.new(0, 0, 0, 0),
-                 BackgroundTransparency = 1
-             })
-             
-             local t2 = TweenService:Create(stroke, TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-                 Transparency = 1
-             })
-             
-             t1:Play()
-             t2:Play()
-             
-             task.delay(1.5, function() suction:Destroy() end)
-             task.wait(0.8) -- Frequency of pulses
-        end
-    end)
+    -- Static Inner Highlight (Glassy Glow)
+    local highlight = Instance.new("Frame")
+    highlight.Name = "InnerHighlight"
+    highlight.Size = UDim2.new(1, 0, 1, 0)
+    highlight.BackgroundTransparency = 1
+    highlight.Parent = container
+    
+    local highlightCorner = Instance.new("UICorner")
+    highlightCorner.CornerRadius = UDim.new(0, 12)
+    highlightCorner.Parent = highlight
+    
+    local highlightStroke = Instance.new("UIStroke")
+    highlightStroke.Thickness = 1.5
+    highlightStroke.Transparency = 0.5
+    highlightStroke.Color = Colors.TextLight
+    highlightStroke.Parent = highlight
+    
+    local highlightGrad = Instance.new("UIGradient")
+    highlightGrad.Rotation = 90
+    highlightGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150,150,150)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50,50,50))
+    })
+    highlightGrad.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.4),
+        NumberSequenceKeypoint.new(0.5, 0.8),
+        NumberSequenceKeypoint.new(1, 1)
+    })
+    highlightGrad.Parent = highlightStroke
 
     -- Close Button (X)
     local closeBtn = Instance.new("TextButton")

@@ -18,8 +18,8 @@ if not getgenv().FSSHUB_INFO then
 end
 
 -- Cleanup Old UI
-if _G.FSSHUB_FLUENT then 
-    pcall(function() _G.FSSHUB_FLUENT:Destroy() end) 
+if _G.FSSHUB_FLUENT then
+    pcall(function() _G.FSSHUB_FLUENT:Destroy() end)
 end
 _G.FSSHUB_WINDOW = nil
 
@@ -35,7 +35,7 @@ end
 
 local FluentThemes = {
     Dark = {
-        Main = Color3.fromRGB(45, 45, 45), -- Dialog Color
+        Main = Color3.fromRGB(45, 45, 45),   -- Dialog Color
         Stroke = Color3.fromRGB(70, 70, 70), -- Dialog Border
         Text = Color3.fromRGB(240, 240, 240),
         SubText = Color3.fromRGB(170, 170, 170),
@@ -82,19 +82,19 @@ end
 -- Loading GUI
 local function CreateLoadingGui()
     if _G.FSSHUB_LOADING_GUI then pcall(function() _G.FSSHUB_LOADING_GUI:Destroy() end) end
-    
+
     local TweenService = game:GetService("TweenService")
     local gui = Instance.new("ScreenGui")
     gui.Name = "FSSHUB_Loading"
     gui.IgnoreGuiInset = true
     gui.ResetOnSpawn = false
     gui.DisplayOrder = 100 -- Ensure it's on top
-    
+
     local parent = gethui and gethui() or game:GetService("CoreGui")
     pcall(function() gui.Parent = parent end)
-    
+
     _G.FSSHUB_LOADING_GUI = gui
-    
+
     local theme = GetSavedTheme()
 
     -- Main Container (Bottom Center) - Reverted to Frame for performance
@@ -107,7 +107,7 @@ local function CreateLoadingGui()
     container.BackgroundTransparency = 0.1
     container.BorderSizePixel = 0
     container.Parent = gui
-    
+
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = container
@@ -116,7 +116,7 @@ local function CreateLoadingGui()
     stroke.Color = theme.Stroke
     stroke.Thickness = 1
     stroke.Parent = container
-    
+
     -- Title
     local title = Instance.new("TextLabel")
     title.Name = "Title"
@@ -142,7 +142,7 @@ local function CreateLoadingGui()
     status.Font = Enum.Font.Gotham
     status.TextXAlignment = Enum.TextXAlignment.Left
     status.Parent = container
-    
+
     -- Progress Bar Background
     local barBg = Instance.new("Frame")
     barBg.Name = "BarBackground"
@@ -151,19 +151,19 @@ local function CreateLoadingGui()
     barBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     barBg.BorderSizePixel = 0
     barBg.Parent = container
-    
+
     local barCorner = Instance.new("UICorner")
     barCorner.CornerRadius = UDim.new(0, 2)
     barCorner.Parent = barBg
-    
+
     -- Progress Bar Fill
     local barFill = Instance.new("Frame")
     barFill.Name = "BarFill"
-    barFill.Size = UDim2.fromScale(0, 1) -- Start at 0 width
+    barFill.Size = UDim2.fromScale(0, 1)           -- Start at 0 width
     barFill.BackgroundColor3 = Color3.new(1, 1, 1) -- White for gradient tint
     barFill.BorderSizePixel = 0
     barFill.Parent = barBg
-    
+
     local fillCorner = Instance.new("UICorner")
     fillCorner.CornerRadius = UDim.new(0, 2)
     fillCorner.Parent = barFill
@@ -171,49 +171,52 @@ local function CreateLoadingGui()
     -- Gradient for extra polish + Shimmer
     local gradient = Instance.new("UIGradient")
     local accentH, accentS, accentV = theme.Accent:ToHSV()
-    gradient.Color = ColorSequence.new{
+    gradient.Color = ColorSequence.new {
         ColorSequenceKeypoint.new(0, Color3.fromHSV(accentH, accentS * 0.8, math.min(accentV * 1.2, 1))),
         ColorSequenceKeypoint.new(1, theme.Accent)
     }
-    gradient.Transparency = NumberSequence.new{
+    gradient.Transparency = NumberSequence.new {
         NumberSequenceKeypoint.new(0, 0),
         NumberSequenceKeypoint.new(1, 0)
     }
     gradient.Parent = barFill
-    
+
     -- Animations
     container.Position = UDim2.fromScale(0.5, 0.9)
-    TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.fromScale(0.5, 0.85)}):Play()
-    
+    TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        { Position = UDim2.fromScale(0.5, 0.85) }):Play()
+
     -- Shimmer Loop
     task.spawn(function()
         local shimmer = Instance.new("UIGradient")
-        shimmer.Color = ColorSequence.new(Color3.new(1,1,1))
-        shimmer.Transparency = NumberSequence.new{
+        shimmer.Color = ColorSequence.new(Color3.new(1, 1, 1))
+        shimmer.Transparency = NumberSequence.new {
             NumberSequenceKeypoint.new(0, 1),
             NumberSequenceKeypoint.new(0.5, 0.3),
             NumberSequenceKeypoint.new(1, 1)
         }
         shimmer.Rotation = 45
         shimmer.Parent = barFill
-        
+
         while container.Parent do
-             shimmer.Offset = Vector2.new(-1, 0)
-             TweenService:Create(shimmer, TweenInfo.new(1, Enum.EasingStyle.Linear), {Offset = Vector2.new(1, 0)}):Play()
-             task.wait(2)
+            shimmer.Offset = Vector2.new(-1, 0)
+            TweenService:Create(shimmer, TweenInfo.new(1, Enum.EasingStyle.Linear), { Offset = Vector2.new(1, 0) }):Play()
+            task.wait(2)
         end
     end)
-    
+
     return {
         Gui = gui,
         Update = function(progress, text)
             if not gui.Parent then return end
             status.Text = text or status.Text
-            TweenService:Create(barFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.fromScale(math.clamp(progress, 0, 1), 1)}):Play()
+            TweenService:Create(barFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                { Size = UDim2.fromScale(math.clamp(progress, 0, 1), 1) }):Play()
         end,
         Destroy = function()
             -- Slide down animation (Performance friendly, no GroupTransparency)
-            TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.fromScale(0.5, 0.9)}):Play()
+            TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+                { Position = UDim2.fromScale(0.5, 0.9) }):Play()
             task.delay(0.3, function()
                 if gui and gui.Parent then gui:Destroy() end
                 _G.FSSHUB_LOADING_GUI = nil
@@ -245,22 +248,23 @@ end
 if not Fluent then
     Loading.Update(0.3, "Downloading library...")
     Log("Fallback: Loading Fluent normally...")
-    
+
     local success, result = pcall(function()
-        return loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
+        return loadstring(game:HttpGet(
+        "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
     end)
-    
+
     if success and result then
         Fluent = result
     else
         Loading.Update(0, "FAILED TO LOAD UI")
         warn("[FSSHUB] Critical Error: Failed to load Fluent UI Library!")
         warn("Debug: " .. tostring(result))
-        
+
         task.delay(3, function()
-             if game.Players.LocalPlayer then
-                 game.Players.LocalPlayer:Kick("FSSHUB Error: UI Library failed to load.\n(Check Console F9)")
-             end
+            if game.Players.LocalPlayer then
+                game.Players.LocalPlayer:Kick("FSSHUB Error: UI Library failed to load.\n(Check Console F9)")
+            end
         end)
         return
     end
@@ -279,7 +283,7 @@ if not _G.FSSHUB_EVENTS then
     _G.FSSHUB_EVENTS = {
         listeners = {},
         Emit = function(self, name, ...)
-             if self.listeners[name] then
+            if self.listeners[name] then
                 for _, cb in ipairs(self.listeners[name]) do pcall(cb, ...) end
             end
         end,
@@ -320,10 +324,10 @@ local Window = Fluent:Window({
     SubTitle = version .. (isPremium and " Premium" or ""),
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
-    Resize = false, -- Disabled for testing
+    Resize = false,  -- Disabled for testing
     MinimizeKey = Enum.KeyCode.RightControl,
     Acrylic = false, -- Disabled for testing
-    Theme = "Dark" -- Changed to a known working theme
+    Theme = "Dark"   -- Changed to a known working theme
 })
 
 local Tabs = {
@@ -344,10 +348,10 @@ local function Toggle(tab, id, title, default, callback, keybind)
         Default = default,
         Callback = callback
     }
-    local toggle = tab:Toggle(id, config)
-    
+    local toggle = tab:AddToggle(id, config)
+
     if keybind then
-        toggle:Keybind("Key_"..id, {
+        toggle:Keybind("Key_" .. id, {
             Title = "Keybind",
             Default = keybind,
             Mode = "Toggle"
@@ -359,7 +363,7 @@ end
 -- ========== HOME TAB (DASHBOARD) ==========
 
 -- Top Panel (Welcome)
-Tabs.Home:Paragraph("WelcomePara", {
+Tabs.Home:AddParagraph("WelcomePara", {
     Title = isPremium and "Welcome, Premium User! 👑" or "Welcome to FSSHub",
     Content = "Hello, " .. username .. "\nTier: " .. tier
 })
@@ -375,14 +379,14 @@ Tabs.Home:Paragraph("WelcomePara", {
 -- Given I can't easily edit the library STRUCTURE to support columns without breaking things,
 -- I will add a "Stats" section and "Subscription" section.
 
-local StatsSection = Tabs.Home:Section("Statistics")
-StatsSection:Paragraph("SessionInfo", {
+local StatsSection = Tabs.Home:AddSection("Statistics")
+StatsSection:AddParagraph("SessionInfo", {
     Title = "Session",
     Content = "Time: 00:00:00\nFPS: 60"
 })
 
-local SubSection = Tabs.Home:Section("Subscription")
-local ExpiryPara = SubSection:Paragraph("ExpiryPara", {
+local SubSection = Tabs.Home:AddSection("Subscription")
+local ExpiryPara = SubSection:AddParagraph("ExpiryPara", {
     Title = "Status",
     Content = "Expires: " .. formatExpiry()
 })
@@ -396,18 +400,18 @@ task.spawn(function()
         local h = math.floor(elapsed / 3600)
         local m = math.floor((elapsed % 3600) / 60)
         local s = elapsed % 60
-        
+
         -- Update Expiry
         if ExpiryPara.SetDesc then
-             ExpiryPara:SetDesc("Expires: " .. formatExpiry()) 
+            ExpiryPara:SetDesc("Expires: " .. formatExpiry())
         end
-        
+
         -- Update Session (If we had ref)
         -- This logic usually requires storing the element reference
     end
 end)
 
-Tabs.Home:Button({
+Tabs.Home:AddButton({
     Title = "Join Discord",
     Description = "Support & Premium",
     Callback = function()
@@ -424,11 +428,15 @@ Toggle(Tabs.Movement, "WalkSpeed", "Walk Speed", false, function(v)
     Events:Emit("toggle_speed", speedEnabled, speedValue)
 end, Enum.KeyCode.LeftBracket)
 
-Tabs.Movement:Slider("SpeedValue", {
-    Title = "Speed", Default = 16, Min = 16, Max = 500, Rounding = 0,
-    Callback = function(v) 
+Tabs.Movement:AddSlider("SpeedValue", {
+    Title = "Speed",
+    Default = 16,
+    Min = 16,
+    Max = 500,
+    Rounding = 0,
+    Callback = function(v)
         speedValue = v
-        if speedEnabled then Events:Emit("toggle_speed", true, v) end 
+        if speedEnabled then Events:Emit("toggle_speed", true, v) end
     end
 })
 
@@ -438,11 +446,15 @@ Toggle(Tabs.Movement, "JumpPower", "Jump Power", false, function(v)
     Events:Emit("toggle_jump", jumpEnabled, jumpValue)
 end, Enum.KeyCode.RightBracket)
 
-Tabs.Movement:Slider("JumpValue", {
-    Title = "Jump", Default = 50, Min = 50, Max = 500, Rounding = 0,
-    Callback = function(v) 
+Tabs.Movement:AddSlider("JumpValue", {
+    Title = "Jump",
+    Default = 50,
+    Min = 50,
+    Max = 500,
+    Rounding = 0,
+    Callback = function(v)
         jumpValue = v
-        if jumpEnabled then Events:Emit("toggle_jump", true, v) end 
+        if jumpEnabled then Events:Emit("toggle_jump", true, v) end
     end
 })
 
@@ -452,23 +464,27 @@ end)
 
 -- Premium
 if isPremium then
-    Tabs.Movement:Paragraph("PremiumHeader", { Title = "Premium Features", Content = "Exclusive movement controls" })
-    
+    Tabs.Movement:AddParagraph("PremiumHeader", { Title = "Premium Features", Content = "Exclusive movement controls" })
+
     local flySpeed = 50
     local FlyToggle = Toggle(Tabs.Movement, "Fly", "Fly Mode", false, function(v)
         Events:Emit("toggle_fly", v, flySpeed, false)
     end, Enum.KeyCode.F)
-    
-    Tabs.Movement:Slider("FlySpeed", {
-        Title = "Fly Speed", Default = 50, Min = 10, Max = 200, Rounding = 0,
-        Callback = function(v) 
+
+    Tabs.Movement:AddSlider("FlySpeed", {
+        Title = "Fly Speed",
+        Default = 50,
+        Min = 10,
+        Max = 200,
+        Rounding = 0,
+        Callback = function(v)
             flySpeed = v
-            if Options.Fly and Options.Fly.Value then Events:Emit("toggle_fly", true, v, false) end 
+            if Options.Fly and Options.Fly.Value then Events:Emit("toggle_fly", true, v, false) end
         end
     })
-    
+
     Toggle(Tabs.Movement, "Noclip", "Noclip", false, function(v)
-         Events:Emit("toggle_noclip", v)
+        Events:Emit("toggle_noclip", v)
     end, Enum.KeyCode.N)
 end
 
@@ -489,10 +505,10 @@ local function UpdateESP()
 end
 
 Toggle(Tabs.Visual, "ESPEnabled", "Enable ESP", false, UpdateESP, Enum.KeyCode.E)
-Tabs.Visual:Toggle("ESPChams", { Title = "Show Chams", Default = false, Callback = UpdateESP })
-Tabs.Visual:Toggle("ESPName", { Title = "Show Names", Default = true, Callback = UpdateESP })
-Tabs.Visual:Toggle("ESPDistance", { Title = "Show Distance", Default = true, Callback = UpdateESP })
-Tabs.Visual:Toggle("ESPHealth", { Title = "Show Health", Default = true, Callback = UpdateESP })
+Tabs.Visual:AddToggle("ESPChams", { Title = "Show Chams", Default = false, Callback = UpdateESP })
+Tabs.Visual:AddToggle("ESPName", { Title = "Show Names", Default = true, Callback = UpdateESP })
+Tabs.Visual:AddToggle("ESPDistance", { Title = "Show Distance", Default = true, Callback = UpdateESP })
+Tabs.Visual:AddToggle("ESPHealth", { Title = "Show Health", Default = true, Callback = UpdateESP })
 
 Toggle(Tabs.Visual, "Fullbright", "Fullbright", false, function(v)
     Events:Emit("toggle_fullbright", v)
@@ -502,13 +518,13 @@ end, Enum.KeyCode.B)
 -- Simplified for brevity, similar structure...
 Toggle(Tabs.Utility, "AntiAFK", "Anti AFK", false, function(v) Events:Emit("toggle_antiafk", v) end)
 
-Tabs.Utility:Button({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
-Tabs.Player:Button({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
+Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
+Tabs.Player:AddButton({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
 
 -- ========== SETTINGS TAB ==========
-local InterfaceSection = Tabs.Settings:Section("Interface")
+local InterfaceSection = Tabs.Settings:AddSection("Interface")
 
-InterfaceSection:Dropdown("InterfaceTheme", {
+InterfaceSection:AddDropdown("InterfaceTheme", {
     Title = "Theme",
     Values = Fluent.Themes,
     Default = Fluent.Theme,
@@ -518,13 +534,13 @@ InterfaceSection:Dropdown("InterfaceTheme", {
     end
 })
 
-InterfaceSection:Toggle("Transparency", {
+InterfaceSection:AddToggle("Transparency", {
     Title = "Transparency",
     Default = Fluent.Transparency,
     Callback = function(Value) Fluent:ToggleTransparency(Value) end
 })
 
-InterfaceSection:Keybind("MenuKeybind", {
+InterfaceSection:AddKeybind("MenuKeybind", {
     Title = "Minimize Bind",
     Default = Fluent.MinimizeKey or Enum.KeyCode.RightControl,
     ChangedCallback = function(Value) Fluent.MinimizeKey = Value end
@@ -554,7 +570,7 @@ _G.FSSHUB_OPTIONS = Options
 if Fluent.ThemeChanged then
     Fluent.ThemeChanged:Connect(function(ThemeName)
         SaveTheme(ThemeName)
-        -- We could also update specific UI elements here if needed, 
+        -- We could also update specific UI elements here if needed,
         -- but Fluent handles most things internally.
     end)
 end
@@ -565,10 +581,10 @@ if savedTheme and savedTheme ~= "Dark" then -- Dark is default
     -- We need to reverse lookup the name from our table or just use the string read from file
     -- Since GetSavedTheme returns the table, let's fix that function logic or just read directly
     if readfile then
-       local success, themeName = pcall(readfile, THEME_FILE)
-       if success and Fluent.Themes and table.find(Fluent.Themes, themeName) then
-           Fluent:SetTheme(themeName)
-       end
+        local success, themeName = pcall(readfile, THEME_FILE)
+        if success and Fluent.Themes and table.find(Fluent.Themes, themeName) then
+            Fluent:SetTheme(themeName)
+        end
     end
 end
 
