@@ -69,6 +69,10 @@ function UI.Initialize(config)
     local keyLink = config.KeyLink or config.keyLink or "https://fsshub.com/getkey"
 
     if gui then gui:Destroy() end
+    
+    -- Cleanup Lazy Loader if present
+    local lazy = CoreGui:FindFirstChild("FSSHUB_Lazy_Loader") or (gethui and gethui():FindFirstChild("FSSHUB_Lazy_Loader"))
+    if lazy then lazy:Destroy() end
 
     gui = Instance.new("ScreenGui")
     gui.Name = "FSSHUB_Cyber_Loader"

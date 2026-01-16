@@ -69,10 +69,53 @@ function bundle() {
   });
 
   // 2. Generate Output Content
-  let output = `--[[ 
+  // Prepare Lazy Loader Script
+  const lazyLoaderScript = \`
+-- FSSHUB Lazy Loader (Visual Feedback Immediate)
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local overlay = Instance.new("ScreenGui")
+overlay.Name = "FSSHUB_Lazy_Loader"
+overlay.IgnoreGuiInset = true
+overlay.DisplayOrder = 9999
+if syn and syn.protect_gui then syn.protect_gui(overlay) overlay.Parent = CoreGui
+elseif gethui then overlay.Parent = gethui()
+else overlay.Parent = CoreGui end
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(1,0,1,0)
+frame.BackgroundColor3 = Color3.new(0,0,0)
+frame.BackgroundTransparency = 1
+frame.Parent = overlay
+
+local text = Instance.new("TextLabel")
+text.Text = "FSSHUB LOADING..."
+text.Font = Enum.Font.Code
+text.TextSize = 24
+text.TextColor3 = Color3.fromRGB(0, 255, 255)
+text.Size = UDim2.new(0, 200, 0, 50)
+text.Position = UDim2.new(0.5, 0, 0.5, 0)
+text.AnchorPoint = Vector2.new(0.5, 0.5)
+text.BackgroundTransparency = 1
+text.Parent = frame
+
+-- Fade In
+TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency=0.3}):Play()
+
+-- Pulse Text
+task.spawn(function()
+    while overlay.Parent do
+        TweenService:Create(text, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {TextTransparency=0.5}):Play()
+        task.wait(1.6)
+    end
+end)
+\`;
+
+  let output = \`--[[ 
     FSSHUB Loader Bundle
-    Generated: ${new Date().toISOString()}
+    Generated: \${new Date().toISOString()}
 ]]
+\${lazyLoaderScript}
 
 local __MODULES = {}
 local __CACHE = {}
@@ -180,13 +223,13 @@ local function __REQUIRE(modulePath)
 end
 
 -- MODULE DEFINITIONS
-`;
+\`;
 
   // Write modules
   for (const [name, content] of Object.entries(modules)) {
-    output += `
-__MODULES["${name}"] = function()
-    local script = createScriptProxy("Root/${name}")
+    output += \`
+__MODULES["\${name}"] = function()
+    local script = createScriptProxy("Root/\${name}")
     local function require(p) 
         -- Normalize path requires here (simplified for POC)
         -- In robust bundler, we need to handle relative paths
@@ -196,27 +239,40 @@ __MODULES["${name}"] = function()
     end
     
     return (function()
-${content}
+\${content}
     end)()
 end
-`;
+\`;
   }
 
   // 3. Append Entry Logic
-  output += `
+  output += \`
 -- MAIN LOGIC
 local FSSHUB_UI = __REQUIRE("Root") -- Load init.luau (stored as Root)
 
 -- Load KeySystem
 local KeySystem = (function()
     local Fluent = FSSHUB_UI
-    ${fs.readFileSync(CONFIG.keySystem, "utf8")}
+    \${fs.readFileSync(CONFIG.keySystem, "utf8")}
 end)()
 
 -- Load Main Menu (only if validated, but for bundle we define it)
 local MainMenu = function()
     local Fluent = FSSHUB_UI
-    ${fs.readFileSync(CONFIG.mainMenu, "utf8")}
+    \${fs.readFileSync(CONFIG.mainMenu, "utf8")}
+end
+
+-- AUTO EXECUTE KEY SYSTEM (For Testing/Dev)
+if KeySystem and KeySystem.Initialize then
+    task.defer(function()
+        KeySystem.Initialize({
+            validateCallback = function(key) 
+                print("Key Validated:", key)
+                if MainMenu then MainMenu() end
+            end,
+            keyLink = "https://fsshub.com/getkey"
+        })
+    end)
 end
 
 -- Export
@@ -225,7 +281,7 @@ return {
     KeySystem = KeySystem,
     MainMenu = MainMenu
 }
-`;
+\`;
 
   fs.writeFileSync(CONFIG.output, output);
   console.log(`Bundle written to ${CONFIG.output}`);
