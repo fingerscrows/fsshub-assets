@@ -1,545 +1,336 @@
--- KeySystemUI.lua
--- Pure UI component for Key System
--- Designed to be controlled by an external Logic Controller (CF Worker Loader)
--- API: Initialize(options), Authorize(), Fail(), ShowError(msg)
-
-local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local Lighting = game:GetService("Lighting")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
 
--- COLOR PALETTE
+local UI = {}
+
+-- Sentinel Style Colors
 local Colors = {
-    background = Color3.fromRGB(13, 17, 23),
-    surface = Color3.fromRGB(22, 27, 34),
-    surfaceLight = Color3.fromRGB(30, 36, 44),
-    primary = Color3.fromRGB(88, 166, 255),
-    primaryDark = Color3.fromRGB(58, 136, 225),
-    success = Color3.fromRGB(47, 183, 117),
-    error = Color3.fromRGB(248, 81, 73),
-    textPrimary = Color3.fromRGB(230, 237, 243),
-    textSecondary = Color3.fromRGB(139, 148, 158),
-    textMuted = Color3.fromRGB(110, 118, 129),
-    borderLight = Color3.fromRGB(63, 71, 79),
-    glass = Color3.fromRGB(255, 255, 255),
-    neonBlue = Color3.fromRGB(0, 229, 255)
+    Background = Color3.fromRGB(15, 15, 20),      -- LoaderBg
+    InputBg = Color3.fromRGB(15, 15, 15),         -- InputBg
+    Button = Color3.fromRGB(47, 47, 47),          -- ButtonStatic
+    Stroke = Color3.fromRGB(29, 29, 29),          -- StrokeLight
+    Accent = Color3.fromRGB(113, 56, 255),        -- StrokeAccent / Primary
+    TextWhite = Color3.fromRGB(255, 255, 255),
+    TextDim = Color3.fromRGB(220, 220, 220),
+    TextPlaceholder = Color3.fromRGB(68, 63, 79),
+    Success = Color3.fromRGB(83, 156, 70),
+    Error = Color3.fromRGB(156, 63, 99)
 }
 
-local IconAssets = {
-    shield = "rbxassetid://84528813312016",
-    x = "rbxassetid://73070135088117",
-    key = "rbxassetid://128426502701541",
-    link = "rbxassetid://73034596791310"
+UI.Keys = {
+    MainTitle = "Junkie", -- Default, will be overwritten by loader
+    MainDesc = "Please enter your key to continue"
 }
 
-local function createIconImage(id)
-    local icon = Instance.new("ImageLabel")
-    icon.BackgroundTransparency = 1
-    icon.Image = id
-    icon.Size = UDim2.new(1, 0, 1, 0)
-    return icon
+-- Icons (RBXAssetIDs)
+local Icons = {
+    Logo = "rbxassetid://101364305979184", -- Sentinel Logo as placeholder/default
+    Key = "rbxassetid://6031215978",
+    Link = "rbxassetid://6034509993",
+    Close = "rbxassetid://6031094678"
+}
+
+local gui, container, inputSection
+local blur
+
+local function createGradient(parent, color1, color2)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, color1),
+        ColorSequenceKeypoint.new(1, color2)
+    }
+    gradient.Parent = parent
+    return gradient
 end
 
--- UI Module
-local UI = {}
-UI.Keys = {
-    MainTitle = "FSSHUB Official",
-    MainDesc = "SECURITY GATEWAY"
-}
+function UI.Initialize(config)
+    local validateCallback = config.validateCallback
+    local keyLink = config.keyLink or "https://fsshub.com/getkey"
 
--- Internal State
-local gui, backdrop, blur, container, keyInput, verifyButton, getLinkButton, inputSection, iconGradient
-local validateCallback = nil
-local keyLink = nil
+    if gui then gui:Destroy() end
 
-function UI.Initialize(options)
-    options = options or {}
-    keyLink = options.KeyLink
-    validateCallback = options.Function
-    
-    -- Create UI
     gui = Instance.new("ScreenGui")
-    gui.Name = "KeyVerificationUI"
-    gui.ResetOnSpawn = false
-    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Name = "FSSHUB_Sentinel_Loader"
     gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 10000
     
+    -- Protect GUI
     if syn and syn.protect_gui then
         syn.protect_gui(gui)
+        gui.Parent = CoreGui
     elseif gethui then
         gui.Parent = gethui()
-    elseif game:GetService("CoreGui") then
-        gui.Parent = game:GetService("CoreGui")
     else
-        gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+        gui.Parent = CoreGui
     end
-    
-    backdrop = Instance.new("Frame")
-    backdrop.Name = "Backdrop"
-    backdrop.Size = UDim2.new(1, 0, 1, 0)
-    backdrop.BackgroundColor3 = Colors.background
-    backdrop.BackgroundTransparency = 0.3
-    backdrop.Parent = gui
-    
-    blur = Instance.new("BlurEffect")
-    blur.Size = 15
-    blur.Parent = Lighting
 
-    local mainCentering = Instance.new("Frame")
-    mainCentering.Size = UDim2.new(1, 0, 1, 0)
-    mainCentering.BackgroundTransparency = 1
-    mainCentering.Parent = gui
-    
-    container = Instance.new("CanvasGroup")
-    container.Name = "Container"
-    container.Size = UDim2.new(0, 420, 0, 260)
+    -- Blur
+    blur = Instance.new("BlurEffect")
+    blur.Size = 0
+    blur.Parent = game:GetService("Lighting")
+    TweenService:Create(blur, TweenInfo.new(0.5), {Size = 15}):Play()
+
+    -- Main Container (Sentinel Style)
+    container = Instance.new("Frame")
+    container.Name = "MainContainer"
+    container.Size = UDim2.new(0, 500, 0, 350) 
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.BackgroundColor3 = Colors.surface
-    container.BackgroundTransparency = 0.1
-    container.GroupTransparency = 1 -- Start transparent for animation
-    container.Parent = mainCentering
-    
-    local aspectRatio = Instance.new("UIAspectRatioConstraint")
-    aspectRatio.AspectRatio = 1.5
-    aspectRatio.Parent = container
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = container
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Colors.borderLight
-    stroke.Thickness = 1
-    stroke.Transparency = 0.5
-    stroke.Parent = container
-    
-    TweenService:Create(stroke, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
-        Color = Colors.primary,
-        Transparency = 0.2
-    }):Play()
-    
-    local dropShadow = Instance.new("ImageLabel")
-    dropShadow.Name = "Shadow"
-    dropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    dropShadow.BackgroundTransparency = 1
-    dropShadow.Position = UDim2.new(0.5, 0, 0.5, 10)
-    dropShadow.Size = UDim2.new(1, 60, 1, 60)
-    dropShadow.ZIndex = -1
-    dropShadow.Image = "rbxassetid://6015897843"
-    dropShadow.ImageColor3 = Color3.new(0, 0, 0)
-    dropShadow.ImageTransparency = 0.4
-    dropShadow.SliceCenter = Rect.new(47, 47, 450, 450)
-    dropShadow.ScaleType = Enum.ScaleType.Slice
-    dropShadow.SliceScale = 1
-    dropShadow.Parent = container
-    
-    local glassOverlay = Instance.new("Frame")
-    glassOverlay.Size = UDim2.new(1, 0, 0.6, 0)
-    glassOverlay.BackgroundColor3 = Colors.glass
-    glassOverlay.BackgroundTransparency = 0.96
-    glassOverlay.BorderSizePixel = 0
-    glassOverlay.Parent = container
-    
-    local glassGradient = Instance.new("UIGradient")
-    glassGradient.Rotation = 90
-    glassGradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0.8),
-        NumberSequenceKeypoint.new(1, 1)
-    })
-    glassGradient.Parent = glassOverlay
-    
-    -- Top Bar
-    local topBar = Instance.new("Frame")
-    topBar.Name = "TopBar"
-    topBar.Size = UDim2.new(1, 0, 0, 36)
-    topBar.BackgroundColor3 = Colors.surfaceLight
-    topBar.BackgroundTransparency = 0.8
-    topBar.BorderSizePixel = 0
-    topBar.Parent = container
+    container.BackgroundColor3 = Colors.Background
+    container.BorderSizePixel = 0
+    container.BackgroundTransparency = 1 -- Start hidden
+    container.Parent = gui
 
-    local iconContainer = Instance.new("Frame")
-    iconContainer.Size = UDim2.new(0, 32, 0, 32)
-    iconContainer.Position = UDim2.new(0, 12, 0.5, 0)
-    iconContainer.AnchorPoint = Vector2.new(0, 0.5)
-    iconContainer.BackgroundTransparency = 1
-    iconContainer.Parent = topBar
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 6)
+    uiCorner.Parent = container
+
+    -- Stroke with Gradient
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Thickness = 1.5
+    uiStroke.Transparency = 0
+    uiStroke.Parent = container
+    createGradient(uiStroke, Colors.Accent, Color3.fromRGB(145, 99, 240)) -- AccentGradient
+
+    -- Logo Section
+    local logoSize = 95
+    local logoContainer = Instance.new("ImageLabel")
+    logoContainer.Name = "Logo"
+    logoContainer.Size = UDim2.new(0, logoSize, 0, logoSize)
+    logoContainer.Position = UDim2.new(0.5, 0, 0, 30)
+    logoContainer.AnchorPoint = Vector2.new(0.5, 0)
+    logoContainer.BackgroundTransparency = 1
+    logoContainer.Image = Icons.Logo
+    logoContainer.Parent = container
     
-    local mainIcon = createIconImage(IconAssets.shield)
-    mainIcon.Size = UDim2.new(1, -8, 1, -8)
-    mainIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
-    mainIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-    mainIcon.Parent = iconContainer
-    
-    iconGradient = Instance.new("UIGradient")
-    iconGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Colors.primary),
-        ColorSequenceKeypoint.new(1, Colors.neonBlue)
-    })
-    iconGradient.Rotation = 45
-    iconGradient.Parent = mainIcon
-    
-    local titleText = Instance.new("TextLabel")
-    titleText.Text = UI.Keys.MainTitle
-    titleText.TextColor3 = Colors.textPrimary
-    titleText.Font = Enum.Font.GothamBold
-    titleText.TextSize = 14
-    titleText.TextXAlignment = Enum.TextXAlignment.Left
-    titleText.BackgroundTransparency = 1
-    titleText.Size = UDim2.new(1, -50, 0, 16)
-    titleText.Position = UDim2.new(0, 50, 0.5, -7)
-    titleText.Parent = topBar
-    
-    local subtitleText = Instance.new("TextLabel")
-    subtitleText.Text = UI.Keys.MainDesc
-    subtitleText.TextColor3 = Colors.primary
-    subtitleText.Font = Enum.Font.GothamMedium
-    subtitleText.TextSize = 10
-    subtitleText.TextTransparency = 0.4
-    subtitleText.TextXAlignment = Enum.TextXAlignment.Left
-    subtitleText.BackgroundTransparency = 1
-    subtitleText.Size = UDim2.new(1, -50, 0, 12)
-    subtitleText.Position = UDim2.new(0, 50, 0.5, 7)
-    subtitleText.Parent = topBar
-    
-    local closeButton = Instance.new("ImageButton")
-    closeButton.Size = UDim2.new(0, 36, 0, 36)
-    closeButton.Position = UDim2.new(1, 0, 0, 0)
-    closeButton.AnchorPoint = Vector2.new(1, 0)
-    closeButton.BackgroundTransparency = 1
-    closeButton.Image = IconAssets.x
-    closeButton.ImageColor3 = Colors.textSecondary
-    closeButton.ImageTransparency = 0.4
-    closeButton.ScaleType = Enum.ScaleType.Fit
-    closeButton.Parent = topBar
-    closeButton.MouseButton1Click:Connect(function()
-        UI.Close()
-    end)
-    
-    -- Input Section
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Text = UI.Keys.MainTitle
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 24
+    title.TextColor3 = Colors.TextWhite
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Position = UDim2.new(0, 0, 0, 135)
+    title.BackgroundTransparency = 1
+    title.Parent = container
+
+    -- Description
+    local desc = Instance.new("TextLabel")
+    desc.Name = "Description"
+    desc.Text = UI.Keys.MainDesc
+    desc.Font = Enum.Font.Gotham
+    desc.TextSize = 14
+    desc.TextColor3 = Colors.TextDim
+    desc.Size = UDim2.new(1, 0, 0, 20)
+    desc.Position = UDim2.new(0, 0, 0, 165)
+    desc.BackgroundTransparency = 1
+    desc.Parent = container
+
+    -- Input Box
     inputSection = Instance.new("Frame")
-    inputSection.Size = UDim2.new(1, -40, 1, -70)
-    inputSection.Position = UDim2.new(0.5, 0, 0.5, 18)
-    inputSection.AnchorPoint = Vector2.new(0.5, 0.5)
-    inputSection.BackgroundTransparency = 1
+    inputSection.Name = "InputSection"
+    inputSection.Size = UDim2.new(1, -60, 0, 45)
+    inputSection.Position = UDim2.new(0.5, 0, 0, 200)
+    inputSection.AnchorPoint = Vector2.new(0.5, 0)
+    inputSection.BackgroundColor3 = Colors.InputBg
     inputSection.Parent = container
 
-    local instructionLabel = Instance.new("TextLabel")
-    instructionLabel.Text = "Enter your license key below to access the script"
-    instructionLabel.TextColor3 = Colors.textSecondary
-    instructionLabel.Font = Enum.Font.Gotham
-    instructionLabel.TextSize = 11
-    instructionLabel.TextTransparency = 0.4
-    instructionLabel.Size = UDim2.new(1, 0, 0, 14)
-    instructionLabel.Position = UDim2.new(0, 0, 0, -20)
-    instructionLabel.BackgroundTransparency = 1
-    instructionLabel.Parent = inputSection
-    local keyInputContainer = Instance.new("Frame")
-    keyInputContainer.Size = UDim2.new(1, 0, 0, 38)
-    keyInputContainer.BackgroundColor3 = Colors.surfaceLight
-    keyInputContainer.BackgroundTransparency = 0.5
-    keyInputContainer.Parent = inputSection
-    
-    local keyCorner = Instance.new("UICorner")
-    keyCorner.CornerRadius = UDim.new(0, 8)
-    keyCorner.Parent = keyInputContainer
-    
-    local keyStroke = Instance.new("UIStroke")
-    keyStroke.Color = Colors.borderLight
-    keyStroke.Thickness = 1
-    keyStroke.Transparency = 0.5
-    keyStroke.Parent = keyInputContainer
-    
-    local inputIcon = createIconImage(IconAssets.key)
-    inputIcon.Size = UDim2.new(0, 16, 0, 16)
-    inputIcon.Position = UDim2.new(0, 12, 0.5, 0)
-    inputIcon.AnchorPoint = Vector2.new(0, 0.5)
-    inputIcon.ImageColor3 = Colors.textSecondary
-    inputIcon.ImageTransparency = 0.2
-    inputIcon.Parent = keyInputContainer
-    
-    keyInput = Instance.new("TextBox")
-    keyInput.Size = UDim2.new(1, -40, 1, 0)
-    keyInput.Position = UDim2.new(0, 36, 0, 0)
+    local inputCorner = Instance.new("UICorner")
+    inputCorner.CornerRadius = UDim.new(0, 4)
+    inputCorner.Parent = inputSection
+
+    local inputStroke = Instance.new("UIStroke")
+    inputStroke.Color = Colors.Stroke
+    inputStroke.Thickness = 1
+    inputStroke.Parent = inputSection
+
+    local keyInput = Instance.new("TextBox")
+    keyInput.Name = "KeyInput"
+    keyInput.Size = UDim2.new(1, -20, 1, 0)
+    keyInput.Position = UDim2.new(0, 10, 0, 0)
     keyInput.BackgroundTransparency = 1
     keyInput.Font = Enum.Font.Gotham
-    keyInput.PlaceholderText = "Enter key here..."
     keyInput.Text = ""
-    keyInput.TextColor3 = Colors.textPrimary
-    keyInput.PlaceholderColor3 = Colors.textMuted
+    keyInput.PlaceholderText = "Enter Key"
+    keyInput.PlaceholderColor3 = Colors.TextPlaceholder
+    keyInput.TextColor3 = Colors.TextWhite
     keyInput.TextSize = 14
-    keyInput.TextXAlignment = Enum.TextXAlignment.Left
-    keyInput.ClearTextOnFocus = false
-    keyInput.Parent = keyInputContainer
-    
-    -- Buttons
-    local buttonSection = Instance.new("Frame")
-    buttonSection.Size = UDim2.new(1, 0, 0, 32)
-    buttonSection.Position = UDim2.new(0, 0, 0, 48)
-    buttonSection.BackgroundTransparency = 1
-    buttonSection.Parent = inputSection
-    
-    local gridLayout = Instance.new("UIGridLayout")
-    gridLayout.CellPadding = UDim2.new(0, 10, 0, 0)
-    gridLayout.CellSize = UDim2.new(0.5, -5, 1, 0)
-    gridLayout.FillDirection = Enum.FillDirection.Horizontal
-    gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    gridLayout.Parent = buttonSection
-    
-    local function createButton(name, text, primary, iconId)
-        local button = Instance.new("TextButton")
-        button.Name = name
-        button.BackgroundColor3 = primary and Colors.primary or Colors.surfaceLight
-        button.BackgroundTransparency = primary and 0.1 or 0.5
-        button.Text = ""
-        button.AutoButtonColor = false
+    keyInput.Parent = inputSection
+
+    -- Buttons Logic
+    local function createButton(text, pos, primary, callback)
+        local btn = Instance.new("TextButton")
+        btn.Name = text
+        btn.Size = UDim2.new(0.5, -35, 0, 40)
+        btn.Position = pos
+        btn.BackgroundColor3 = Colors.Button
+        btn.Text = text
+        btn.Font = Enum.Font.GothamBold
+        btn.TextColor3 = Colors.TextWhite
+        btn.TextSize = 14
+        btn.Parent = container
         
-        local bCorner = Instance.new("UICorner")
-        bCorner.CornerRadius = UDim.new(0, 8)
-        bCorner.Parent = button
-        
-        local bStroke = Instance.new("UIStroke")
-        bStroke.Color = primary and Colors.primaryDark or Colors.borderLight
-        bStroke.Transparency = 0.5
-        bStroke.Parent = button
-        
-        local content = Instance.new("Frame")
-        content.Name = "Content"
-        content.Size = UDim2.new(1, 0, 1, 0)
-        content.BackgroundTransparency = 1
-        content.Parent = button
-        
-        local layout = Instance.new("UIListLayout")
-        layout.FillDirection = Enum.FillDirection.Horizontal
-        layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-        layout.VerticalAlignment = Enum.VerticalAlignment.Center
-        layout.Padding = UDim.new(0, 8)
-        layout.SortOrder = Enum.SortOrder.LayoutOrder
-        layout.Parent = content
-        
-        if iconId then
-            local icon = createIconImage(iconId)
-            icon.Size = UDim2.new(0, 14, 0, 14)
-            icon.ImageColor3 = primary and Colors.textPrimary or Colors.textSecondary
-            icon.LayoutOrder = 1
-            icon.Parent = content
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = btn
+
+        local btnStroke = Instance.new("UIStroke")
+        btnStroke.Color = Colors.Stroke
+        btnStroke.Thickness = 1
+        btnStroke.Parent = btn
+
+        if primary then
+             btnStroke.Color = Colors.Accent
+             -- Optional: Add gradient to stroke if desired for valid button
         end
-        
-        local label = Instance.new("TextLabel")
-        label.Text = text
-        label.Font = Enum.Font.GothamBold
-        label.TextSize = 13
-        label.TextColor3 = primary and Colors.textPrimary or Colors.textSecondary
-        label.BackgroundTransparency = 1
-        label.AutomaticSize = Enum.AutomaticSize.XY
-        label.LayoutOrder = 2
-        label.Parent = content
-        
-        return button
-    end
-    
-    local function applyButtonEffects(button, originalColor)
-        local hover = false
-        
-        button.MouseEnter:Connect(function()
-            hover = true
-            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = originalColor:Lerp(Color3.new(1,1,1), 0.1)}):Play()
+
+        -- Hover Effects
+        btn.MouseEnter:Connect(function()
+            TweenService:Create(btnStroke, TweenInfo.new(0.3), {Color = Colors.Accent}):Play()
+            TweenService:Create(btn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+        end)
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btnStroke, TweenInfo.new(0.3), {Color = primary and Colors.Accent or Colors.Stroke}):Play()
+            TweenService:Create(btn, TweenInfo.new(0.3), {BackgroundColor3 = Colors.Button}):Play()
         end)
         
-        button.MouseLeave:Connect(function()
-            hover = false
-            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = originalColor}):Play()
-        end)
-        
-        button.MouseButton1Down:Connect(function()
-            TweenService:Create(button, TweenInfo.new(0.1), {Size = UDim2.new(0.5, -7, 1, -2)}):Play()
-        end)
-        
-        button.MouseButton1Up:Connect(function()
-            TweenService:Create(button, TweenInfo.new(0.1), {Size = UDim2.new(0.5, -5, 1, 0)}):Play()
+        btn.MouseButton1Click:Connect(function() 
+            callback()
+             -- Squish effect
+            local originalSize = btn.Size
+            TweenService:Create(btn, TweenInfo.new(0.1), {Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset - 2, originalSize.Y.Scale, originalSize.Y.Offset - 2)}):Play()
+            task.wait(0.1)
+            TweenService:Create(btn, TweenInfo.new(0.1), {Size = originalSize}):Play()
         end)
     end
-    
-    getLinkButton = createButton("GetLink", "Get Link", false, IconAssets.link)
-    applyButtonEffects(getLinkButton, Colors.surfaceLight)
-    getLinkButton.LayoutOrder = 1
-    getLinkButton.Parent = buttonSection
-    getLinkButton.MouseButton1Click:Connect(function()
-        if keyLink then
-            if setclipboard then
-                setclipboard(keyLink)
-                UI.ShowStatus("Link copied!", Colors.success, 3)
-            else
-                UI.ShowStatus("Link: " .. keyLink, Colors.primary, 10)
-            end
+
+    -- Get Key Button
+    createButton("Get Key", UDim2.new(0, 30, 0, 260), false, function()
+        if setclipboard then
+            setclipboard(keyLink)
+            UI.ShowStatus("Copied to clipboard!", Colors.Success)
         else
-            UI.ShowStatus("No key link available", Colors.error, 3)
+            UI.ShowStatus("Link: "..keyLink, Colors.Accent)
         end
     end)
-    
-    verifyButton = createButton("Verify", "Verify Key", true, IconAssets.key)
-    applyButtonEffects(verifyButton, Colors.primary)
-    verifyButton.LayoutOrder = 2
-    verifyButton.Parent = buttonSection
-    verifyButton.MouseButton1Click:Connect(function()
-        local key = keyInput.Text:gsub("%s+", "")
-        if key == "" then
-            UI.ShowStatus("Please enter a key", Colors.error, 3)
-            UI.ShakeInput()
-            return
+
+    -- Check Key Button
+    createButton("Check Key", UDim2.new(0.5, 5, 0, 260), true, function()
+        local input = keyInput.Text:gsub("%s+", "")
+        if input == "" then
+             UI.ShowStatus("Please enter a key", Colors.Error)
+             UI.ShakeInput()
+             return
         end
-        if validateCallback then
-            validateCallback(key)
-        end
+        if validateCallback then validateCallback(input) end
     end)
     
-    -- Enter to verify
+    -- Auto-check on Enter
     keyInput.FocusLost:Connect(function(enter)
         if enter then
-            local key = keyInput.Text:gsub("%s+", "")
-            if key ~= "" and validateCallback then
-                validateCallback(key)
-            end
+             local input = keyInput.Text:gsub("%s+", "")
+             if input ~= "" and validateCallback then validateCallback(input) end
         end
     end)
-    
-    -- Animations
-    UI.SetupAnimations()
-    UI.AnimateEntrance()
+
+    UI.AnimateEntrance(container)
 end
 
-function UI.ShowStatus(text, color, resetTime)
+function UI.ShowStatus(msg, color)
     local label = Instance.new("TextLabel")
-    label.Text = text
+    label.Text = msg
     label.TextColor3 = color
     label.Font = Enum.Font.GothamMedium
-    label.TextSize = 12
+    label.TextSize = 13
     label.Size = UDim2.new(1, 0, 0, 20)
-    label.Position = UDim2.new(0, 0, 1, -25)
+    label.Position = UDim2.new(0, 0, 0, 310)
     label.BackgroundTransparency = 1
     label.TextTransparency = 1
     label.Parent = container
     
     TweenService:Create(label, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+    task.delay(2, function()
+        TweenService:Create(label, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+         task.wait(0.3)
+         label:Destroy()
+    end)
     
-    if resetTime > 0 then
-        task.delay(resetTime, function()
-            if label.Parent then
-                TweenService:Create(label, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-                task.wait(0.3)
-                label:Destroy()
-            end
-        end)
+    if color == Colors.Error then
+         -- Auto reset input logic reused
+         local input = container:FindFirstChild("InputSection") and container.InputSection:FindFirstChild("KeyInput")
+         if input then task.delay(0.5, function() input.Text = "" end) end
     end
-    
-    if color == Colors.error and keyInput then
-        task.delay(0.5, function()
-            keyInput.Text = ""
-        end)
-    end
-end
-
-function UI.ShowError(msg)
-    UI.ShowStatus(msg, Colors.error, 5)
-    UI.ShakeInput()
 end
 
 function UI.ShakeInput()
-    local originalPos = UDim2.new(0.5, 0, 0.5, 20)
-    local intensity = 5
-    for i = 1, 6 do
-        local offset = (i % 2 == 0 and -intensity or intensity)
-        TweenService:Create(inputSection, TweenInfo.new(0.05), {Position = originalPos + UDim2.new(0, offset, 0, 0)}):Play()
+   -- Simple shake
+   local input = container:FindFirstChild("InputSection") 
+   if not input then return end
+   local originalPos = UDim2.new(0.5, 0, 0, 200)
+    for i=1,6 do
+        local offset = (i%2==0 and -5 or 5)
+        input.Position = originalPos + UDim2.new(0, offset, 0, 0)
         task.wait(0.05)
     end
-    TweenService:Create(inputSection, TweenInfo.new(0.05), {Position = originalPos}):Play()
+     input.Position = originalPos
 end
 
-function UI.Authorize()
-    UI.ShowStatus("Key Verified!", Colors.success, 0)
-    
-    local statusBar = Instance.new("Frame")
-    statusBar.Size = UDim2.new(1, 0, 0, 2)
-    statusBar.Position = UDim2.new(0, 0, 1, 0)
-    statusBar.AnchorPoint = Vector2.new(0, 1)
-    statusBar.BackgroundColor3 = Colors.success
-    statusBar.BorderSizePixel = 0
-    statusBar.Parent = container
-    
-    local cover = Instance.new("Frame")
-    cover.Size = UDim2.new(1, 0, 1, 0)
-    cover.BackgroundColor3 = Colors.success
-    cover.BackgroundTransparency = 1
-    cover.Parent = container
-    
-    TweenService:Create(cover, TweenInfo.new(0.5), {BackgroundTransparency = 0.8}):Play()
-    task.wait(0.5)
-    TweenService:Create(cover, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-    task.wait(0.5)
-    cover:Destroy()
-    
-    -- Close UI after success animation
-    task.delay(1, function()
-        UI.Close()
-    end)
-end
-
-function UI.Fail()
-    UI.ShowStatus("Invalid Key", Colors.error, 3)
+function UI.ShowError(msg)
+    UI.ShowStatus(msg, Colors.Error)
     UI.ShakeInput()
 end
 
+function UI.AnimateEntrance(frame)
+   frame.Position = UDim2.new(0.5, 0, 0.45, 0)
+   frame.BackgroundTransparency = 1
+   -- Fade In + Slide Up
+   TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        BackgroundTransparency = 0
+   }):Play()
+   
+   -- Fade in descendants (manual loop)
+   for _, child in pairs(frame:GetDescendants()) do
+      if child:IsA("GuiObject") then
+           local originalTrans = child.BackgroundTransparency
+           local originalTextTrans = 0
+           if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
+                originalTextTrans = child.TextTransparency
+                if originalTextTrans == 0 then
+                     child.TextTransparency = 1
+                     TweenService:Create(child, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+                end
+           end
+           if (child:IsA("ImageLabel") or child:IsA("ImageButton")) and child.ImageTransparency == 0 then
+                child.ImageTransparency = 1
+                TweenService:Create(child, TweenInfo.new(0.5), {ImageTransparency = 0}):Play()
+           end
+      end
+   end
+end
+
+function UI.Authorize()
+    UI.ShowStatus("Successfully Verified!", Colors.Success)
+    task.wait(1)
+    UI.Close()
+end
+
+function UI.Fail()
+   UI.ShowStatus("Invalid Key", Colors.Error)
+   UI.ShakeInput()
+end
+
 function UI.Close()
-    if blur then blur:Destroy() end
-    if gui then gui:Destroy() end
-end
-
-function UI.SetupAnimations()
-    -- Icon Gradient Animation
-    task.spawn(function()
-        while gui and gui.Parent do
-            local rotTween = TweenService:Create(iconGradient, TweenInfo.new(2, Enum.EasingStyle.Linear), {Rotation = 360 + 45})
-            rotTween:Play()
-            rotTween.Completed:Wait()
-            iconGradient.Rotation = 45
-        end
-    end)
-    
-    -- Particles
-    task.spawn(function()
-        while gui and gui.Parent do
-            local p = Instance.new("Frame")
-            p.BackgroundColor3 = Colors.primary
-            p.BackgroundTransparency = 0.8
-            p.BorderSizePixel = 0
-            local size = math.random(2, 4)
-            p.Size = UDim2.new(0, size, 0, size)
-            p.Position = UDim2.new(math.random(), 0, 1, 10)
-            p.Parent = container
-            
-            local duration = math.random(30, 60) / 10
-            local tween = TweenService:Create(p, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
-                Position = UDim2.new(math.random(), 0, -0.2, 0),
-                BackgroundTransparency = 1
-            })
-            tween:Play()
-            tween.Completed:Connect(function() p:Destroy() end)
-            task.wait(0.5)
-        end
-    end)
-end
-
-function UI.AnimateEntrance()
-    container.Size = UDim2.new(0, 400, 0, 240)
-    container.GroupTransparency = 1
-    backdrop.BackgroundTransparency = 1
-    
-    TweenService:Create(container, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 420, 0, 260),
-        GroupTransparency = 0
-    }):Play()
-    
-    TweenService:Create(backdrop, TweenInfo.new(0.4), {BackgroundTransparency = 0.3}):Play()
+   if blur then TweenService:Create(blur, TweenInfo.new(0.5), {Size = 0}):Play() end
+   if container then
+       TweenService:Create(container, TweenInfo.new(0.5), {Position = UDim2.new(0.5, 0, 0.45, 0), BackgroundTransparency = 1}):Play()
+   end
+   task.wait(0.5)
+   if gui then gui:Destroy() end
+   if blur then blur:Destroy() end
 end
 
 return UI
