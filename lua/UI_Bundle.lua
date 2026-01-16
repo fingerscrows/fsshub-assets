@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB UI Bundle (Two-File Architecture)
-    Generated: 2026-01-16T16:07:08.440Z
+    Generated: 2026-01-16T17:14:38.636Z
     
     This bundle contains:
     - Fluent UI Library (46 modules)
@@ -40,20 +40,26 @@ local __CACHE = {}
 local function createScriptProxy(path)
     local function getChildrenForPath()
         local children = {}
-        local prefix = path == "Root" and "" or (path .. "/")
+        -- Fix: Strip 'Root/' from path to match __MODULES keys
+        local lookupPath = path:gsub("^Root/", "")
+        if lookupPath == "Root" then lookupPath = "" end
+        
+        local prefix = (lookupPath == "" or lookupPath == "Root") and "" or (lookupPath .. "/")
         local seenChildren = {}
         
         for key, _ in pairs(__MODULES) do
             local childName = nil
             
             if prefix == "" then
+                -- Root level children
                 local firstSlash = key:find("/")
                 if firstSlash then
                     childName = key:sub(1, firstSlash - 1)
-                elseif key ~= "Root" then
+                elseif key ~= "Root" and key ~= "init" then
                     childName = key
                 end
             else
+                -- Sub directory children
                 if key:sub(1, #prefix) == prefix then
                     local remaining = key:sub(#prefix + 1)
                     local firstSlash = remaining:find("/")
@@ -4565,8 +4571,15 @@ for i = 1, #ElementsTable do
 		return ElementComponent:New(Idx, Config)
 	end
 
-	Elements[`Create{ElementComponent.__type}`] = createFn
-	Elements[`Add{ElementComponent.__type}`] = createFn
+    -- Debug print
+    if ElementComponent.__type then
+        -- print("Fluent: Registering " .. tostring(ElementComponent.__type))
+    else
+        warn("Fluent: Element missing __type")
+    end
+
+	Elements["Create" .. ElementComponent.__type] = createFn
+	Elements["Add" .. ElementComponent.__type] = createFn
 	Elements[ElementComponent.__type] = createFn
 end
 

@@ -252,8 +252,15 @@ for i = 1, #ElementsTable do
 		return ElementComponent:New(Idx, Config)
 	end
 
-	Elements[`Create{ElementComponent.__type}`] = createFn
-	Elements[`Add{ElementComponent.__type}`] = createFn
+    -- Debug print
+    if ElementComponent.__type then
+        -- print("Fluent: Registering " .. tostring(ElementComponent.__type))
+    else
+        warn("Fluent: Element missing __type")
+    end
+
+	Elements["Create" .. ElementComponent.__type] = createFn
+	Elements["Add" .. ElementComponent.__type] = createFn
 	Elements[ElementComponent.__type] = createFn
 end
 

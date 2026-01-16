@@ -153,20 +153,26 @@ local __CACHE = {}
 local function createScriptProxy(path)
     local function getChildrenForPath()
         local children = {}
-        local prefix = path == "Root" and "" or (path .. "/")
+        -- Fix: Strip 'Root/' from path to match __MODULES keys
+        local lookupPath = path:gsub("^Root/", "")
+        if lookupPath == "Root" then lookupPath = "" end
+        
+        local prefix = (lookupPath == "" or lookupPath == "Root") and "" or (lookupPath .. "/")
         local seenChildren = {}
         
         for key, _ in pairs(__MODULES) do
             local childName = nil
             
             if prefix == "" then
+                -- Root level children
                 local firstSlash = key:find("/")
                 if firstSlash then
                     childName = key:sub(1, firstSlash - 1)
-                elseif key ~= "Root" then
+                elseif key ~= "Root" and key ~= "init" then
                     childName = key
                 end
             else
+                -- Sub directory children
                 if key:sub(1, #prefix) == prefix then
                     local remaining = key:sub(#prefix + 1)
                     local firstSlash = remaining:find("/")
