@@ -88,6 +88,7 @@ local KeySystemUI = (function()
         InputBg = Color3.fromRGB(20, 20, 30),
         ButtonBg = Color3.fromRGB(30, 25, 45)
     }
+    UI.Colors = Colors
 
     UI.Keys = {
         MainTitle = "FSSHUB",
@@ -591,9 +592,8 @@ local KeySystemUI = (function()
     end
 
     function UI.Authorize()
-        UI.ShowStatus("ACCESS_GRANTED... LOADING_MODULES", Colors.Secondary)
-        task.wait(1.5)
-        UI.Close()
+        UI.ShowStatus("ACCESS_GRANTED... AUTHENTICATING", Colors.Secondary)
+        -- Removed auto-close to allow loading process to show
     end
 
     function UI.Fail()
@@ -638,6 +638,8 @@ local function fetchAndExecutePayload(key)
     local placeId = tostring(game.PlaceId)
     local HttpService = game:GetService("HttpService")
 
+    KeySystemUI.ShowStatus("ESTABLISHING_SECURE_CONNECTION...", KeySystemUI.Colors.Secondary)
+
     local requestUrl = WorkerUrl .. "/load"
         .. "?key=" .. HttpService:UrlEncode(key)
         .. "&placeId=" .. placeId
@@ -650,19 +652,29 @@ local function fetchAndExecutePayload(key)
     end)
 
     if success and content then
+        KeySystemUI.ShowStatus("DOWNLOADING_CORE_BOOTSTRAPPER...", KeySystemUI.Colors.Accent)
+
         local chunk, err = loadstring(content)
         if chunk then
+            KeySystemUI.ShowStatus("INITIALIZING_FSSHUB_ENVIRONMENT...", KeySystemUI.Colors.Secondary)
+
             local execSuccess, execErr = pcall(chunk)
             if not execSuccess then
                 warn("[FSSHUB] Payload Error: " .. tostring(execErr))
+                KeySystemUI.ShowError("EXEC_FAIL: " .. tostring(execErr))
             else
                 print("[FSSHUB] Payload executed successfully!")
+                KeySystemUI.ShowStatus("LAUNCHING_MAIN_MENU...", KeySystemUI.Colors.Accent)
+                task.wait(1.5) -- UX pause to see the message
+                KeySystemUI.Close()
             end
         else
             warn("[FSSHUB] Compile Error: " .. tostring(err))
+            KeySystemUI.ShowError("COMPILE_FAIL: " .. tostring(err))
         end
     else
         warn("[FSSHUB] Network Error: " .. tostring(content))
+        KeySystemUI.ShowError("NET_FAIL: " .. tostring(content))
     end
 end
 
@@ -682,7 +694,7 @@ KeySystemUI.Initialize({
 
             -- Fetch payload after UI closes
             task.spawn(function()
-                task.wait(2) -- Wait for authorize animation
+                task.wait(0.5) -- Small delay for UX
                 fetchAndExecutePayload(userInput)
             end)
         else
