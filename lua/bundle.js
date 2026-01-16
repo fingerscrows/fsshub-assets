@@ -27,15 +27,6 @@ function getFiles(dir, fileList = []) {
   return fileList;
 }
 
-// Helper: Escape Lua string
-function escapeLuaString(str) {
-  return str
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r");
-}
-
 // Main Bundling Logic
 function bundle() {
   console.log("Starting Bundle Process...");
@@ -47,10 +38,6 @@ function bundle() {
 
   // 1. Bundle Fluent UI Modules
   fluentFiles.forEach((filepath) => {
-    // Calculate module path relative to Src root
-    // e.g. "Components/Button.luau" -> "Components/Button"
-    // "init.luau" -> "Root" ??
-
     let relPath = path.relative(CONFIG.fluentSrc, filepath);
     let moduleName = relPath
       .replace(/\\/g, "/")
@@ -70,7 +57,7 @@ function bundle() {
 
   // 2. Generate Output Content
   // Prepare Lazy Loader Script
-  const lazyLoaderScript = \`
+  const lazyLoaderScript = `
 -- FSSHUB Lazy Loader (Visual Feedback Immediate)
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
@@ -109,13 +96,21 @@ task.spawn(function()
         task.wait(1.6)
     end
 end)
-\`;
+`;
 
-  let output = \`--[[ 
+  let output = `--[[ 
     FSSHUB Loader Bundle
-    Generated: \${new Date().toISOString()}
+    Generated: ${new Date().toISOString()}
 ]]
-\${lazyLoaderScript}
+
+-- Load Time Tracking
+local __LOAD_START = os.clock()
+local function logLoadTime(phase)
+    print(string.format("[FSSHUB] %s: %.3fs", phase, os.clock() - __LOAD_START))
+end
+
+${lazyLoaderScript}
+logLoadTime("Lazy Loader Visible")
 
 local __MODULES = {}
 local __CACHE = {}
@@ -223,63 +218,62 @@ local function __REQUIRE(modulePath)
 end
 
 -- MODULE DEFINITIONS
-\`;
+`;
 
   // Write modules
   for (const [name, content] of Object.entries(modules)) {
-    output += \`
-__MODULES["\${name}"] = function()
-    local script = createScriptProxy("Root/\${name}")
+    output += `
+__MODULES["${name}"] = function()
+    local script = createScriptProxy("Root/${name}")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
     end
     
     return (function()
-\${content}
+${content}
     end)()
 end
-\`;
+`;
   }
 
   // 3. Append Entry Logic
-  output += \`
+  output += `
 -- MAIN LOGIC
 local FSSHUB_UI = __REQUIRE("Root") -- Load init.luau (stored as Root)
+logLoadTime("Fluent UI Loaded")
 
 -- Load KeySystem
 local KeySystem = (function()
     local Fluent = FSSHUB_UI
-    \${fs.readFileSync(CONFIG.keySystem, "utf8")}
+    ${fs.readFileSync(CONFIG.keySystem, "utf8")}
 end)()
+logLoadTime("KeySystem Ready")
 
 -- Load Main Menu (only if validated, but for bundle we define it)
 local MainMenu = function()
     local Fluent = FSSHUB_UI
-    \${fs.readFileSync(CONFIG.mainMenu, "utf8")}
+    ${fs.readFileSync(CONFIG.mainMenu, "utf8")}
 end
 
 -- AUTO EXECUTE KEY SYSTEM (For Testing/Dev)
 if KeySystem and KeySystem.Initialize then
     task.defer(function()
+        logLoadTime("KeySystem Initializing")
         KeySystem.Initialize({
             validateCallback = function(key) 
                 print("[FSSHUB] Key Submitted:", key)
-                -- Here you would validate with Junkie SDK
-                -- For now, simulate success:
+                -- Simulate success for now:
                 task.spawn(function()
-                    -- Show success animation
                     if KeySystem.Authorize then
                         KeySystem.Authorize()
                     end
-                    -- Wait for UI to close, then launch Main Menu
                     task.wait(2)
                     if MainMenu then 
-                        print("[FSSHUB] Launching Main Menu...")
+                        logLoadTime("MainMenu Launching")
                         MainMenu() 
+                        logLoadTime("MainMenu Visible")
                     end
                 end)
             end,
@@ -294,7 +288,7 @@ return {
     KeySystem = KeySystem,
     MainMenu = MainMenu
 }
-\`;
+`;
 
   fs.writeFileSync(CONFIG.output, output);
   console.log(`Bundle written to ${CONFIG.output}`);

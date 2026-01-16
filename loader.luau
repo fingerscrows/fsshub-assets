@@ -1,7 +1,55 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-16T06:23:13.934Z
+    Generated: 2026-01-16T08:49:11.275Z
 ]]
+
+-- Load Time Tracking
+local __LOAD_START = os.clock()
+local function logLoadTime(phase)
+    print(string.format("[FSSHUB] %s: %.3fs", phase, os.clock() - __LOAD_START))
+end
+
+
+-- FSSHUB Lazy Loader (Visual Feedback Immediate)
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local overlay = Instance.new("ScreenGui")
+overlay.Name = "FSSHUB_Lazy_Loader"
+overlay.IgnoreGuiInset = true
+overlay.DisplayOrder = 9999
+if syn and syn.protect_gui then syn.protect_gui(overlay) overlay.Parent = CoreGui
+elseif gethui then overlay.Parent = gethui()
+else overlay.Parent = CoreGui end
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(1,0,1,0)
+frame.BackgroundColor3 = Color3.new(0,0,0)
+frame.BackgroundTransparency = 1
+frame.Parent = overlay
+
+local text = Instance.new("TextLabel")
+text.Text = "FSSHUB LOADING..."
+text.Font = Enum.Font.Code
+text.TextSize = 24
+text.TextColor3 = Color3.fromRGB(0, 255, 255)
+text.Size = UDim2.new(0, 200, 0, 50)
+text.Position = UDim2.new(0.5, 0, 0.5, 0)
+text.AnchorPoint = Vector2.new(0.5, 0.5)
+text.BackgroundTransparency = 1
+text.Parent = frame
+
+-- Fade In
+TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency=0.3}):Play()
+
+-- Pulse Text
+task.spawn(function()
+    while overlay.Parent do
+        TweenService:Create(text, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {TextTransparency=0.5}):Play()
+        task.wait(1.6)
+    end
+end)
+
+logLoadTime("Lazy Loader Visible")
 
 local __MODULES = {}
 local __CACHE = {}
@@ -113,8 +161,6 @@ end
 __MODULES["Components/Assets"] = function()
     local script = createScriptProxy("Root/Components/Assets")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -134,8 +180,6 @@ end
 __MODULES["Components/Button"] = function()
     local script = createScriptProxy("Root/Components/Button")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -226,8 +270,6 @@ end
 __MODULES["Components/Dialog"] = function()
     local script = createScriptProxy("Root/Components/Dialog")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -407,8 +449,6 @@ end
 __MODULES["Components/Element"] = function()
     local script = createScriptProxy("Root/Components/Element")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -569,8 +609,6 @@ end
 __MODULES["Components/Notification"] = function()
     local script = createScriptProxy("Root/Components/Notification")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -804,8 +842,6 @@ end
 __MODULES["Components/Section"] = function()
     local script = createScriptProxy("Root/Components/Section")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -871,8 +907,6 @@ end
 __MODULES["Components/Tab"] = function()
     local script = createScriptProxy("Root/Components/Tab")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -1099,8 +1133,6 @@ end
 __MODULES["Components/Textbox"] = function()
     local script = createScriptProxy("Root/Components/Textbox")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -1235,8 +1267,6 @@ end
 __MODULES["Components/TitleBar"] = function()
     local script = createScriptProxy("Root/Components/TitleBar")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -1490,8 +1520,6 @@ end
 __MODULES["Components/Window"] = function()
     local script = createScriptProxy("Root/Components/Window")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -2006,8 +2034,6 @@ end
 __MODULES["Elements/Button"] = function()
     local script = createScriptProxy("Root/Elements/Button")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -2062,8 +2088,6 @@ end
 __MODULES["Elements/Colorpicker"] = function()
     local script = createScriptProxy("Root/Elements/Colorpicker")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -2652,8 +2676,6 @@ end
 __MODULES["Elements/Dropdown"] = function()
     local script = createScriptProxy("Root/Elements/Dropdown")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -3260,8 +3282,6 @@ end
 __MODULES["Elements"] = function()
     local script = createScriptProxy("Root/Elements")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -3287,8 +3307,6 @@ end
 __MODULES["Elements/Input"] = function()
     local script = createScriptProxy("Root/Elements/Input")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -3405,8 +3423,6 @@ end
 __MODULES["Elements/Keybind"] = function()
     local script = createScriptProxy("Root/Elements/Keybind")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -3664,8 +3680,6 @@ end
 __MODULES["Elements/Paragraph"] = function()
     local script = createScriptProxy("Root/Elements/Paragraph")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -3755,8 +3769,6 @@ end
 __MODULES["Elements/Slider"] = function()
     local script = createScriptProxy("Root/Elements/Slider")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -3950,8 +3962,6 @@ end
 __MODULES["Elements/Toggle"] = function()
     local script = createScriptProxy("Root/Elements/Toggle")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -4317,8 +4327,6 @@ end
 __MODULES["Root"] = function()
     local script = createScriptProxy("Root/Root")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -4769,8 +4777,6 @@ end
 __MODULES["Modules/Acrylic/AcrylicBlur"] = function()
     local script = createScriptProxy("Root/Modules/Acrylic/AcrylicBlur")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -4900,8 +4906,6 @@ end
 __MODULES["Modules/Acrylic/AcrylicPaint"] = function()
     local script = createScriptProxy("Root/Modules/Acrylic/AcrylicPaint")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -5035,8 +5039,6 @@ end
 __MODULES["Modules/Acrylic/CreateAcrylic"] = function()
     local script = createScriptProxy("Root/Modules/Acrylic/CreateAcrylic")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -5075,8 +5077,6 @@ end
 __MODULES["Modules/Acrylic"] = function()
     local script = createScriptProxy("Root/Modules/Acrylic")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -5141,8 +5141,6 @@ end
 __MODULES["Modules/Acrylic/Utils"] = function()
     local script = createScriptProxy("Root/Modules/Acrylic/Utils")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -5171,8 +5169,6 @@ end
 __MODULES["Modules/Creator"] = function()
     local script = createScriptProxy("Root/Modules/Creator")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -5425,8 +5421,6 @@ end
 __MODULES["Modules/Icons"] = function()
     local script = createScriptProxy("Root/Modules/Icons")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -58624,8 +58618,6 @@ end
 __MODULES["Packages/Flipper/BaseMotor"] = function()
     local script = createScriptProxy("Root/Packages/Flipper/BaseMotor")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -58694,8 +58686,6 @@ end
 __MODULES["Packages/Flipper/GroupMotor"] = function()
     local script = createScriptProxy("Root/Packages/Flipper/GroupMotor")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -58819,8 +58809,6 @@ end
 __MODULES["Packages/Flipper"] = function()
     local script = createScriptProxy("Root/Packages/Flipper")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -58846,8 +58834,6 @@ end
 __MODULES["Packages/Flipper/Instant"] = function()
     local script = createScriptProxy("Root/Packages/Flipper/Instant")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -58878,8 +58864,6 @@ end
 __MODULES["Packages/Flipper/isMotor"] = function()
     local script = createScriptProxy("Root/Packages/Flipper/isMotor")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -58904,8 +58888,6 @@ end
 __MODULES["Packages/Flipper/Linear"] = function()
     local script = createScriptProxy("Root/Packages/Flipper/Linear")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -58955,8 +58937,6 @@ end
 __MODULES["Packages/Flipper/Signal"] = function()
     local script = createScriptProxy("Root/Packages/Flipper/Signal")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59028,8 +59008,6 @@ end
 __MODULES["Packages/Flipper/SingleMotor"] = function()
     local script = createScriptProxy("Root/Packages/Flipper/SingleMotor")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59110,8 +59088,6 @@ end
 __MODULES["Packages/Flipper/Spring"] = function()
     local script = createScriptProxy("Root/Packages/Flipper/Spring")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59232,8 +59208,6 @@ end
 __MODULES["Packages/Ripple"] = function()
     local script = createScriptProxy("Root/Packages/Ripple")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59270,8 +59244,6 @@ end
 __MODULES["Packages/Signal"] = function()
     local script = createScriptProxy("Root/Packages/Signal")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59359,8 +59331,6 @@ end
 __MODULES["Themes/Amethyst"] = function()
     local script = createScriptProxy("Root/Themes/Amethyst")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59420,8 +59390,6 @@ end
 __MODULES["Themes/Aqua"] = function()
     local script = createScriptProxy("Root/Themes/Aqua")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59481,8 +59449,6 @@ end
 __MODULES["Themes/Cyber"] = function()
     local script = createScriptProxy("Root/Themes/Cyber")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59544,8 +59510,6 @@ end
 __MODULES["Themes/Dark"] = function()
     local script = createScriptProxy("Root/Themes/Dark")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59605,8 +59569,6 @@ end
 __MODULES["Themes"] = function()
     local script = createScriptProxy("Root/Themes")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59674,8 +59636,6 @@ end
 __MODULES["Themes/Light"] = function()
     local script = createScriptProxy("Root/Themes/Light")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59735,8 +59695,6 @@ end
 __MODULES["Themes/Rose"] = function()
     local script = createScriptProxy("Root/Themes/Rose")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59796,8 +59754,6 @@ end
 __MODULES["Themes/Vynixu"] = function()
     local script = createScriptProxy("Root/Themes/Vynixu")
     local function require(p) 
-        -- Normalize path requires here (simplified for POC)
-        -- In robust bundler, we need to handle relative paths
         local target = tostring(p)
         target = target:gsub("Root/", "")
         return __REQUIRE(target)
@@ -59838,6 +59794,7 @@ end
 
 -- MAIN LOGIC
 local FSSHUB_UI = __REQUIRE("Root") -- Load init.luau (stored as Root)
+logLoadTime("Fluent UI Loaded")
 
 -- Load KeySystem
 local KeySystem = (function()
@@ -59913,6 +59870,10 @@ function UI.Initialize(config)
     local keyLink = config.KeyLink or config.keyLink or "https://fsshub.com/getkey"
 
     if gui then gui:Destroy() end
+    
+    -- Cleanup Lazy Loader if present
+    local lazy = CoreGui:FindFirstChild("FSSHUB_Lazy_Loader") or (gethui and gethui():FindFirstChild("FSSHUB_Lazy_Loader"))
+    if lazy then lazy:Destroy() end
 
     gui = Instance.new("ScreenGui")
     gui.Name = "FSSHUB_Cyber_Loader"
@@ -60232,6 +60193,7 @@ end
 return UI
 
 end)()
+logLoadTime("KeySystem Ready")
 
 -- Load Main Menu (only if validated, but for bundle we define it)
 local MainMenu = function()
@@ -60788,6 +60750,31 @@ end
 
 print("[FSSHUB] Main Menu loaded with Fluent Renewed")
 
+end
+
+-- AUTO EXECUTE KEY SYSTEM (For Testing/Dev)
+if KeySystem and KeySystem.Initialize then
+    task.defer(function()
+        logLoadTime("KeySystem Initializing")
+        KeySystem.Initialize({
+            validateCallback = function(key) 
+                print("[FSSHUB] Key Submitted:", key)
+                -- Simulate success for now:
+                task.spawn(function()
+                    if KeySystem.Authorize then
+                        KeySystem.Authorize()
+                    end
+                    task.wait(2)
+                    if MainMenu then 
+                        logLoadTime("MainMenu Launching")
+                        MainMenu() 
+                        logLoadTime("MainMenu Visible")
+                    end
+                end)
+            end,
+            keyLink = "https://fsshub.com/getkey"
+        })
+    end)
 end
 
 -- Export
