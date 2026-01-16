@@ -356,6 +356,7 @@ local KeySystemUI = (function()
         subLabel.Position = UDim2.new(0, 0, 0, logoImage and 135 or 60)
         subLabel.BackgroundTransparency = 1
         subLabel.TextTransparency = 1 -- Start invisible
+        subLabel.Name = "SubLabel"
         subLabel.Parent = container
 
         -- Greeting
@@ -370,6 +371,7 @@ local KeySystemUI = (function()
         greetingLabel.Position = UDim2.new(0, 0, 0, logoImage and 155 or 85)
         greetingLabel.BackgroundTransparency = 1
         greetingLabel.TextTransparency = 1 -- Start invisible
+        greetingLabel.Name = "GreetingLabel"
         greetingLabel.Parent = container
 
         -- Input Field (position adjusted for logo)
@@ -381,7 +383,8 @@ local KeySystemUI = (function()
         inputSection.BackgroundColor3 = Colors.InputBg
         inputSection.BackgroundTransparency = 0.5 -- More transparent
         inputSection.Parent = container
-        inputSection.Visible = false              -- Start hidden
+        inputSection.Name = "InputFrame"
+        inputSection.Visible = false -- Start hidden
 
         local inputCorner = Instance.new("UICorner")
         inputCorner.CornerRadius = UDim.new(0, 6)
@@ -464,6 +467,7 @@ local KeySystemUI = (function()
                 UI.ShowStatus("LINK: " .. keyLink, Colors.Info)
             end
         end)
+        btnGet.Name = "BtnGet"
 
         local btnVerify = createCyberButton("VERIFY", UDim2.new(0.72, 0, 0, buttonYPos), true, function()
             local input = keyInput.Text:gsub("%s+", "")
@@ -473,6 +477,7 @@ local KeySystemUI = (function()
             end
             if validateCallback then validateCallback(input) end
         end)
+        btnVerify.Name = "BtnVerify"
 
         keyInput.FocusLost:Connect(function(enter)
             if enter then
@@ -603,6 +608,257 @@ local KeySystemUI = (function()
         UI.ShowError("ACCESS_DENIED: INVALID_KEY")
     end
 
+    -- =====================================================
+    -- LOADING PANEL (Progress UI)
+    -- =====================================================
+    local loadingPanel = {}
+    local progressBar, progressFill, statusLabel, logLabel, pulseOverlay
+    local currentProgress = 0
+
+    function UI.ShowLoadingPanel()
+        -- Canvas Clearing: Destroy input elements to prevent overlap
+        local elementsToClear = { "InputFrame", "BtnGet", "BtnVerify", "GreetingLabel", "SubLabel" }
+        for _, name in ipairs(elementsToClear) do
+            local el = container:FindFirstChild(name)
+            if el then el:Destroy() end
+        end
+
+        -- Also clean up any other buttons except Close (X)
+        for _, child in ipairs(container:GetChildren()) do
+            if child:IsA("TextButton") and child.Text ~= "X" then child:Destroy() end
+        end
+
+        -- Remove status frame if present
+        local existing = container:FindFirstChild("StatusFrame")
+        if existing then existing:Destroy() end
+
+        -- Loading Panel Container (overlay on existing container)
+        loadingPanel = Instance.new("Frame")
+        loadingPanel.Name = "LoadingPanel"
+        loadingPanel.Size = UDim2.new(1, -40, 0, 180)
+        loadingPanel.Position = UDim2.new(0.5, 0, 0.5, 20)
+        loadingPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+        loadingPanel.BackgroundTransparency = 1
+        loadingPanel.Parent = container
+
+        -- Status Label (current task name)
+        statusLabel = Instance.new("TextLabel")
+        statusLabel.Name = "StatusLabel"
+        statusLabel.Text = "INITIALIZING..."
+        statusLabel.Font = Enum.Font.Code
+        statusLabel.TextSize = 14
+        statusLabel.TextColor3 = Colors.Secondary
+        statusLabel.Size = UDim2.new(1, 0, 0, 20)
+        statusLabel.Position = UDim2.new(0, 0, 0, 0)
+        statusLabel.BackgroundTransparency = 1
+        statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+        statusLabel.Parent = loadingPanel
+
+        -- Progress Bar Background
+        progressBar = Instance.new("Frame")
+        progressBar.Name = "ProgressBar"
+        progressBar.Size = UDim2.new(1, 0, 0, 8)
+        progressBar.Position = UDim2.new(0, 0, 0, 28)
+        progressBar.BackgroundColor3 = Colors.InputBg
+        progressBar.BorderSizePixel = 0
+        progressBar.Parent = loadingPanel
+
+        local progressCorner = Instance.new("UICorner")
+        progressCorner.CornerRadius = UDim.new(0, 4)
+        progressCorner.Parent = progressBar
+
+        addNeonStroke(progressBar, Colors.TextDim, 1)
+
+        -- Progress Bar Fill
+        progressFill = Instance.new("Frame")
+        progressFill.Name = "ProgressFill"
+        progressFill.Size = UDim2.new(0, 0, 1, 0)
+        progressFill.BackgroundColor3 = Colors.Accent
+        progressFill.BorderSizePixel = 0
+        progressFill.Parent = progressBar
+
+        local fillCorner = Instance.new("UICorner")
+        fillCorner.CornerRadius = UDim.new(0, 4)
+        fillCorner.Parent = progressFill
+
+        -- Gradient on fill
+        local fillGradient = Instance.new("UIGradient")
+        fillGradient.Rotation = 0
+        fillGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Colors.Secondary),
+            ColorSequenceKeypoint.new(0.5, Colors.Accent),
+            ColorSequenceKeypoint.new(1, Colors.Secondary)
+        })
+        fillGradient.Parent = progressFill
+
+        -- Pulse overlay for slow operations
+        pulseOverlay = Instance.new("Frame")
+        pulseOverlay.Name = "PulseOverlay"
+        pulseOverlay.Size = UDim2.new(0.1, 0, 1, 0)
+        pulseOverlay.Position = UDim2.new(0, 0, 0, 0)
+        pulseOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        pulseOverlay.BackgroundTransparency = 0.7
+        pulseOverlay.BorderSizePixel = 0
+        pulseOverlay.Visible = false
+        pulseOverlay.Parent = progressFill
+
+        local pulseCorner = Instance.new("UICorner")
+        pulseCorner.CornerRadius = UDim.new(0, 4)
+        pulseCorner.Parent = pulseOverlay
+
+        -- Percentage Label
+        local percentLabel = Instance.new("TextLabel")
+        percentLabel.Name = "PercentLabel"
+        percentLabel.Text = "0%"
+        percentLabel.Font = Enum.Font.Code
+        percentLabel.TextSize = 11
+        percentLabel.TextColor3 = Colors.TextDim
+        percentLabel.Size = UDim2.new(1, 0, 0, 16)
+        percentLabel.Position = UDim2.new(0, 0, 0, 40)
+        percentLabel.BackgroundTransparency = 1
+        percentLabel.TextXAlignment = Enum.TextXAlignment.Right
+        percentLabel.Parent = loadingPanel
+
+        -- Log Display Frame
+        local logFrame = Instance.new("Frame")
+        logFrame.Name = "LogFrame"
+        logFrame.Size = UDim2.new(1, 0, 0, 80)
+        logFrame.Position = UDim2.new(0, 0, 0, 60)
+        logFrame.BackgroundColor3 = Colors.InputBg
+        logFrame.BackgroundTransparency = 0.5
+        logFrame.BorderSizePixel = 0
+        logFrame.ClipsDescendants = true
+        logFrame.Parent = loadingPanel
+
+        local logCorner = Instance.new("UICorner")
+        logCorner.CornerRadius = UDim.new(0, 6)
+        logCorner.Parent = logFrame
+
+        addNeonStroke(logFrame, Colors.TextDim, 1)
+
+        -- Log Label (scrolling text)
+        logLabel = Instance.new("TextLabel")
+        logLabel.Name = "LogLabel"
+        logLabel.Text = ""
+        logLabel.Font = Enum.Font.Code
+        logLabel.TextSize = 10
+        logLabel.TextColor3 = Colors.TextDim
+        logLabel.Size = UDim2.new(1, -10, 1, -10)
+        logLabel.Position = UDim2.new(0, 5, 0, 5)
+        logLabel.BackgroundTransparency = 1
+        logLabel.TextXAlignment = Enum.TextXAlignment.Left
+        logLabel.TextYAlignment = Enum.TextYAlignment.Bottom
+        logLabel.TextWrapped = true
+        logLabel.Parent = logFrame
+
+        -- Total time label (hidden until complete)
+        local totalTimeLabel = Instance.new("TextLabel")
+        totalTimeLabel.Name = "TotalTimeLabel"
+        totalTimeLabel.Text = ""
+        totalTimeLabel.Font = Enum.Font.Code
+        totalTimeLabel.TextSize = 12
+        totalTimeLabel.TextColor3 = Colors.Success
+        totalTimeLabel.Size = UDim2.new(1, 0, 0, 20)
+        totalTimeLabel.Position = UDim2.new(0, 0, 0, 150)
+        totalTimeLabel.BackgroundTransparency = 1
+        totalTimeLabel.Parent = loadingPanel
+
+        currentProgress = 0
+    end
+
+    function UI.UpdateProgress(taskName, progress, taskTime)
+        if not loadingPanel or not loadingPanel.Parent then return end
+
+        -- Update status with glitch effect
+        if statusLabel then
+            glitchText(statusLabel, { Text = taskName:upper(), TextColor3 = Colors.Secondary })
+        end
+
+        -- Tween progress bar
+        if progressFill then
+            local targetSize = UDim2.new(progress / 100, 0, 1, 0)
+            TweenService:Create(progressFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                { Size = targetSize }):Play()
+        end
+
+        -- Update percentage
+        local percentLabel = loadingPanel:FindFirstChild("PercentLabel")
+        if percentLabel then
+            percentLabel.Text = math.floor(progress) .. "%"
+        end
+
+        -- Append to log
+        if logLabel and taskTime then
+            local logEntry = string.format("[%s] Done in %.2fs", taskName, taskTime)
+            local currentLog = logLabel.Text
+            local lines = {}
+            for line in currentLog:gmatch("[^\n]+") do
+                table.insert(lines, line)
+            end
+            table.insert(lines, logEntry)
+            -- Keep only last 6 lines
+            while #lines > 6 do
+                table.remove(lines, 1)
+            end
+            logLabel.Text = table.concat(lines, "\n")
+        end
+
+        currentProgress = progress
+    end
+
+    function UI.StartPulseAnimation()
+        if not pulseOverlay then return end
+        pulseOverlay.Visible = true
+
+        task.spawn(function()
+            while pulseOverlay and pulseOverlay.Visible and pulseOverlay.Parent do
+                pulseOverlay.Position = UDim2.new(0, 0, 0, 0)
+                local tween = TweenService:Create(pulseOverlay,
+                    TweenInfo.new(1, Enum.EasingStyle.Linear),
+                    { Position = UDim2.new(0.9, 0, 0, 0) })
+                tween:Play()
+                tween.Completed:Wait()
+            end
+        end)
+    end
+
+    function UI.StopPulseAnimation()
+        if pulseOverlay then
+            pulseOverlay.Visible = false
+        end
+    end
+
+    function UI.CompleteLoading(totalTime)
+        if not loadingPanel or not loadingPanel.Parent then return end
+
+        UI.StopPulseAnimation()
+
+        -- Update to 100%
+        if progressFill then
+            TweenService:Create(progressFill, TweenInfo.new(0.3),
+                { Size = UDim2.new(1, 0, 1, 0) }):Play()
+        end
+
+        local percentLabel = loadingPanel:FindFirstChild("PercentLabel")
+        if percentLabel then
+            percentLabel.Text = "100%"
+            percentLabel.TextColor3 = Colors.Success
+        end
+
+        -- Show total time
+        local totalTimeLabel = loadingPanel:FindFirstChild("TotalTimeLabel")
+        if totalTimeLabel then
+            totalTimeLabel.Text = string.format("TOTAL LOAD TIME: %.2fs", totalTime)
+            glitchText(totalTimeLabel, { Text = totalTimeLabel.Text, TextColor3 = Colors.Success })
+        end
+
+        -- Update status
+        if statusLabel then
+            statusLabel.Text = "LAUNCH READY"
+            statusLabel.TextColor3 = Colors.Success
+        end
+    end
+
     function UI.Close()
         if blur then TweenService:Create(blur, TweenInfo.new(0.3), { Size = 0 }):Play() end
         if container then
@@ -635,49 +891,279 @@ if KeySystemUI.Keys.Assets then
 end
 
 -- =====================================================
--- WORKER PAYLOAD FETCHER
+-- WORKER PAYLOAD FETCHER (with Progress Orchestration)
 -- =====================================================
-local function fetchAndExecutePayload(key)
+local cachedVersion = nil
+local cachedPayload = nil
+
+-- =====================================================
+-- PERFORMANCE OPTIMIZATIONS
+-- =====================================================
+local prefetchedVersion = nil
+local prefetchComplete = false
+local lastSuccessTime = 0
+local VALIDATION_BYPASS_SECONDS = 1800 -- 30 minutes
+
+-- Pre-fetch: Start version check immediately (while user types key)
+task.spawn(function()
+    local success, response = pcall(function()
+        return game:HttpGet(WorkerUrl .. "/health")
+    end)
+    if success and response then
+        prefetchedVersion = response:match('"version":"([^"]+)"') or response:match('version=([%w%.%-]+)')
+        print("[FSSHUB] Pre-fetch complete: version = " .. tostring(prefetchedVersion))
+    end
+    prefetchComplete = true
+end)
+
+-- Async workspace initialization (prepare cache folder early)
+task.spawn(function()
+    pcall(function()
+        if makefolder and not isfolder("FSSHUB") then
+            makefolder("FSSHUB")
+            makefolder("FSSHUB/cache")
+        end
+    end)
+end)
+
+-- Check if we can bypass validation (recent successful run)
+local function canBypassValidation()
+    if lastSuccessTime > 0 then
+        local elapsed = tick() - lastSuccessTime
+        if elapsed < VALIDATION_BYPASS_SECONDS and cachedPayload then
+            return true
+        end
+    end
+    return false
+end
+
+-- Task helper functions
+local function checkVersion()
+    local success, response = pcall(function()
+        return game:HttpGet(WorkerUrl .. "/health")
+    end)
+    if success and response then
+        -- Try to parse version from response
+        local serverVersion = response:match('"version":"([^"]+)"') or response:match('version=([%w%.%-]+)')
+        return serverVersion, true
+    end
+    return nil, false
+end
+
+local function checkCache(serverVersion)
+    -- Smart caching: check if we have a cached version
+    if cachedVersion and cachedPayload and cachedVersion == serverVersion then
+        return true, cachedPayload
+    end
+    return false, nil
+end
+
+local function downloadBundle(key)
     local placeId = tostring(game.PlaceId)
     local HttpService = game:GetService("HttpService")
-
-    KeySystemUI.ShowStatus("ESTABLISHING_SECURE_CONNECTION...", KeySystemUI.Colors.Info)
 
     local requestUrl = WorkerUrl .. "/load"
         .. "?key=" .. HttpService:UrlEncode(key)
         .. "&placeId=" .. placeId
         .. "&hwid=" .. HttpService:UrlEncode(HWID)
 
-    print("[FSSHUB] Fetching payload...")
-
     local success, content = pcall(function()
         return game:HttpGet(requestUrl)
     end)
 
     if success and content then
-        KeySystemUI.ShowStatus("DOWNLOADING_CORE_BOOTSTRAPPER...", KeySystemUI.Colors.Info)
+        return true, content
+    end
+    return false, content
+end
 
-        local chunk, err = loadstring(content)
-        if chunk then
-            KeySystemUI.ShowStatus("INITIALIZING_FSSHUB_ENVIRONMENT...", KeySystemUI.Colors.Info)
+local function compilePayload(content)
+    local chunk, err = loadstring(content)
+    if chunk then
+        return true, chunk
+    end
+    return false, err
+end
 
-            local execSuccess, execErr = pcall(chunk)
-            if not execSuccess then
-                warn("[FSSHUB] Payload Error: " .. tostring(execErr))
-                KeySystemUI.ShowError("EXEC_FAIL: " .. tostring(execErr))
-            else
-                print("[FSSHUB] Payload executed successfully!")
-                KeySystemUI.ShowStatus("LAUNCHING_MAIN_MENU...", KeySystemUI.Colors.Success)
-                task.wait(1.5) -- UX pause to see the message
-                KeySystemUI.Close()
+local function executePayload(chunk)
+    local success, err = pcall(chunk)
+    return success, err
+end
+
+local function fetchAndExecutePayload(key)
+    -- Suppress redundant loading screens in payload
+    if getgenv then
+        getgenv().SKIP_LOADING_SCREEN = true
+    end
+
+    -- Show Loading Panel immediately
+    KeySystemUI.ShowLoadingPanel()
+
+    local startClock = tick()
+    local accumulatedProgress = 0
+    local serverVersion = nil
+    local payloadContent = nil
+    local compiledChunk = nil
+
+    -- ========================================
+    -- FAKE PROGRESS LEAD-IN (Perceived Performance)
+    -- Start at 10% instantly to give user feedback
+    -- ========================================
+    accumulatedProgress = 10
+    KeySystemUI.UpdateProgress("Initializing", accumulatedProgress)
+
+    -- Small non-blocking wait for UI to render
+    local RunService = game:GetService("RunService")
+    RunService.Heartbeat:Wait()
+
+    -- ========================================
+    -- VALIDATION BYPASS (Super-fast boot)
+    -- Skip health check if recently validated
+    -- ========================================
+    local bypassValidation = canBypassValidation()
+    if bypassValidation and cachedPayload then
+        print("[FSSHUB] Validation bypass active - using cached payload")
+        accumulatedProgress = 75 -- Jump to post-download
+        KeySystemUI.UpdateProgress("Instant Load (Cached)", accumulatedProgress)
+        payloadContent = cachedPayload
+        serverVersion = cachedVersion
+    end
+
+    -- Define weighted tasks
+    local Tasks = {
+        {
+            Name = "Validating Server",
+            Weight = 5, -- Reduced since we have fake lead-in
+            Skip = bypassValidation,
+            Run = function()
+                -- Use pre-fetched version if available
+                if prefetchedVersion then
+                    serverVersion = prefetchedVersion
+                    print("[FSSHUB] Using pre-fetched version: " .. tostring(prefetchedVersion))
+                    return true
+                end
+                -- Fallback to fresh check
+                local version, success = checkVersion()
+                if success then
+                    serverVersion = version
+                    return true
+                end
+                return true -- Continue even if version check fails
             end
+        },
+        {
+            Name = "Checking Cache",
+            Weight = 5,
+            Run = function()
+                local cached, payload = checkCache(serverVersion)
+                if cached then
+                    payloadContent = payload
+                    -- Skip download - jump progress
+                    accumulatedProgress = accumulatedProgress + 60 -- Add download weight
+                    KeySystemUI.UpdateProgress("Cache Hit - Skipping Download", accumulatedProgress + 5)
+                    return true, true                              -- Second bool = cache hit
+                end
+                return true, false
+            end
+        },
+        {
+            Name = "Downloading Bundle",
+            Weight = 60,
+            Run = function()
+                if payloadContent then return true end -- Already cached
+
+                KeySystemUI.StartPulseAnimation()      -- Show activity for slow operation
+                local success, content = downloadBundle(key)
+                KeySystemUI.StopPulseAnimation()
+
+                if success then
+                    payloadContent = content
+                    -- Cache for future use
+                    cachedVersion = serverVersion
+                    cachedPayload = content
+                    return true
+                else
+                    return false, content
+                end
+            end
+        },
+        {
+            Name = "Compiling Payload",
+            Weight = 10,
+            Run = function()
+                local success, result = compilePayload(payloadContent)
+                if success then
+                    compiledChunk = result
+                    return true
+                end
+                return false, result
+            end
+        },
+        {
+            Name = "Initializing Interface",
+            Weight = 15,
+            Run = function()
+                local success, err = executePayload(compiledChunk)
+                if success then
+                    return true
+                end
+                return false, err
+            end
+        }
+    }
+
+    -- Execute tasks with progress tracking
+    local failed = false
+    local failError = nil
+
+    for _, task in ipairs(Tasks) do
+        if failed then break end
+
+        -- Skip tasks if marked (e.g., when validation bypass is active)
+        if task.Skip then
+            print(string.format("[FSSHUB] Skipping %s (bypass active)", task.Name))
+            accumulatedProgress = accumulatedProgress + task.Weight
+            KeySystemUI.UpdateProgress(task.Name .. " (Skipped)", accumulatedProgress, 0)
         else
-            warn("[FSSHUB] Compile Error: " .. tostring(err))
-            KeySystemUI.ShowError("COMPILE_FAIL: " .. tostring(err))
+            local taskStart = tick()
+            KeySystemUI.UpdateProgress(task.Name, accumulatedProgress)
+
+            -- Non-blocking yield for UI responsiveness
+            game:GetService("RunService").Heartbeat:Wait()
+
+            local success, result = task.Run()
+
+            local taskDuration = tick() - taskStart
+
+            if success then
+                -- Check for cache hit skip (second return value)
+                if not (task.Name == "Checking Cache" and result == true) then
+                    accumulatedProgress = accumulatedProgress + task.Weight
+                end
+                KeySystemUI.UpdateProgress(task.Name, accumulatedProgress, taskDuration)
+                print(string.format("[FSSHUB] %s completed in %.2fs", task.Name, taskDuration))
+            else
+                failed = true
+                failError = result or "Unknown error"
+                warn("[FSSHUB] Task failed: " .. task.Name .. " - " .. tostring(failError))
+            end
         end
+    end
+
+    local totalTime = tick() - startClock
+
+    if failed then
+        KeySystemUI.ShowError("LOAD_FAIL: " .. tostring(failError))
     else
-        warn("[FSSHUB] Network Error: " .. tostring(content))
-        KeySystemUI.ShowError("NET_FAIL: " .. tostring(content))
+        -- Record successful load time for future validation bypass
+        lastSuccessTime = tick()
+
+        KeySystemUI.CompleteLoading(totalTime)
+        print(string.format("[FSSHUB] Total load time: %.2fs", totalTime))
+
+        -- Wait a moment to show completion, then close
+        task.wait(1.5)
+        KeySystemUI.Close()
     end
 end
 

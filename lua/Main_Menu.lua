@@ -81,6 +81,14 @@ end
 
 -- Loading GUI
 local function CreateLoadingGui()
+    if getgenv().SKIP_LOADING_SCREEN then
+        return {
+            Update = function() end,
+            Destroy = function() end,
+            Gui = nil
+        }
+    end
+
     if _G.FSSHUB_LOADING_GUI then pcall(function() _G.FSSHUB_LOADING_GUI:Destroy() end) end
 
     local TweenService = game:GetService("TweenService")
@@ -251,7 +259,7 @@ if not Fluent then
 
     local success, result = pcall(function()
         return loadstring(game:HttpGet(
-        "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
+            "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
     end)
 
     if success and result then
