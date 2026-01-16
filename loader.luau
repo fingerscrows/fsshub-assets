@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-16T05:53:40.632Z
+    Generated: 2026-01-16T06:23:13.934Z
 ]]
 
 local __MODULES = {}
@@ -59944,6 +59944,7 @@ function UI.Initialize(config)
     container.BorderSizePixel = 0
     container.BackgroundTransparency = 0.05
     container.Parent = gui
+    container.ClipsDescendants = true -- Important for clean shrink animation
 
     -- Rounded Corners for Container
     local containerCorner = Instance.new("UICorner")
@@ -59969,6 +59970,7 @@ function UI.Initialize(config)
     task.spawn(function()
         local particleColors = {Colors.Accent, Colors.Secondary, Color3.fromRGB(150, 50, 255), Color3.fromRGB(255, 255, 255)}
         while gui and gui.Parent do
+            if not galaxyContainer.Parent then break end -- Safety check
             if math.random() > 0.5 then
                 local particle = Instance.new("Frame")
                 local size = math.random(2, 4)
@@ -60016,44 +60018,36 @@ function UI.Initialize(config)
     -- Logo / Header
     local logoLabel = Instance.new("TextLabel")
     logoLabel.Text = "FSSHUB"
-    logoLabel.Font = Enum.Font.Sarpanch -- "Sci-fi" look
+    logoLabel.Font = Enum.Font.Sarpanch 
     logoLabel.TextSize = 36
     logoLabel.TextColor3 = Colors.Accent
     logoLabel.Size = UDim2.new(1, 0, 0, 40)
     logoLabel.Position = UDim2.new(0, 0, 0, 30)
     logoLabel.BackgroundTransparency = 1
+    logoLabel.TextTransparency = 1 -- Start invisible
     logoLabel.Parent = container
     
-    -- Subheader (KEYSYSTEM GATEWAY) - Moved closer to FSSHUB
+    -- Subheader (KEYSYSTEM GATEWAY)
     local subLabel = Instance.new("TextLabel")
-    subLabel.Text = UI.Keys.MainDesc
+    subLabel.Text = "KEYSYSTEM GATEWAY"
     subLabel.Font = Enum.Font.Code
     subLabel.TextSize = 14
     subLabel.TextColor3 = Colors.TextDim
     subLabel.Size = UDim2.new(1, 0, 0, 20)
     subLabel.Position = UDim2.new(0, 0, 0, 70)
     subLabel.BackgroundTransparency = 1
+    subLabel.TextTransparency = 1 -- Start invisible
     subLabel.Parent = container
-
-    -- Footer (Powered by Junkie)
-    local footerLabel = Instance.new("TextLabel")
-    footerLabel.Text = "POWERED BY JUNKIE"
-    footerLabel.Font = Enum.Font.Code
-    footerLabel.TextSize = 10
-    footerLabel.TextColor3 = Color3.fromRGB(80, 80, 100)
-    footerLabel.Size = UDim2.new(1, 0, 0, 20)
-    footerLabel.Position = UDim2.new(0, 0, 1, -25)
-    footerLabel.BackgroundTransparency = 1
-    footerLabel.Parent = container
 
     -- Input Field
     inputSection = Instance.new("Frame")
     inputSection.Size = UDim2.new(0.8, 0, 0, 40)
-    inputSection.Position = UDim2.new(0.5, 0, 0, 120) -- Slightly adjusted down
+    inputSection.Position = UDim2.new(0.5, 0, 0, 120) 
     inputSection.AnchorPoint = Vector2.new(0.5, 0)
     inputSection.BackgroundColor3 = Colors.InputBg
     inputSection.BackgroundTransparency = 0.5
     inputSection.Parent = container
+    inputSection.Visible = false -- Start hidden
     
     local inputCorner = Instance.new("UICorner")
     inputCorner.CornerRadius = UDim.new(0, 6)
@@ -60069,7 +60063,7 @@ function UI.Initialize(config)
     keyInput.Text = ""
     keyInput.PlaceholderText = "_ENTER_KEY_CODE"
     keyInput.PlaceholderColor3 = Color3.fromRGB(60, 80, 80)
-    keyInput.TextColor3 = Colors.Secondary -- Terminal Green typing
+    keyInput.TextColor3 = Colors.Secondary 
     keyInput.TextSize = 14
     keyInput.Parent = inputSection
 
@@ -60085,6 +60079,7 @@ function UI.Initialize(config)
         btn.TextColor3 = isPrimary and Colors.Accent or Colors.TextDim
         btn.TextSize = 16
         btn.Parent = container
+        btn.Visible = false -- Start hidden
         
         local btnCorner = Instance.new("UICorner")
         btnCorner.CornerRadius = UDim.new(0, 6)
@@ -60096,7 +60091,6 @@ function UI.Initialize(config)
         btn.MouseEnter:Connect(function()
             TweenService:Create(stroke, TweenInfo.new(0.2), {Color = isPrimary and Colors.Secondary or Colors.TextLight}):Play()
             btn.TextColor3 = isPrimary and Colors.Secondary or Colors.TextLight
-            -- Random slight offset
             btn.Position = pos + UDim2.new(0, math.random(-2,2), 0, math.random(-2,2))
             task.delay(0.05, function() btn.Position = pos end)
         end)
@@ -60108,7 +60102,6 @@ function UI.Initialize(config)
 
         btn.MouseButton1Click:Connect(function() 
             action()
-            -- Click Flash
             local flash = Instance.new("Frame")
             flash.Size = UDim2.new(1,0,1,0)
             flash.BackgroundColor3 = Colors.TextLight
@@ -60120,9 +60113,10 @@ function UI.Initialize(config)
             TweenService:Create(flash, TweenInfo.new(0.2), {BackgroundTransparency=1}):Play()
             task.delay(0.2, function() flash:Destroy() end)
         end)
+        return btn
     end
 
-    createCyberButton("GET KEY", UDim2.new(0.3, 0, 0, 190), false, function()
+    local btnGet = createCyberButton("GET KEY", UDim2.new(0.3, 0, 0, 190), false, function()
         if setclipboard then
             setclipboard(keyLink)
             UI.ShowStatus("LINK_COPIED_TO_CLIPBOARD", Colors.Secondary)
@@ -60131,7 +60125,7 @@ function UI.Initialize(config)
         end
     end)
 
-    createCyberButton("VERIFY", UDim2.new(0.7, 0, 0, 190), true, function()
+    local btnVerify = createCyberButton("VERIFY", UDim2.new(0.7, 0, 0, 190), true, function()
         local input = keyInput.Text:gsub("%s+", "")
         if input == "" then
              UI.ShowStatus("ERROR: NO_INPUT_DETECTED", Colors.Error)
@@ -60147,11 +60141,37 @@ function UI.Initialize(config)
         end
     end)
     
-    -- "Terminal" Reveal
-    container.Size = UDim2.new(0, 0, 0, 0)
-    container.BackgroundTransparency = 1
-    
-    TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 480, 0, 280), BackgroundTransparency = 0.05}):Play()
+    -- "Loading" -> Immediate Show
+    -- Start small, "Loading..." text
+    container.Size = UDim2.new(0, 150, 0, 50)
+    container.BackgroundTransparency = 0.05
+    local loadLabel = Instance.new("TextLabel")
+    loadLabel.Text = "INITIALIZING..."
+    loadLabel.Font = Enum.Font.Code
+    loadLabel.TextSize = 12
+    loadLabel.TextColor3 = Colors.Secondary
+    loadLabel.Size = UDim2.new(1,0,1,0)
+    loadLabel.BackgroundTransparency = 1
+    loadLabel.Parent = container
+
+    -- Expand to Full UI Sequence
+    task.spawn(function()
+        task.wait(0.5) -- Short fake load
+        loadLabel:Destroy()
+        -- Expansion
+        TweenService:Create(container, TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 480, 0, 280)}):Play()
+        task.wait(0.4)
+        
+        -- Fade Elements In
+        logoLabel.TextTransparency = 0
+        subLabel.TextTransparency = 0
+        inputSection.Visible = true
+        btnGet.Visible = true
+        btnVerify.Visible = true
+        
+        -- Glitch animate Logo
+        glitchText(logoLabel, {Text="FSSHUB"})
+    end)
 end
 
 function UI.ShowStatus(msg, color)
