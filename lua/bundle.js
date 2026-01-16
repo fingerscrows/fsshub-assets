@@ -267,8 +267,21 @@ if KeySystem and KeySystem.Initialize then
     task.defer(function()
         KeySystem.Initialize({
             validateCallback = function(key) 
-                print("Key Validated:", key)
-                if MainMenu then MainMenu() end
+                print("[FSSHUB] Key Submitted:", key)
+                -- Here you would validate with Junkie SDK
+                -- For now, simulate success:
+                task.spawn(function()
+                    -- Show success animation
+                    if KeySystem.Authorize then
+                        KeySystem.Authorize()
+                    end
+                    -- Wait for UI to close, then launch Main Menu
+                    task.wait(2)
+                    if MainMenu then 
+                        print("[FSSHUB] Launching Main Menu...")
+                        MainMenu() 
+                    end
+                end)
             end,
             keyLink = "https://fsshub.com/getkey"
         })
