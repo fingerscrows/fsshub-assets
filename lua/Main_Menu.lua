@@ -206,7 +206,7 @@ local function Toggle(tab, id, title, default, callback, keybind)
     local config = {
         Title = title,
         Default = default,
-        Callback = callback
+        Callback = callback or function() end
     }
     local toggle = tab:AddToggle(id, config)
 
@@ -214,7 +214,9 @@ local function Toggle(tab, id, title, default, callback, keybind)
         toggle:Keybind("Key_" .. id, {
             Title = "Keybind",
             Default = keybind,
-            Mode = "Toggle"
+            Mode = "Toggle",
+            Callback = function() end,       -- Fix: Ensure Callback exists
+            ChangedCallback = function() end -- Fix: Ensure ChangedCallback exists
         })
     end
     return toggle

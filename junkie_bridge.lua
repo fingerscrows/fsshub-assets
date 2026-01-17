@@ -20,7 +20,14 @@ if success and payload then
 
     local chunk, err = loadstring(payload)
     if chunk then
-        task.spawn(chunk)
+        -- Detach completely from the current thread
+        task.defer(function()
+            task.wait(0.1) -- Force yield to ensure main thread allows overhead
+            local ok, execErr = pcall(chunk)
+            if not ok then
+                warn("[FSSHUB] Runtime Error: " .. tostring(execErr))
+            end
+        end)
     else
         warn("[FSSHUB] Compile error: " .. tostring(err))
     end
