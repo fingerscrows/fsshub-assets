@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Fluent UI Bundle
-    Generated: 2026-01-16T10:57:59.613Z
+    Generated: 2026-01-17T15:30:18.211Z
 ]]
 
 local __MODULES = {}
@@ -1819,7 +1819,7 @@ return function(Config)
 			
 			Library:Notify({
 				Title = "Interface",
-				Content = "Press " .. Library.Utilities:Prettify(Key) .. " to toggle the interface.",
+				Content = `Press {Library.Utilities:Prettify(Key)} to toggle the interface.`,
 				Duration = 6
 			})
 		end
@@ -2364,7 +2364,7 @@ function Element:New(Idx, Config)
 			SatCursor.Position = UDim2.new(Sat, 0, 1 - Vib, 0)
 			DialogDisplayFrame.BackgroundColor3 = Color3.fromHSV(Hue, Sat, Vib)
 
-			HexInput.Input.Text = "#" .. Color3.fromHSV(Hue, Sat, Vib):ToHex()
+			HexInput.Input.Text = `#{Color3.fromHSV(Hue, Sat, Vib):ToHex()}`
 			RedInput.Input.Text = GetRGB()["R"]
 			GreenInput.Input.Text = GetRGB()["G"]
 			BlueInput.Input.Text = GetRGB()["B"]
@@ -2373,7 +2373,7 @@ function Element:New(Idx, Config)
 				TransparencyColor.BackgroundColor3 = Color3.fromHSV(Hue, Sat, Vib)
 				DialogDisplayFrame.BackgroundTransparency = Transparency
 				TransparencyDrag.Position = UDim2.new(0, -1, 1 - Transparency, -6)
-				AlphaInput.Input.Text = tostring(Library.Utilities:Round((1 - Transparency) * 100, 0)) .. "%"
+				AlphaInput.Input.Text = `{Library.Utilities:Round((1 - Transparency) * 100, 0)}%`
 			end
 
 			if Colorpicker.UpdateOnChange then
@@ -2947,7 +2947,7 @@ function Element:New(Idx, Config)
 		if Config.Multi then
 			for Idx, Value in next, Values do
 				if Dropdown.Value[Value] then
-					Str = Str .. Dropdown.Displayer(Value) .. ", "
+					Str = `{Str}{Dropdown.Displayer(Value)}, `
 				end
 			end
 			Str = Str:sub(1, #Str - 2)
@@ -4440,7 +4440,7 @@ local Library = {
 }
 
 function Library:SafeCallback(Function, ...)
-	assert(typeof(Function) == "function", debug.traceback("Library:SafeCallback expects type 'function' at Argument #1, got '" .. typeof(Function) .. "'", 2))
+	assert(typeof(Function) == "function", debug.traceback(`Library:SafeCallback expects type 'function' at Argument #1, got '{typeof(Function)}'`, 2))
 
 	task.spawn(function(...)
 		local Success, Event = pcall(Function, ...)
@@ -4536,10 +4536,16 @@ for i = 1, #ElementsTable do
 		return ElementComponent:New(Idx, Config)
 	end
 
-	local typeName = ElementComponent.__type
-	Elements["Create" .. typeName] = createFn
-	Elements["Add" .. typeName] = createFn
-	Elements[typeName] = createFn
+    -- Debug print
+    if ElementComponent.__type then
+        -- print("Fluent: Registering " .. tostring(ElementComponent.__type))
+    else
+        warn("Fluent: Element missing __type")
+    end
+
+	Elements["Create" .. ElementComponent.__type] = createFn
+	Elements["Add" .. ElementComponent.__type] = createFn
+	Elements[ElementComponent.__type] = createFn
 end
 
 Library.Elements = Elements
@@ -4600,7 +4606,7 @@ function Library:Window(Config: {
 		}
 	}
 
-	BaseContainer.Name = "FluentRenewed_" .. tostring(Config.Title)
+	BaseContainer.Name = `FluentRenewed_{Config.Title}`
 
 	Library.CreatedWindow = Window
 	Library:SetTheme(Library.Theme)
@@ -5464,10 +5470,10 @@ return {
 			if nearestName then
 				IconData = self[nearestName]
 				if typeof(IconData) ~= 'table' then
-					return error(debug.traceback("Argument #2 '" .. tostring(IconName) .. "' is not a valid Icon. Did you mean '" .. tostring(nearestName) .. "'?"))
+					return error(debug.traceback(`Argument #2 '{IconName}' is not a valid Icon. Did you mean '{nearestName}'?`))
 				end
 			else
-				return error(debug.traceback("Argument #2 '" .. tostring(IconName) .. "' is not a valid Icon. No similar names found."))
+				return error(debug.traceback(`Argument #2 '{IconName}' is not a valid Icon. No similar names found.`))
 			end
 		end
 

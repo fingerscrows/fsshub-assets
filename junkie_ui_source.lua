@@ -25,7 +25,7 @@ end
 local Config = {
     Title = "FSSHUB",
     Desc = "KEYSYSTEM GATEWAY",
-    KeyFile = "FSSHUB/fsshubkey.cfg",
+    KeyFile = "FSSHUB/Data/key.cfg",
     Assets = {
         Logo = "rbxassetid://120860566854298" -- FSS Logo
     },
@@ -62,6 +62,9 @@ function Utils.SaveKey(key)
     if writefile then
         if makefolder and not isfolder("FSSHUB") then
             makefolder("FSSHUB")
+        end
+        if makefolder and not isfolder("FSSHUB/Data") then
+            makefolder("FSSHUB/Data")
         end
         pcall(function() writefile(Config.KeyFile, key) end)
     end

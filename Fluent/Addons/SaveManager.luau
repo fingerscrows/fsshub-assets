@@ -48,7 +48,7 @@ local function SetDisplayerDropdownValue(Dropdown: Dropdown, Value)
 end
 
 local SaveManager = {} do
-	SaveManager.Folder = "FluentSettings"
+	SaveManager.Folder = "FSSHUB/Data"
 	SaveManager.Ignore = {}
 	SaveManager.Options, SaveManager.Library = {} :: { [string]: {Type: string, Value: any, SetValues: (self: any, NewValue: { [any]: any }) -> nil, SetValue: (self: any, NewValue: any, ...any) -> nil, SetValueRGB: (self: any, NewValue: Color3, Transparency: number?) -> nil} }, {}
 	SaveManager.Parser = {

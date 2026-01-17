@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB Loader Bundle
-    Generated: 2026-01-16T10:57:58.911Z
+    Generated: 2026-01-17T15:30:18.065Z
 ]]
 
 -- Load Time Tracking
@@ -4587,8 +4587,15 @@ for i = 1, #ElementsTable do
 		return ElementComponent:New(Idx, Config)
 	end
 
-	Elements[`Create{ElementComponent.__type}`] = createFn
-	Elements[`Add{ElementComponent.__type}`] = createFn
+    -- Debug print
+    if ElementComponent.__type then
+        -- print("Fluent: Registering " .. tostring(ElementComponent.__type))
+    else
+        warn("Fluent: Element missing __type")
+    end
+
+	Elements["Create" .. ElementComponent.__type] = createFn
+	Elements["Add" .. ElementComponent.__type] = createFn
 	Elements[ElementComponent.__type] = createFn
 end
 
@@ -59799,50 +59806,97 @@ logLoadTime("Fluent UI Loaded")
 -- Load KeySystem
 local KeySystem = (function()
     local Fluent = FSSHUB_UI
-    local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+    --[[
+    FSSHUB UI Source (Refined)
+    Junkie Inline Architecture
+
+    Features:
+    - Persistent Key System
+    - Advanced Toast Notifications
+    - Dynamic Interaction Polish
+    - Config-Driven Architecture
+]]
+
+local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 
-local UI = {}
+-- [ JUNKIE SDK INITIALIZATION ]
+-- Safe check for Junkie SDK
+local Junkie = getgenv().Junkie
+if not Junkie then
+    pcall(function()
+        Junkie = loadstring(game:HttpGet("https://jnkie.com/sdk/library.lua"))()
+        if Junkie then
+            Junkie.service = "FSSHUB Official"
+            Junkie.identifier = "1000139"
+            Junkie.provider = "FSSHUB - KEY SYSTEM"
+        end
+    end)
+end
 
--- FSS Purple Theme (Matches Logo)
-local Colors = {
-    Background = Color3.fromRGB(15, 15, 20),       -- Deep Dark
-    MainStroke = Color3.fromRGB(140, 120, 210),    -- Lighter Purple for contrast
-    Accent = Color3.fromRGB(127, 106, 196),        -- Purple
-    Secondary = Color3.fromRGB(160, 140, 230),     -- Light Purple
-    Error = Color3.fromRGB(255, 80, 100),          -- Soft Red
-    TextLight = Color3.fromRGB(240, 240, 255),
-    TextDim = Color3.fromRGB(140, 140, 170),
-    InputBg = Color3.fromRGB(20, 20, 30),
-    ButtonBg = Color3.fromRGB(30, 25, 45)
-}
-
-UI.Keys = {
-    MainTitle = "FSSHUB", 
-    MainDesc = "KEYSYSTEM GATEWAY",
+-- [ CONFIGURATION ]
+local Config = {
+    Title = "FSSHUB",
+    Desc = "KEYSYSTEM GATEWAY",
+    KeyFile = "FSSHUB/Data/key.cfg",
     Assets = {
-        Logo = { ID = nil, Size = UDim2.new(0, 80, 0, 80) }
+        Logo = "rbxassetid://120860566854298" -- FSS Logo
     },
-    Directory = "FSSHUB" -- Save folder
+    Colors = {
+        Background = Color3.fromRGB(15, 15, 20),
+        MainStroke = Color3.fromRGB(140, 120, 210),
+        Accent = Color3.fromRGB(127, 106, 196),
+        Secondary = Color3.fromRGB(160, 140, 230),
+        Error = Color3.fromRGB(255, 80, 100),
+        Success = Color3.fromRGB(50, 255, 120),
+        Info = Color3.fromRGB(0, 200, 255),
+        TextLight = Color3.fromRGB(240, 240, 255),
+        TextDim = Color3.fromRGB(140, 140, 170),
+        InputBg = Color3.fromRGB(20, 20, 30),
+        ButtonBg = Color3.fromRGB(30, 25, 45)
+    }
 }
 
-local gui, container, inputSection
-local blur
-local connections = {}
+local Library = {
+    Connections = {},
+    UI = nil,
+    Keys = { -- Added for compatibility with bundle_junkie.js
+        Assets = Config.Assets,
+        MainTitle = Config.Title,
+        MainDesc = Config.Desc
+    }
+}
 
--- Utility: Random String Generator for glitch effect
-local function randomString(len)
+-- [ UTILS ]
+local Utils = {}
+
+function Utils.RandomString(len)
     local s = ""
-    for i = 1, len do
-        s = s .. string.char(math.random(65, 90)) -- A-Z
-    end
+    for i = 1, len do s = s .. string.char(math.random(65, 90)) end
     return s
 end
 
--- Utility: Create Neon Stroke
-local function addNeonStroke(parent, color, thickness)
+function Utils.SaveKey(key)
+    if writefile then
+        if makefolder and not isfolder("FSSHUB") then
+            makefolder("FSSHUB")
+        end
+        if makefolder and not isfolder("FSSHUB/Data") then
+            makefolder("FSSHUB/Data")
+        end
+        pcall(function() writefile(Config.KeyFile, key) end)
+    end
+end
+
+function Utils.LoadKey()
+    if isfile and isfile(Config.KeyFile) then
+        local success, key = pcall(function() return readfile(Config.KeyFile) end)
+        if success then return key end
+    end
+    return nil
+end
+
+function Utils.NeonStroke(parent, color, thickness)
     local stroke = Instance.new("UIStroke")
     stroke.Thickness = thickness or 1
     stroke.Color = color
@@ -59852,441 +59906,348 @@ local function addNeonStroke(parent, color, thickness)
     return stroke
 end
 
--- Utility: Glitch Text Effect
-local function glitchText(label, finalStats)
+function Utils.GlitchText(label, originalText, color)
     task.spawn(function()
-        local originalText = finalStats.Text or label.Text
         for i = 1, 10 do
             if not label or not label.Parent then break end
-            label.Text = randomString(#originalText)
-            label.TextColor3 = (i % 2 == 0) and Colors.Secondary or Colors.Error
+            label.Text = Utils.RandomString(#originalText)
+            label.TextColor3 = (i % 2 == 0) and Config.Colors.TextLight or color
             task.wait(0.05)
         end
         if label and label.Parent then
             label.Text = originalText
-            label.TextColor3 = finalStats.TextColor3 or Colors.TextLight
+            label.TextColor3 = color
         end
     end)
 end
 
-function UI.Initialize(config)
-    local validateCallback = config.Function or config.validateCallback
-    local keyLink = config.KeyLink or config.keyLink or "https://fsshub.com/getkey"
+-- [ TOAST SYSTEM ]
+local ToastSystem = {}
+ToastSystem.ActiveToasts = {}
 
-    if gui then gui:Destroy() end
-    
-    -- Cleanup Lazy Loader if present
-    local lazy = CoreGui:FindFirstChild("FSSHUB_Lazy_Loader") or (gethui and gethui():FindFirstChild("FSSHUB_Lazy_Loader"))
-    if lazy then lazy:Destroy() end
+function ToastSystem.Notify(msg, type, duration)
+    local container = Library.UI and Library.UI:FindFirstChild("MainContainer")
+    if not container then return end
 
-    gui = Instance.new("ScreenGui")
-    gui.Name = "FSSHUB_Cyber_Loader"
-    gui.IgnoreGuiInset = true
-    gui.DisplayOrder = 10000
-    
-    if syn and syn.protect_gui then
-        syn.protect_gui(gui)
-        gui.Parent = CoreGui
-    elseif gethui then
-        gui.Parent = gethui()
-    else
-        gui.Parent = CoreGui
+    local color = Config.Colors.Info
+    if type == "success" then color = Config.Colors.Success end
+    if type == "error" then color = Config.Colors.Error end
+
+    -- Cleanup old toasts
+    if #ToastSystem.ActiveToasts >= 3 then
+        local old = table.remove(ToastSystem.ActiveToasts, 1)
+        if old and old.Parent then old:Destroy() end
     end
 
-    -- Background Blur
-    blur = Instance.new("BlurEffect")
+    local toast = Instance.new("Frame")
+    toast.Size = UDim2.new(0.8, 0, 0, 30)
+    toast.Position = UDim2.new(0.1, 0, 0.9, -40 * (#ToastSystem.ActiveToasts))
+    toast.BackgroundColor3 = Config.Colors.InputBg
+    toast.BackgroundTransparency = 0.2
+    toast.Parent = container
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = toast
+
+    Utils.NeonStroke(toast, color, 1)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = "  " .. msg:upper()
+    label.TextColor3 = color
+    label.Font = Enum.Font.GothamMedium
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = toast
+
+    table.insert(ToastSystem.ActiveToasts, toast)
+
+    -- Animation
+    toast.Position = toast.Position + UDim2.new(0, 20, 0, 0)
+    toast.BackgroundTransparency = 1
+    label.TextTransparency = 1
+
+    TweenService:Create(toast, TweenInfo.new(0.3),
+        { Position = toast.Position - UDim2.new(0, 20, 0, 0), BackgroundTransparency = 0.2 }):Play()
+    TweenService:Create(label, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
+
+    task.delay(duration or 3, function()
+        if toast.Parent then
+            TweenService:Create(toast, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
+            TweenService:Create(label, TweenInfo.new(0.3), { TextTransparency = 1 }):Play()
+            task.wait(0.3)
+            toast:Destroy()
+            -- Remove from active list
+            for i, v in ipairs(ToastSystem.ActiveToasts) do
+                if v == toast then
+                    table.remove(ToastSystem.ActiveToasts, i)
+                    break
+                end
+            end
+        end
+    end)
+end
+
+-- [ UI CONSTRUCTION ]
+function Library.Initialize(junkieConfig)
+    local validateCallback = junkieConfig.Function or junkieConfig.validateCallback
+    local keyLink = junkieConfig.KeyLink or "https://fsshub.com/getkey"
+
+    if Library.UI then Library.UI:Destroy() end
+
+    -- Main GUI
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "FSSHUB_Inline_UI"
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 10000
+    if gethui then gui.Parent = gethui() else gui.Parent = CoreGui end
+    Library.UI = gui
+
+    -- Blur
+    local blur = Instance.new("BlurEffect")
     blur.Size = 0
     blur.Parent = game:GetService("Lighting")
-    TweenService:Create(blur, TweenInfo.new(0.5), {Size = 20}):Play()
+    TweenService:Create(blur, TweenInfo.new(0.5), { Size = 20 }):Play()
 
-    -- Determine container size based on logo
-    local hasLogo = UI.Keys.Assets and UI.Keys.Assets.Logo and UI.Keys.Assets.Logo.ID
-    local containerHeight = hasLogo and 310 or 250
-    
-    -- Main Container
-    container = Instance.new("Frame")
+    -- Container
+    local container = Instance.new("Frame")
     container.Name = "MainContainer"
-    container.Size = UDim2.new(0, 400, 0, containerHeight)
+    container.Size = UDim2.new(0, 420, 0, 340) -- Adjusted height for logo
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.BackgroundColor3 = Colors.Background
-    container.BorderSizePixel = 0
-    container.BackgroundTransparency = 0.25 -- Semi-transparent (Glass effect)
-    container.Parent = gui
+    container.BackgroundColor3 = Config.Colors.Background
+    container.BackgroundTransparency = 0.4
     container.ClipsDescendants = true
+    container.Parent = gui
 
-    -- Rounded Corners for Container
     local containerCorner = Instance.new("UICorner")
     containerCorner.CornerRadius = UDim.new(0, 12)
     containerCorner.Parent = container
-    
-    -- Main Gradient
-    local mainGradient = Instance.new("UIGradient")
-    mainGradient.Rotation = 45
-    mainGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 25)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 15))
-    })
-    mainGradient.Parent = container
 
-    -- Neon Stroke around Container
-    local mainStroke = addNeonStroke(container, Colors.MainStroke, 2)
-    
-    -- Stroke Gradient (Professional Look)
-    local strokeGradient = Instance.new("UIGradient")
-    strokeGradient.Rotation = 45
-    strokeGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Colors.Secondary),
-        ColorSequenceKeypoint.new(0.5, Colors.Accent),
-        ColorSequenceKeypoint.new(1, Colors.Secondary)
-    })
-    strokeGradient.Parent = mainStroke
+    Utils.NeonStroke(container, Config.Colors.MainStroke, 2)
 
-    -- Galaxy Particle Background Effect
-    local galaxyContainer = Instance.new("Frame")
-    galaxyContainer.Name = "GalaxyBg"
-    galaxyContainer.Size = UDim2.new(1, 0, 1, 0)
-    galaxyContainer.BackgroundTransparency = 1
-    galaxyContainer.ClipsDescendants = true
-    
-    local galaxyCorner = Instance.new("UICorner") -- mask content
-    galaxyCorner.CornerRadius = UDim.new(0, 8)
-    galaxyCorner.Parent = galaxyContainer
-    galaxyContainer.Parent = container
+    -- Galaxy Background (Simplified)
+    local galaxy = Instance.new("Frame")
+    galaxy.Size = UDim2.new(1, 0, 1, 0)
+    galaxy.BackgroundTransparency = 1
+    galaxy.Parent = container
 
-    -- Spawn "Galaxy Particles"
     task.spawn(function()
-        local particleColors = {Colors.Accent, Colors.Secondary, Color3.fromRGB(150, 50, 255), Color3.fromRGB(255, 255, 255)}
-        while gui and gui.Parent do
-            if not galaxyContainer.Parent then break end -- Safety check
-            if math.random() > 0.5 then
-                local particle = Instance.new("Frame")
-                local size = math.random(2, 4)
-                particle.Size = UDim2.new(0, size, 0, size)
-                particle.Position = UDim2.new(math.random(), 0, math.random(), 0)
-                particle.BackgroundColor3 = particleColors[math.random(1, #particleColors)]
-                particle.BorderSizePixel = 0
-                particle.BackgroundTransparency = math.random(0.3, 0.7)
-                
-                local corner = Instance.new("UICorner")
-                corner.CornerRadius = UDim.new(1, 0)
-                corner.Parent = particle
-                
-                particle.Parent = galaxyContainer
-
-                -- Twinkle & Drift
-                local duration = math.random(3, 8)
-                local endPos = particle.Position + UDim2.new(math.random(-0.1, 0.1), 0, math.random(-0.1, 0.1), 0)
-                
-                TweenService:Create(particle, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                    Position = endPos,
-                    BackgroundTransparency = 1
-                }):Play()
-                
-                task.delay(duration, function() particle:Destroy() end)
+        while galaxy.Parent do
+            if math.random() > 0.8 then
+                local p = Instance.new("Frame")
+                p.Size = UDim2.new(0, math.random(2, 4), 0, math.random(2, 4))
+                p.Position = UDim2.new(math.random(), 0, math.random(), 0)
+                p.BackgroundColor3 = Config.Colors.Accent
+                p.BorderSizePixel = 0
+                p.Parent = galaxy
+                TweenService:Create(p, TweenInfo.new(math.random(2, 5)),
+                    { BackgroundTransparency = 1, Position = p.Position + UDim2.new(0, 0, -0.2, 0) }):Play()
+                game.Debris:AddItem(p, 5)
             end
-            task.wait(0.05)
+            task.wait(0.1)
         end
     end)
 
-    -- Close Button (X)
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.Text = "X"
-    closeBtn.TextColor3 = Colors.TextDim
-    closeBtn.Font = Enum.Font.Code
-    closeBtn.TextSize = 18
-    closeBtn.BackgroundTransparency = 1
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -30, 0, 0)
-    closeBtn.Parent = container
-    closeBtn.MouseButton1Click:Connect(UI.Close)
-    closeBtn.MouseEnter:Connect(function() closeBtn.TextColor3 = Colors.Error end)
-    closeBtn.MouseLeave:Connect(function() closeBtn.TextColor3 = Colors.TextDim end)
-
-    -- Logo Image (with round corners)
-    local logoImage = nil
-    local logoYOffset = 25
-    
-    if UI.Keys.Assets and UI.Keys.Assets.Logo and UI.Keys.Assets.Logo.ID then
-        logoImage = Instance.new("ImageLabel")
-        logoImage.Image = UI.Keys.Assets.Logo.ID
-        logoImage.Size = UI.Keys.Assets.Logo.Size or UDim2.new(0, 80, 0, 80)
-        logoImage.Position = UDim2.new(0.5, 0, 0, 20)
-        logoImage.AnchorPoint = Vector2.new(0.5, 0)
-        logoImage.BackgroundTransparency = 1
-        logoImage.ImageTransparency = 1 -- Start invisible
-        logoImage.ZIndex = 5 -- Ensure it is on top
-        logoImage.Parent = container
-        
-        -- Round corners for logo
-        local logoCorner = Instance.new("UICorner")
-        logoCorner.CornerRadius = UDim.new(0, 12)
-        logoCorner.Parent = logoImage
-        
-        logoYOffset = 110 -- Adjust text position if logo exists
+    -- Elements
+    -- Logo Image
+    local logoYOffset = 30
+    local logo = nil
+    if Config.Assets.Logo then
+        logo = Instance.new("ImageLabel")
+        logo.Image = Config.Assets.Logo
+        logo.Size = UDim2.new(0, 80, 0, 80)
+        logo.Position = UDim2.new(0.5, 0, 0, 20)
+        logo.AnchorPoint = Vector2.new(0.5, 0)
+        logo.BackgroundTransparency = 1
+        logo.Parent = container
+        Instance.new("UICorner", logo).CornerRadius = UDim.new(0, 12)
+        logoYOffset = 110
     end
-    
-    -- Logo Text / Header
+
     local logoLabel = Instance.new("TextLabel")
-    logoLabel.Text = UI.Keys.MainTitle or "FSSHUB"
+    logoLabel.Text = Config.Title
     logoLabel.Font = Enum.Font.GothamBold
     logoLabel.TextSize = 28
-    logoLabel.TextColor3 = Colors.Accent
+    logoLabel.TextColor3 = Config.Colors.Accent
     logoLabel.Size = UDim2.new(1, 0, 0, 30)
-    logoLabel.Position = UDim2.new(0, 0, 0, logoImage and 105 or 30)
+    logoLabel.Position = UDim2.new(0, 0, 0, logoYOffset)
     logoLabel.BackgroundTransparency = 1
-    logoLabel.TextTransparency = 1 -- Start invisible
     logoLabel.Parent = container
-    
-    -- Subheader
+
     local subLabel = Instance.new("TextLabel")
-    subLabel.Text = UI.Keys.MainDesc or "KEYSYSTEM GATEWAY"
+    subLabel.Text = Config.Desc
     subLabel.Font = Enum.Font.Gotham
     subLabel.TextSize = 12
-    subLabel.TextColor3 = Colors.TextDim
+    subLabel.TextColor3 = Config.Colors.TextDim
     subLabel.Size = UDim2.new(1, 0, 0, 20)
-    subLabel.Position = UDim2.new(0, 0, 0, logoImage and 135 or 60)
+    subLabel.Position = UDim2.new(0, 0, 0, logoYOffset + 30)
     subLabel.BackgroundTransparency = 1
-    subLabel.TextTransparency = 1 -- Start invisible
     subLabel.Parent = container
 
-    -- Input Field (position adjusted for logo)
-    local inputYPos = logoImage and 170 or 100
-    inputSection = Instance.new("Frame")
-    inputSection.Size = UDim2.new(0.85, 0, 0, 42)
-    inputSection.Position = UDim2.new(0.5, 0, 0, inputYPos)
-    inputSection.AnchorPoint = Vector2.new(0.5, 0)
-    inputSection.BackgroundColor3 = Colors.InputBg
-    inputSection.BackgroundTransparency = 0.5 -- More transparent
-    inputSection.Parent = container
-    inputSection.Visible = false -- Start hidden
-    
-    local inputCorner = Instance.new("UICorner")
-    inputCorner.CornerRadius = UDim.new(0, 6)
-    inputCorner.Parent = inputSection
-    
-    addNeonStroke(inputSection, Colors.TextDim, 1)
+    -- Input
+    local inputFrame = Instance.new("Frame")
+    inputFrame.Size = UDim2.new(0.8, 0, 0, 42)
+    inputFrame.Position = UDim2.new(0.5, 0, 0, logoYOffset + 70)
+    inputFrame.AnchorPoint = Vector2.new(0.5, 0)
+    inputFrame.BackgroundColor3 = Config.Colors.InputBg
+    inputFrame.BackgroundTransparency = 0.5
+    inputFrame.Parent = container
 
-    local keyInput = Instance.new("TextBox")
-    keyInput.Size = UDim2.new(1, -20, 1, 0)
-    keyInput.Position = UDim2.new(0, 10, 0, 0)
-    keyInput.BackgroundTransparency = 1
-    keyInput.Font = Enum.Font.Code
-    keyInput.Text = ""
-    keyInput.PlaceholderText = "_ENTER_KEY_CODE"
-    keyInput.PlaceholderColor3 = Color3.fromRGB(60, 80, 80)
-    keyInput.TextColor3 = Colors.Secondary 
-    keyInput.TextSize = 14
-    keyInput.Parent = inputSection
+    Instance.new("UICorner", inputFrame).CornerRadius = UDim.new(0, 6)
+    Utils.NeonStroke(inputFrame, Config.Colors.TextDim, 1)
 
-    -- Button Creator
-    local function createCyberButton(text, pos, isPrimary, action)
+    local input = Instance.new("TextBox")
+    input.Size = UDim2.new(1, -20, 1, 0)
+    input.Position = UDim2.new(0, 10, 0, 0)
+    input.BackgroundTransparency = 1
+    input.Font = Enum.Font.Code
+    input.Text = ""
+    input.PlaceholderText = "ENTER KEY"
+    input.TextColor3 = Config.Colors.Secondary
+    input.TextSize = 14
+    input.Parent = inputFrame
+
+    -- Check Saved Key & Auto-Verify
+    local savedKey = Utils.LoadKey()
+    if savedKey then
+        input.Text = savedKey
+        ToastSystem.Notify("Saved Key Loaded", "success", 2)
+
+        -- Auto Verify
+        task.delay(0.5, function()
+            if validateCallback then
+                ToastSystem.Notify("Auto-Verifying...", "info", 2)
+                validateCallback(savedKey)
+            end
+        end)
+    end
+
+    -- Buttons
+    local function CreateButton(text, pos, primary, callback)
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0.35, 0, 0, 35)
-        btn.AnchorPoint = Vector2.new(0.5, 0)
+        btn.Size = UDim2.new(0.38, 0, 0, 35)
         btn.Position = pos
-        btn.BackgroundColor3 = Colors.ButtonBg
-        btn.BackgroundTransparency = 0.3 -- Semi-transparent
+        btn.AnchorPoint = Vector2.new(0.5, 0)
+        btn.BackgroundColor3 = Config.Colors.ButtonBg
+        btn.BackgroundTransparency = 0.3
         btn.Text = text
-        btn.Font = Enum.Font.GothamMedium -- Professional font
-        btn.TextColor3 = isPrimary and Colors.Accent or Colors.TextDim
+        btn.TextColor3 = primary and Config.Colors.Accent or Config.Colors.TextDim
+        btn.Font = Enum.Font.GothamBold
         btn.TextSize = 14
         btn.Parent = container
-        btn.Visible = false -- Start hidden
-        
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 8)
-        btnCorner.Parent = btn
-        
-        local stroke = addNeonStroke(btn, isPrimary and Colors.Accent or Colors.TextDim, 1)
 
-        -- Hover Glitch Effect
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+        local s = Utils.NeonStroke(btn, primary and Config.Colors.Accent or Config.Colors.TextDim, 1)
+
+        btn.MouseButton1Click:Connect(callback)
+
+        -- Polish: Hover
         btn.MouseEnter:Connect(function()
-            TweenService:Create(stroke, TweenInfo.new(0.2), {Color = isPrimary and Colors.Secondary or Colors.TextLight}):Play()
-            btn.TextColor3 = isPrimary and Colors.Secondary or Colors.TextLight
-            btn.Position = pos + UDim2.new(0, math.random(-2,2), 0, math.random(-2,2))
-            task.delay(0.05, function() btn.Position = pos end)
+            TweenService:Create(s, TweenInfo.new(0.2), { Color = Config.Colors.Secondary }):Play()
+            btn.TextColor3 = Config.Colors.Secondary
         end)
-        
         btn.MouseLeave:Connect(function()
-            TweenService:Create(stroke, TweenInfo.new(0.2), {Color = isPrimary and Colors.Accent or Colors.TextDim}):Play()
-            btn.TextColor3 = isPrimary and Colors.Accent or Colors.TextDim
-        end)
-
-        btn.MouseButton1Click:Connect(function() 
-            action()
-            local flash = Instance.new("Frame")
-            flash.Size = UDim2.new(1,0,1,0)
-            flash.BackgroundColor3 = Colors.TextLight
-            flash.BackgroundTransparency = 0.5
-            flash.Parent = btn
-            local flashCorner = Instance.new("UICorner")
-            flashCorner.CornerRadius = UDim.new(0, 6)
-            flashCorner.Parent = flash
-            TweenService:Create(flash, TweenInfo.new(0.2), {BackgroundTransparency=1}):Play()
-            task.delay(0.2, function() flash:Destroy() end)
+            TweenService:Create(s, TweenInfo.new(0.2),
+                { Color = primary and Config.Colors.Accent or Config.Colors.TextDim }):Play()
+            btn.TextColor3 = primary and Config.Colors.Accent or Config.Colors.TextDim
         end)
         return btn
     end
 
-    -- Button positions adjusted for logo
-    local buttonYPos = logoImage and 230 or 160
-    
-    local btnGet = createCyberButton("GET KEY", UDim2.new(0.28, 0, 0, buttonYPos), false, function()
+    local btnY = logoYOffset + 130
+    CreateButton("GET KEY", UDim2.new(0.25, 0, 0, btnY), false, function()
         if setclipboard then
             setclipboard(keyLink)
-            UI.ShowStatus("LINK_COPIED", Colors.Secondary)
-        else
-            UI.ShowStatus("LINK: "..keyLink, Colors.Accent)
+            ToastSystem.Notify("Link Copied to Clipboard", "info", 2)
         end
     end)
 
-    local btnVerify = createCyberButton("VERIFY", UDim2.new(0.72, 0, 0, buttonYPos), true, function()
-        local input = keyInput.Text:gsub("%s+", "")
-        if input == "" then
-             UI.ShowStatus("NO_KEY_ENTERED", Colors.Error)
-             return
+    local verifyBtn = CreateButton("VERIFY", UDim2.new(0.75, 0, 0, btnY), true, function()
+        local key = input.Text:gsub("%s+", "")
+        if key == "" then
+            -- Shake Effect
+            local x = inputFrame.Position.X.Scale
+            local y = inputFrame.Position.Y.Scale
+            for i = 1, 5 do
+                inputFrame.Position = UDim2.new(x + math.random(-5, 5) / 1000, 0, y, 0)
+                task.wait(0.05)
+            end
+            inputFrame.Position = UDim2.new(x, 0, y, 0)
+            ToastSystem.Notify("Please enter a key", "error", 2)
+            return
         end
-        if validateCallback then validateCallback(input) end
-    end)
-    
-    keyInput.FocusLost:Connect(function(enter)
-        if enter then
-             local input = keyInput.Text:gsub("%s+", "")
-             if input ~= "" and validateCallback then validateCallback(input) end
-        end
-    end)
-    
-    -- "Loading" -> Immediate Show
-    -- Start small, "Loading..." text
-    container.Size = UDim2.new(0, 150, 0, 50)
-    container.BackgroundTransparency = 0.05
-    local loadLabel = Instance.new("TextLabel")
-    loadLabel.Text = "INITIALIZING..."
-    loadLabel.Font = Enum.Font.Code
-    loadLabel.TextSize = 12
-    loadLabel.TextColor3 = Colors.Secondary
-    loadLabel.Size = UDim2.new(1,0,1,0)
-    loadLabel.BackgroundTransparency = 1
-    loadLabel.Parent = container
 
-    -- Expand to Full UI Sequence
-    task.spawn(function()
-        task.wait(0.4) -- Short fake load
-        loadLabel:Destroy()
-        
-        -- Expansion
-        local targetSize = UDim2.new(0, 400, 0, logoImage and 310 or 250)
-        TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize}):Play()
-        task.wait(0.35)
-        
-        -- Fade Elements In
-        if logoImage then
-            TweenService:Create(logoImage, TweenInfo.new(0.3), {ImageTransparency = 0}):Play()
+        ToastSystem.Notify("Verifying...", "info", 1)
+        if validateCallback then
+            validateCallback(key)
         end
-        TweenService:Create(logoLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-        TweenService:Create(subLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-        inputSection.Visible = true
-        btnGet.Visible = true
-        btnVerify.Visible = true
-        
-        -- Subtle pulse effect on logo text
+    end)
+
+    -- Close
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -30, 0, 0)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Text = "X"
+    closeBtn.TextColor3 = Config.Colors.TextDim
+    closeBtn.Parent = container
+    closeBtn.MouseButton1Click:Connect(function()
+        gui:Destroy()
+        if blur then blur:Destroy() end
+    end)
+
+    -- Functions for external use
+    function Library.Close()
+        gui:Destroy()
+        if blur then blur:Destroy() end
+    end
+
+    function Library.Succeed(key)
+        Utils.SaveKey(key) -- Auto Save
+        ToastSystem.Notify("Access Granted", "success", 2)
+        -- Transition to Loader...
+        container:ClearAllChildren()
+
+        -- Centered Loader
+        local loadLabel = Instance.new("TextLabel")
+        loadLabel.Text = "AUTHENTICATED"
+        loadLabel.Size = UDim2.new(1, 0, 1, 0)
+        loadLabel.BackgroundTransparency = 1
+        loadLabel.TextColor3 = Config.Colors.Success
+        loadLabel.Font = Enum.Font.GothamBold
+        loadLabel.TextSize = 18
+        loadLabel.Parent = container
+
+        -- Wait loop for Signal
         task.spawn(function()
-            task.wait(0.2)
-            glitchText(logoLabel, {Text = UI.Keys.MainTitle or "FSSHUB", TextColor3 = Colors.Accent})
+            local dots = ""
+            while not getgenv().FSSHUB_MAIN_MENU_READY and not _G.FSSHUB_WINDOW do
+                dots = dots .. "."
+                if #dots > 3 then dots = "" end
+                loadLabel.Text = "LOADING PAYLOAD" .. dots
+                task.wait(0.5)
+            end
+            Library.Close()
         end)
-    end)
-end
-
-function UI.ShowStatus(msg, color)
-    -- Remove existing status if any
-    local existing = container:FindFirstChild("StatusFrame")
-    if existing then existing:Destroy() end
-
-    local statusFrame = Instance.new("Frame")
-    statusFrame.Name = "StatusFrame"
-    statusFrame.Size = UDim2.new(0, 0, 0, 26) -- Start width 0 for animation
-    statusFrame.Position = UDim2.new(0.5, 0, 1, -12)
-    statusFrame.AnchorPoint = Vector2.new(0.5, 1)
-    statusFrame.BackgroundColor3 = Colors.InputBg
-    statusFrame.BackgroundTransparency = 0.3
-    statusFrame.BorderSizePixel = 0
-    statusFrame.Parent = container
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = statusFrame
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color
-    stroke.Thickness = 1
-    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    stroke.Transparency = 0
-    stroke.Parent = statusFrame
-    
-    local label = Instance.new("TextLabel")
-    label.Text = string.upper(msg)
-    label.TextColor3 = color
-    label.Font = Enum.Font.GothamMedium
-    label.TextSize = 12
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.TextTransparency = 1 -- Start hidden
-    label.Parent = statusFrame
-    
-    -- Animate In
-    local tweenSize = TweenService:Create(statusFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0.9, 0, 0, 26)})
-    tweenSize:Play()
-    
-    task.delay(0.2, function()
-        TweenService:Create(label, TweenInfo.new(0.2), {TextTransparency = 0}):Play()
-    end)
-    
-    task.delay(3, function()
-        if statusFrame.Parent then
-             TweenService:Create(label, TweenInfo.new(0.2), {TextTransparency = 1}):Play()
-             local tweenOut = TweenService:Create(statusFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(0,0,0,26)})
-             tweenOut:Play()
-             tweenOut.Completed:Wait()
-             statusFrame:Destroy()
-        end
-    end)
-end
-
-function UI.ShowError(msg)
-    UI.ShowStatus(msg, Colors.Error)
-    -- Shake Container
-    local orig = UDim2.new(0.5, 0, 0.5, 0)
-    for i=1,6 do
-        container.Position = orig + UDim2.new(0, math.random(-5,5), 0, math.random(-5,5))
-        task.wait(0.04)
     end
-    container.Position = orig
-end
 
-function UI.Authorize()
-    UI.ShowStatus("ACCESS_GRANTED... LOADING_MODULES", Colors.Secondary)
-    task.wait(1.5)
-    UI.Close()
-end
-
-function UI.Fail()
-    UI.ShowError("ACCESS_DENIED: INVALID_KEY")
-end
-
-function UI.Close()
-    if blur then TweenService:Create(blur, TweenInfo.new(0.3), {Size = 0}):Play() end
-    if container then
-        -- Shrink to center
-        local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
-        tween:Play()
-        tween.Completed:Wait()
+    function Library.Fail()
+        ToastSystem.Notify("Invalid Key", "error", 3)
+        Utils.GlitchText(subLabel, "ACCESS DENIED", Config.Colors.Error)
+        task.delay(2, function()
+            subLabel.Text = Config.Desc
+            subLabel.TextColor3 = Config.Colors.TextDim
+        end)
     end
-    if gui then gui:Destroy() end
-    if blur then blur:Destroy() end
+
+    -- Expose Authorize/Fail aliases for bundle_junkie compatibility
+    Library.Authorize = Library.Succeed
 end
 
-return UI
+return Library
 
 end)()
 logLoadTime("KeySystem Ready")
@@ -60296,11 +60257,12 @@ local MainMenu = function()
     local Fluent = FSSHUB_UI
     --[[
     FSSHUB Main Menu - Fluent Renewed (v4.0.8)
-    Universal FREE + PREMIUM Features
-    Workspace: FSSHUBLibrary/
+    Architecture: Async Background Execution + Time Slicing
+    Mode: Headless (Visuals handled by Junkie Loader)
+    Workspace: FSSHUB/
 ]]
 
--- Production mode: disable verbose logging (set by payload)
+-- 1. UTILITIES & CONFIG
 local PRODUCTION = getgenv().FSSHUB_PRODUCTION or false
 local function Log(msg)
     if not PRODUCTION then
@@ -60314,561 +60276,237 @@ if not getgenv().FSSHUB_INFO then
 end
 
 -- Cleanup Old UI
-if _G.FSSHUB_FLUENT then 
-    pcall(function() _G.FSSHUB_FLUENT:Destroy() end) 
+if _G.FSSHUB_FLUENT then
+    pcall(function() _G.FSSHUB_FLUENT:Destroy() end)
 end
 _G.FSSHUB_WINDOW = nil
 
 local Info = getgenv().FSSHUB_INFO
 
--- Theme Configuration
-local THEME_FILE = "FSSHUBLibrary/theme.cfg"
-
--- Ensure folder exists for config storage
+-- Theme System
+local THEME_FILE = "FSSHUB/Config/theme.cfg"
 if makefolder then
-    pcall(function() makefolder("FSSHUBLibrary") end)
-end
-
-local FluentThemes = {
-    Dark = {
-        Main = Color3.fromRGB(45, 45, 45), -- Dialog Color
-        Stroke = Color3.fromRGB(70, 70, 70), -- Dialog Border
-        Text = Color3.fromRGB(240, 240, 240),
-        SubText = Color3.fromRGB(170, 170, 170),
-        Accent = Color3.fromRGB(96, 205, 255)
-    },
-    Light = {
-        Main = Color3.fromRGB(255, 255, 255),
-        Stroke = Color3.fromRGB(140, 140, 140),
-        Text = Color3.fromRGB(41, 41, 41),
-        SubText = Color3.fromRGB(40, 40, 40),
-        Accent = Color3.fromRGB(0, 103, 192)
-    },
-    Amethyst = {
-        Main = Color3.fromRGB(60, 45, 80),
-        Stroke = Color3.fromRGB(85, 70, 100),
-        Text = Color3.fromRGB(240, 240, 240),
-        SubText = Color3.fromRGB(170, 170, 170),
-        Accent = Color3.fromRGB(97, 62, 167)
-    },
-    Rose = {
-        Main = Color3.fromRGB(120, 50, 75),
-        Stroke = Color3.fromRGB(100, 70, 90),
-        Text = Color3.fromRGB(240, 240, 240),
-        SubText = Color3.fromRGB(170, 170, 170),
-        Accent = Color3.fromRGB(180, 55, 90)
-    }
-}
-
-local function GetSavedTheme()
-    if not readfile then return FluentThemes.Dark end
-    local success, themeName = pcall(readfile, THEME_FILE)
-    if success and FluentThemes[themeName] then
-        return FluentThemes[themeName]
-    end
-    return FluentThemes.Dark
+    pcall(function()
+        if not isfolder("FSSHUB") then makefolder("FSSHUB") end
+        if not isfolder("FSSHUB/Config") then makefolder("FSSHUB/Config") end
+    end)
 end
 
 local function SaveTheme(themeName)
-    if writefile then
-        pcall(writefile, THEME_FILE, themeName)
-    end
+    if writefile then pcall(writefile, THEME_FILE, themeName) end
 end
 
--- Loading GUI
-local function CreateLoadingGui()
-    if _G.FSSHUB_LOADING_GUI then pcall(function() _G.FSSHUB_LOADING_GUI:Destroy() end) end
-    
-    local TweenService = game:GetService("TweenService")
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "FSSHUB_Loading"
-    gui.IgnoreGuiInset = true
-    gui.ResetOnSpawn = false
-    gui.DisplayOrder = 100 -- Ensure it's on top
-    
-    local parent = gethui and gethui() or game:GetService("CoreGui")
-    pcall(function() gui.Parent = parent end)
-    
-    _G.FSSHUB_LOADING_GUI = gui
-    
-    local theme = GetSavedTheme()
+local function GetSavedTheme()
+    if not readfile then return "Dark" end
+    local success, themeName = pcall(readfile, THEME_FILE)
+    return success and themeName or "Dark"
+end
 
-    -- Main Container (Bottom Center) - Reverted to Frame for performance
-    local container = Instance.new("Frame")
-    container.Name = "Container"
-    container.Size = UDim2.fromOffset(300, 70)
-    container.Position = UDim2.fromScale(0.5, 0.85) -- Bottom center
-    container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.BackgroundColor3 = theme.Main
-    container.BackgroundTransparency = 0.1
-    container.BorderSizePixel = 0
-    container.Parent = gui
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = container
+-- 2. MAIN UI LOGIC (InitUI)
+-- Defined as a standalone function to be called asynchronously
+local function InitUI(Fluent)
+    Log("Starting UI Build Phase...")
 
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = theme.Stroke
-    stroke.Thickness = 1
-    stroke.Parent = container
-    
-    -- Title
-    local title = Instance.new("TextLabel")
-    title.Name = "Title"
-    title.Size = UDim2.new(1, -20, 0, 20)
-    title.Position = UDim2.new(0, 10, 0, 10)
-    title.BackgroundTransparency = 1
-    title.Text = "FSSHUB"
-    title.TextColor3 = theme.Text
-    title.TextSize = 16
-    title.Font = Enum.Font.GothamBold
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = container
+    -- Event Bus initialization
+    local Events = _G.FSSHUB_EVENTS or { listeners = {}, Emit = function() end, On = function() end }
+    if not _G.FSSHUB_EVENTS then
+        _G.FSSHUB_EVENTS = Events
+    end
 
-    -- Status Text (Dynamic)
-    local status = Instance.new("TextLabel")
-    status.Name = "Status"
-    status.Size = UDim2.new(1, -20, 0, 15)
-    status.Position = UDim2.new(0, 10, 0, 30)
-    status.BackgroundTransparency = 1
-    status.Text = "Initializing..."
-    status.TextColor3 = theme.SubText
-    status.TextSize = 12
-    status.Font = Enum.Font.Gotham
-    status.TextXAlignment = Enum.TextXAlignment.Left
-    status.Parent = container
-    
-    -- Progress Bar Background
-    local barBg = Instance.new("Frame")
-    barBg.Name = "BarBackground"
-    barBg.Size = UDim2.new(1, -20, 0, 4)
-    barBg.Position = UDim2.new(0, 10, 0, 55)
-    barBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    barBg.BorderSizePixel = 0
-    barBg.Parent = container
-    
-    local barCorner = Instance.new("UICorner")
-    barCorner.CornerRadius = UDim.new(0, 2)
-    barCorner.Parent = barBg
-    
-    -- Progress Bar Fill
-    local barFill = Instance.new("Frame")
-    barFill.Name = "BarFill"
-    barFill.Size = UDim2.fromScale(0, 1) -- Start at 0 width
-    barFill.BackgroundColor3 = Color3.new(1, 1, 1) -- White for gradient tint
-    barFill.BorderSizePixel = 0
-    barFill.Parent = barBg
-    
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(0, 2)
-    fillCorner.Parent = barFill
+    -- Window Setup
+    local isPremium = (Info.User.IsPremium == true or Info.User.IsPremium == "true")
+    local gameName = Info.Game.Name or "Universal"
 
-    -- Gradient for extra polish + Shimmer
-    local gradient = Instance.new("UIGradient")
-    local accentH, accentS, accentV = theme.Accent:ToHSV()
-    gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromHSV(accentH, accentS * 0.8, math.min(accentV * 1.2, 1))),
-        ColorSequenceKeypoint.new(1, theme.Accent)
-    }
-    gradient.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0),
-        NumberSequenceKeypoint.new(1, 0)
-    }
-    gradient.Parent = barFill
-    
-    -- Animations
-    container.Position = UDim2.fromScale(0.5, 0.9)
-    TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.fromScale(0.5, 0.85)}):Play()
-    
-    -- Shimmer Loop
-    task.spawn(function()
-        local shimmer = Instance.new("UIGradient")
-        shimmer.Color = ColorSequence.new(Color3.new(1,1,1))
-        shimmer.Transparency = NumberSequence.new{
-            NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(0.5, 0.3),
-            NumberSequenceKeypoint.new(1, 1)
-        }
-        shimmer.Rotation = 45
-        shimmer.Parent = barFill
-        
-        while container.Parent do
-             shimmer.Offset = Vector2.new(-1, 0)
-             TweenService:Create(shimmer, TweenInfo.new(1, Enum.EasingStyle.Linear), {Offset = Vector2.new(1, 0)}):Play()
-             task.wait(2)
+    local Window = Fluent:Window({
+        Title = isPremium and "FSSHUB 👑 | " .. gameName or "FSSHUB | " .. gameName,
+        SubTitle = Info.Version or "v2.0",
+        TabWidth = 160,
+        Size = UDim2.fromOffset(580, 460),
+        Resize = false,
+        MinimizeKey = Enum.KeyCode.RightControl,
+        Acrylic = false,
+        Theme = GetSavedTheme()
+    })
+
+    -- Theme Saving Hook
+    if Fluent.ThemeChanged then
+        Fluent.ThemeChanged:Connect(SaveTheme)
+    end
+
+    -- Helper Function
+    local function Toggle(tab, id, title, default, callback, keybind)
+        local config = { Title = title, Default = default, Callback = callback or function() end }
+        local toggle = tab:AddToggle(id, config)
+        if keybind then
+            toggle:Keybind("Key_" .. id,
+                { Title = "Key", Default = keybind, Mode = "Toggle", Callback = function() end, ChangedCallback = function() end })
         end
-    end)
-    
-    return {
-        Gui = gui,
-        Update = function(progress, text)
-            if not gui.Parent then return end
-            status.Text = text or status.Text
-            TweenService:Create(barFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.fromScale(math.clamp(progress, 0, 1), 1)}):Play()
-        end,
-        Destroy = function()
-            -- Slide down animation (Performance friendly, no GroupTransparency)
-            TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.fromScale(0.5, 0.9)}):Play()
-            task.delay(0.3, function()
-                if gui and gui.Parent then gui:Destroy() end
-                _G.FSSHUB_LOADING_GUI = nil
-            end)
-        end
-    }
-end
-
-local Loading = CreateLoadingGui()
-
--- LOAD FLUENT RENEWED (v4.0.8 with FSSHUBLibrary workspace)
-local Fluent
-local loadStart = tick()
-
-Loading.Update(0.1, "Checking resources...")
-
--- Check if Fluent was pre-loaded by payload (parallel loading optimization)
-if getgenv().FSSHUB_GET_FLUENT then
-    Loading.Update(0.2, "Syncing resources...")
-    Log("Checking for pre-loaded Fluent...")
-    Fluent = getgenv().FSSHUB_GET_FLUENT(30) -- Wait up to 30 seconds (Increased from 8s)
-    if Fluent then
-        Loading.Update(0.8, "Resources synced (Instant)")
-        Log("Using pre-loaded Fluent (instant!)")
+        return toggle
     end
-end
 
--- Fallback to normal loading if pre-load failed
-if not Fluent then
-    Loading.Update(0.3, "Downloading library...")
-    Log("Fallback: Loading Fluent normally...")
-    
-    local success, result = pcall(function()
-        return loadstring(game:HttpGet("https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
-    end)
-    
-    if success and result then
-        Fluent = result
-    else
-        Loading.Update(0, "FAILED TO LOAD UI")
-        warn("[FSSHUB] Critical Error: Failed to load Fluent UI Library!")
-        warn("Debug: " .. tostring(result))
-        
-        task.delay(3, function()
-             if game.Players.LocalPlayer then
-                 game.Players.LocalPlayer:Kick("FSSHUB Error: UI Library failed to load.\n(Check Console F9)")
-             end
-        end)
-        return
-    end
-end
+    -- TABS (Time Sliced for Anti-Freeze)
+    task.wait(0.05) -- Yield to main thread
+    local Tabs = {}
 
-Loading.Update(0.9, "Initializing UI...")
-Log("Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")
+    Tabs.Home = Window:Tab({ Title = "Dashboard", Icon = "home" })
 
--- Loading GUI destruction moved to end of script
-
--- Event System
--- Event Bus (Centralized in Payload)
-if not _G.FSSHUB_EVENTS then
-    warn("[FSSHUB] Global Event Bus not found! Critical features may fail.")
-    -- Fallback for testing/standalone
-    _G.FSSHUB_EVENTS = {
-        listeners = {},
-        Emit = function(self, name, ...)
-             if self.listeners[name] then
-                for _, cb in ipairs(self.listeners[name]) do pcall(cb, ...) end
-            end
-        end,
-        On = function(self, name, cb)
-            self.listeners[name] = self.listeners[name] or {}
-            table.insert(self.listeners[name], cb)
-        end
-    }
-end
-
-local Events = _G.FSSHUB_EVENTS
-_G.FSSHUB_EVENTS = Events
-
--- Context
-local rawPremium = Info.User.IsPremium
-local isPremium = (rawPremium == true) or (rawPremium == 1) or (rawPremium == "true")
-local username = Info.User.Username or "User"
-local tier = Info.User.Tier or "Free"
-
-local expiryTimestamp = Info.User.ExpiryTimestamp or 0
-local gameName = Info.Game.Name or "Universal"
-local version = Info.Version or "v3.5.0"
-
-local function formatExpiry()
-    if expiryTimestamp == 0 then return "Lifetime ∞" end
-    local rem = expiryTimestamp - os.time()
-    if rem <= 0 then return "Expired" end
-    local d = math.floor(rem / 86400)
-    local h = math.floor((rem % 86400) / 3600)
-    local m = math.floor((rem % 3600) / 60)
-    return d > 0 and string.format("%dd %02d:%02d", d, h, m) or string.format("%02d:%02d", h, m)
-end
-
--- Window
-Loading.Update(0.95, "Creating Interface...")
-local Window = Fluent:Window({
-    Title = isPremium and "FSSHUB 👑 | " .. gameName or "FSSHUB | " .. gameName,
-    SubTitle = version .. (isPremium and " Premium" or ""),
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Resize = false, -- Disabled for testing
-    MinimizeKey = Enum.KeyCode.RightControl,
-    Acrylic = false, -- Disabled for testing
-    Theme = "Dark" -- Changed to a known working theme
-})
-
-local Tabs = {
-    Home = Window:Tab({ Title = "Dashboard", Icon = "home" }),
-    Movement = Window:Tab({ Title = "Movement", Icon = "footprints" }),
-    Visual = Window:Tab({ Title = "Visual", Icon = "eye" }),
-    Utility = Window:Tab({ Title = "Utility", Icon = "wrench" }),
-    Player = Window:Tab({ Title = "Player", Icon = "user" }),
-    Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
-}
-
-local Options = Fluent.Options
-
--- Helper for Toggles
-local function Toggle(tab, id, title, default, callback, keybind)
-    local config = {
-        Title = title,
-        Default = default,
-        Callback = callback
-    }
-    local toggle = tab:Toggle(id, config)
-    
-    if keybind then
-        toggle:Keybind("Key_"..id, {
-            Title = "Keybind",
-            Default = keybind,
-            Mode = "Toggle"
-        })
-    end
-    return toggle
-end
-
--- ========== HOME TAB (DASHBOARD) ==========
-
--- Top Panel (Welcome)
-Tabs.Home:Paragraph("WelcomePara", {
-    Title = isPremium and "Welcome, Premium User! 👑" or "Welcome to FSSHub",
-    Content = "Hello, " .. username .. "\nTier: " .. tier
-})
-
--- Create a container for side-by-side panels
--- Note: Fluent doesn't natively support grid layouts easily, so we hack it by appending a custom frame
--- or we just use Sections if they supported side-side.
--- Alternative: We use the fact that Fluent Elements are UIListLayouts.
--- We can create a "Container" element if we had access to Creator, but we are in user-land code.
-
--- Workaround: Add two sections. Standard Fluent renders them vertically.
--- To achieve side-by-side, we would need to edit the library's Section.luau or use a custom element.
--- Given I can't easily edit the library STRUCTURE to support columns without breaking things,
--- I will add a "Stats" section and "Subscription" section.
-
-local StatsSection = Tabs.Home:Section("Statistics")
-StatsSection:Paragraph("SessionInfo", {
-    Title = "Session",
-    Content = "Time: 00:00:00\nFPS: 60"
-})
-
-local SubSection = Tabs.Home:Section("Subscription")
-local ExpiryPara = SubSection:Paragraph("ExpiryPara", {
-    Title = "Status",
-    Content = "Expires: " .. formatExpiry()
-})
-
--- Real-time updates
-task.spawn(function()
-    local startTime = os.time()
-    while _G.FSSHUB_WINDOW do
-        task.wait(1)
-        local elapsed = os.time() - startTime
-        local h = math.floor(elapsed / 3600)
-        local m = math.floor((elapsed % 3600) / 60)
-        local s = elapsed % 60
-        
-        -- Update Expiry
-        if ExpiryPara.SetDesc then
-             ExpiryPara:SetDesc("Expires: " .. formatExpiry()) 
-        end
-        
-        -- Update Session (If we had ref)
-        -- This logic usually requires storing the element reference
-    end
-end)
-
-Tabs.Home:Button({
-    Title = "Join Discord",
-    Description = "Support & Premium",
-    Callback = function()
-        setclipboard("https://discord.gg/fsshub")
-        Fluent:Notify({ Title = "Copied!", Content = "Discord link copied", Duration = 3 })
-    end
-})
-
--- ========== MOVEMENT TAB ==========
--- Free
-local speedEnabled, speedValue = false, 16
-Toggle(Tabs.Movement, "WalkSpeed", "Walk Speed", false, function(v)
-    speedEnabled = v
-    Events:Emit("toggle_speed", speedEnabled, speedValue)
-end, Enum.KeyCode.LeftBracket)
-
-Tabs.Movement:Slider("SpeedValue", {
-    Title = "Speed", Default = 16, Min = 16, Max = 500, Rounding = 0,
-    Callback = function(v) 
-        speedValue = v
-        if speedEnabled then Events:Emit("toggle_speed", true, v) end 
-    end
-})
-
-local jumpEnabled, jumpValue = false, 50
-Toggle(Tabs.Movement, "JumpPower", "Jump Power", false, function(v)
-    jumpEnabled = v
-    Events:Emit("toggle_jump", jumpEnabled, jumpValue)
-end, Enum.KeyCode.RightBracket)
-
-Tabs.Movement:Slider("JumpValue", {
-    Title = "Jump", Default = 50, Min = 50, Max = 500, Rounding = 0,
-    Callback = function(v) 
-        jumpValue = v
-        if jumpEnabled then Events:Emit("toggle_jump", true, v) end 
-    end
-})
-
-Toggle(Tabs.Movement, "InfiniteJump", "Infinite Jump", false, function(v)
-    Events:Emit("toggle_infinitejump", v)
-end)
-
--- Premium
-if isPremium then
-    Tabs.Movement:Paragraph("PremiumHeader", { Title = "Premium Features", Content = "Exclusive movement controls" })
-    
-    local flySpeed = 50
-    local FlyToggle = Toggle(Tabs.Movement, "Fly", "Fly Mode", false, function(v)
-        Events:Emit("toggle_fly", v, flySpeed, false)
-    end, Enum.KeyCode.F)
-    
-    Tabs.Movement:Slider("FlySpeed", {
-        Title = "Fly Speed", Default = 50, Min = 10, Max = 200, Rounding = 0,
-        Callback = function(v) 
-            flySpeed = v
-            if Options.Fly and Options.Fly.Value then Events:Emit("toggle_fly", true, v, false) end 
+    -- Home Content
+    Tabs.Home:AddParagraph("Welcome", {
+        Title = isPremium and "Welcome, Premium User! 👑" or "Welcome to FSSHub",
+        Content = "User: " .. (Info.User.Username or "Guest") .. "\nTier: " .. (Info.User.Tier or "Free")
+    })
+    Tabs.Home:AddButton({
+        Title = "Join Discord",
+        Description = "Get Support & Premium",
+        Callback = function()
+            if setclipboard then setclipboard("https://discord.gg/fsshub") end
+            Fluent:Notify({ Title = "Link Copied!", Content = "Discord link copied to clipboard.", Duration = 3 })
         end
     })
-    
-    Toggle(Tabs.Movement, "Noclip", "Noclip", false, function(v)
-         Events:Emit("toggle_noclip", v)
-    end, Enum.KeyCode.N)
-end
 
--- ========== VISUAL TAB ==========
-local function GetESPOptions()
-    return {
-        showChams = Options.ESPChams and Options.ESPChams.Value or false,
-        showName = Options.ESPName and Options.ESPName.Value or true,
-        showDistance = Options.ESPDistance and Options.ESPDistance.Value or true,
-        showHealth = Options.ESPHealth and Options.ESPHealth.Value or true
-    }
-end
+    task.wait(0.02)
 
-local function UpdateESP()
-    if Options.ESPEnabled then
-        Events:Emit("toggle_esp", Options.ESPEnabled.Value, GetESPOptions())
+    Tabs.Movement = Window:Tab({ Title = "Movement", Icon = "footprints" })
+    -- Movement Content
+    Toggle(Tabs.Movement, "Speed", "Walk Speed", false,
+        function(v) Events:Emit("toggle_speed", v, Fluent.Options.SpeedVal.Value) end)
+    Tabs.Movement:AddSlider("SpeedVal",
+        {
+            Title = "Value",
+            Default = 16,
+            Min = 16,
+            Max = 500,
+            Callback = function(v)
+                Events:Emit("toggle_speed",
+                    Fluent.Options.Speed.Value, v)
+            end
+        })
+
+    Toggle(Tabs.Movement, "Jump", "Jump Power", false,
+        function(v) Events:Emit("toggle_jump", v, Fluent.Options.JumpVal.Value) end)
+    Tabs.Movement:AddSlider("JumpVal",
+        {
+            Title = "Value",
+            Default = 50,
+            Min = 50,
+            Max = 500,
+            Callback = function(v)
+                Events:Emit("toggle_jump",
+                    Fluent.Options.Jump.Value, v)
+            end
+        })
+
+    if isPremium then
+        Tabs.Movement:AddParagraph("Prem", { Title = "Premium", Content = "Fly & Noclip unlocked" })
+        Toggle(Tabs.Movement, "Fly", "Fly Mode", false, function(v) Events:Emit("toggle_fly", v) end, Enum.KeyCode.F)
+        Toggle(Tabs.Movement, "Noclip", "Noclip", false, function(v) Events:Emit("toggle_noclip", v) end)
     end
+
+    task.wait(0.02)
+
+    Tabs.Visual = Window:Tab({ Title = "Visual", Icon = "eye" })
+    -- Visual Content
+    Toggle(Tabs.Visual, "ESP", "Enable ESP", false, function(v) Events:Emit("toggle_esp", v) end, Enum.KeyCode.E)
+    Toggle(Tabs.Visual, "Fullbright", "Fullbright", false, function(v) Events:Emit("toggle_fullbright", v) end)
+
+    task.wait(0.02)
+
+    Tabs.Utility = Window:Tab({ Title = "Utility", Icon = "wrench" })
+    Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
+
+    Tabs.Player = Window:Tab({ Title = "Player", Icon = "user" })
+    Tabs.Player:AddButton({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
+
+    task.wait(0.02)
+
+    Tabs.Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
+    Tabs.Settings:AddDropdown("Theme",
+        { Title = "Theme", Values = Fluent.Themes, Default = Fluent.Theme, Callback = function(v) Fluent:SetTheme(v) end })
+
+    Window:SelectTab(1)
+
+    -- Finalize
+    _G.FSSHUB_WINDOW = Window
+    _G.FSSHUB_FLUENT = Fluent
+    _G.FSSHUB_OPTIONS = Fluent.Options
+
+    Log("UI Built. Signaling Loader...")
+
+    -- SIGNAL READY to close Junkie Loading Screen
+    if getgenv then getgenv().FSSHUB_MAIN_MENU_READY = true end
+    print("[FSSHUB] UI Fully Loaded.")
 end
 
-Toggle(Tabs.Visual, "ESPEnabled", "Enable ESP", false, UpdateESP, Enum.KeyCode.E)
-Tabs.Visual:Toggle("ESPChams", { Title = "Show Chams", Default = false, Callback = UpdateESP })
-Tabs.Visual:Toggle("ESPName", { Title = "Show Names", Default = true, Callback = UpdateESP })
-Tabs.Visual:Toggle("ESPDistance", { Title = "Show Distance", Default = true, Callback = UpdateESP })
-Tabs.Visual:Toggle("ESPHealth", { Title = "Show Health", Default = true, Callback = UpdateESP })
-
-Toggle(Tabs.Visual, "Fullbright", "Fullbright", false, function(v)
-    Events:Emit("toggle_fullbright", v)
-end, Enum.KeyCode.B)
-
--- ========== UTILITY & PLAYER TAB ==========
--- Simplified for brevity, similar structure...
-Toggle(Tabs.Utility, "AntiAFK", "Anti AFK", false, function(v) Events:Emit("toggle_antiafk", v) end)
-
-Tabs.Utility:Button({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
-Tabs.Player:Button({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
-
--- ========== SETTINGS TAB ==========
-local InterfaceSection = Tabs.Settings:Section("Interface")
-
-InterfaceSection:Dropdown("InterfaceTheme", {
-    Title = "Theme",
-    Values = Fluent.Themes,
-    Default = Fluent.Theme,
-    Callback = function(Value)
-        Fluent:SetTheme(Value)
-        -- Theme saving is handled by the ThemeChanged event below
+-- 3. EXECUTION CHAIN (Async)
+task.spawn(function()
+    -- Check Pre-load
+    if getgenv().FSSHUB_GET_FLUENT then
+        Log("Checking pre-load cache...")
+        local lib = getgenv().FSSHUB_GET_FLUENT(10)
+        if lib then
+            Log("Using Cached Fluent")
+            task.defer(function() InitUI(lib) end)
+            return
+        end
     end
-})
 
-InterfaceSection:Toggle("Transparency", {
-    Title = "Transparency",
-    Default = Fluent.Transparency,
-    Callback = function(Value) Fluent:ToggleTransparency(Value) end
-})
+    -- Download Fallback with Caching
+    Log("Checking Local Cache...")
+    local CACHE_FILE = "FSSHUB/Bin/Fluent.luau"
+    local libraryLoader = nil
 
-InterfaceSection:Keybind("MenuKeybind", {
-    Title = "Minimize Bind",
-    Default = Fluent.MinimizeKey or Enum.KeyCode.RightControl,
-    ChangedCallback = function(Value) Fluent.MinimizeKey = Value end
-})
+    if isfile and isfile(CACHE_FILE) then
+        local s, r = pcall(readfile, CACHE_FILE)
+        if s then
+            local func, err = loadstring(r)
+            if func then
+                libraryLoader = func
+                Log("Loaded Fluent from Local Cache")
+            end
+        end
+    end
 
-Window:SelectTab(1)
+    if not libraryLoader then
+        Log("Downloading Fluent Library...")
+        local success, result = pcall(function()
+            return game:HttpGet(
+            "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8")
+        end)
 
--- Remove Loading GUI (Now that window is ready)
-if _G.FSSHUB_LOADING_GUI then
-    Loading.Update(1, "Ready!")
-    task.delay(0.2, function()
-        Loading.Destroy()
+        if success and result then
+            -- Cache it
+            if writefile then
+                pcall(function()
+                    if not isfolder("FSSHUB") then makefolder("FSSHUB") end
+                    if not isfolder("FSSHUB/Bin") then makefolder("FSSHUB/Bin") end
+                    writefile(CACHE_FILE, result)
+                end)
+            end
+            libraryLoader = loadstring(result)
+        end
+    end
+
+    local success, result = pcall(function()
+        if libraryLoader then return libraryLoader() end
+        error("Failed to load library")
     end)
-end
 
-Fluent:Notify({
-    Title = "FSSHUB Loaded",
-    Content = "Welcome, " .. username,
-    Duration = 5
-})
+    if success and result then
+        Log("Fluent Loaded. Initializing UI...")
+        task.wait(0.05) -- Reset script timer
 
-_G.FSSHUB_WINDOW = Window
-_G.FSSHUB_FLUENT = Fluent
-_G.FSSHUB_OPTIONS = Options
-
--- Hook into Fluent's native ThemeChanged signal for robust syncing
-if Fluent.ThemeChanged then
-    Fluent.ThemeChanged:Connect(function(ThemeName)
-        SaveTheme(ThemeName)
-        -- We could also update specific UI elements here if needed, 
-        -- but Fluent handles most things internally.
-    end)
-end
-
--- Initialize saved theme
-local savedTheme = GetSavedTheme()
-if savedTheme and savedTheme ~= "Dark" then -- Dark is default
-    -- We need to reverse lookup the name from our table or just use the string read from file
-    -- Since GetSavedTheme returns the table, let's fix that function logic or just read directly
-    if readfile then
-       local success, themeName = pcall(readfile, THEME_FILE)
-       if success and Fluent.Themes and table.find(Fluent.Themes, themeName) then
-           Fluent:SetTheme(themeName)
-       end
+        -- Start UI Build in fresh thread
+        task.defer(function()
+            InitUI(result)
+        end)
+    else
+        warn("Fluent Load Error: " .. tostring(result))
+        -- In case of error, we should arguably notify the user,
+        -- but since we removed the loading screen, we relay on console.
+        -- Or we could signal FSSHUB_MAIN_MENU_READY = true anyway to close the loader loop?
+        -- No, let it hang or timeout in the loader so user sees "TIMEOUT".
     end
-end
-
-print("[FSSHUB] Main Menu loaded with Fluent Renewed")
+end)
 
 end
 

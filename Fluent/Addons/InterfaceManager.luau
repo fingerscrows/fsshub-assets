@@ -1,7 +1,7 @@
 local httpService = game:GetService("HttpService")
 
 local InterfaceManager = {} do
-	InterfaceManager.Folder = "FluentRenewedSettings"
+	InterfaceManager.Folder = "FSSHUB/Config"
 
     InterfaceManager.Settings = {
         Theme = "Dark",

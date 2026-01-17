@@ -21,21 +21,21 @@ local CONFIG = {
     -- Local Workspace Paths
     Workspace = {
         Root = "FSSHUB",
-        Cache = "FSSHUB/cache",
-        Assets = "FSSHUB/assets",
-        Config = "FSSHUB/config",
-        Data = "FSSHUB/data",
+        Cache = "FSSHUB/Cache",
+        Assets = "FSSHUB/Assets",
+        Config = "FSSHUB/Config",
+        Data = "FSSHUB/Data",
 
         -- Files
-        BundleFile = "FSSHUB/cache/UI_Bundle.bin",
-        VersionFile = "FSSHUB/cache/version.txt",
-        ThemeFile = "FSSHUB/config/theme.cfg",
-        KeyFile = "FSSHUB/data/key.cfg",
+        BundleFile = "FSSHUB/Cache/UI_Bundle.bin",
+        VersionFile = "FSSHUB/Cache/version.txt",
+        ThemeFile = "FSSHUB/Config/theme.cfg",
+        KeyFile = "FSSHUB/Data/key.cfg",
 
         -- Legacy (for migration)
-        LegacyBin = "FSSHUB/bin",
-        LegacyLoader = "FSSHUB/bin/loader.luau",
-        LegacyKey = "FSSHUB/data/SavedkeyFSSHUB_KeyData.cfg",
+        LegacyBin = "FSSHUB/Bin",
+        LegacyLoader = "FSSHUB/Bin/loader.luau",
+        LegacyKey = "FSSHUB/Data/SavedkeyFSSHUB_KeyData.cfg",
     },
 
     -- Retry Config

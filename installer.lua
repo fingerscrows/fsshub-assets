@@ -24,21 +24,21 @@ local INSTALLER_VERSION = "2.0.0"
 
 local WORKSPACE = {
     Root = "FSSHUB",
-    Cache = "FSSHUB/cache",
-    Config = "FSSHUB/config",
-    Data = "FSSHUB/data",
-    Assets = "FSSHUB/assets",
+    Cache = "FSSHUB/Cache",
+    Config = "FSSHUB/Config",
+    Data = "FSSHUB/Data",
+    Assets = "FSSHUB/Assets",
 
     -- Files
-    BundleFile = "FSSHUB/cache/UI_Bundle.bin",
-    VersionFile = "FSSHUB/cache/version.txt",
-    KeyFile = "FSSHUB/data/key.cfg",
-    ThemeFile = "FSSHUB/config/theme.cfg",
+    BundleFile = "FSSHUB/Cache/UI_Bundle.bin",
+    VersionFile = "FSSHUB/Cache/version.txt",
+    KeyFile = "FSSHUB/Data/key.cfg",
+    ThemeFile = "FSSHUB/Config/theme.cfg",
 
     -- Legacy paths (for migration)
-    LegacyBin = "FSSHUB/bin",
-    LegacyLoader = "FSSHUB/bin/loader.luau",
-    LegacyKey = "FSSHUB/data/SavedkeyFSSHUB_KeyData.cfg",
+    LegacyBin = "FSSHUB/Bin",
+    LegacyLoader = "FSSHUB/Bin/loader.luau",
+    LegacyKey = "FSSHUB/Data/SavedkeyFSSHUB_KeyData.cfg",
 }
 
 -- Store globally for other scripts
