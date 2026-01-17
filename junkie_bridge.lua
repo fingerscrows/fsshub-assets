@@ -3,7 +3,7 @@
 -- and set getgenv().SCRIPT_KEY
 
 local key = getgenv().SCRIPT_KEY
-local hwid = game:GetService("RbxAnalyticsService"):GetClientId()
+local hwid = getgenv().SCRIPT_HWID or game:GetService("RbxAnalyticsService"):GetClientId()
 local url = "https://script.fsshub-services.workers.dev/load"
     .. "?key=" .. (key or "unknown")
     .. "&hwid=" .. (hwid or "unknown")

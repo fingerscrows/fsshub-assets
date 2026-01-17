@@ -47,6 +47,7 @@ local function generateHWID()
 end
 
 local HWID = generateHWID()
+getgenv().SCRIPT_HWID = HWID -- Export for bridge script
 
 -- =====================================================
 -- CONFIGURATION
@@ -67,17 +68,17 @@ local KeySystemUI = (function()
 
     -- FSS Purple Theme (Matches Logo)
     local Colors = {
-        Background = Color3.fromRGB(15, 15, 20),    -- Deep Dark
+        Background = Color3.fromRGB(25, 20, 35),    -- Dark Purple Glass Tint
         MainStroke = Color3.fromRGB(140, 120, 210), -- Lighter Purple for contrast
-        Accent = Color3.fromRGB(127, 106, 196),     -- Purple
-        Secondary = Color3.fromRGB(160, 140, 230),  -- Light Purple
+        Accent = Color3.fromRGB(138, 110, 215),     -- Vibrant Purple
+        Secondary = Color3.fromRGB(170, 150, 240),  -- Light Purple
         Error = Color3.fromRGB(255, 80, 100),       -- Soft Red
         Success = Color3.fromRGB(50, 255, 120),     -- Neon Green
         Info = Color3.fromRGB(0, 200, 255),         -- Neon Blue
-        TextLight = Color3.fromRGB(240, 240, 255),
-        TextDim = Color3.fromRGB(140, 140, 170),
-        InputBg = Color3.fromRGB(20, 20, 30),
-        ButtonBg = Color3.fromRGB(30, 25, 45)
+        TextLight = Color3.fromRGB(255, 255, 255),  -- Pure White for readability
+        TextDim = Color3.fromRGB(180, 180, 200),    -- Light Gray-Purple
+        InputBg = Color3.fromRGB(15, 12, 25),       -- Darker Input BG
+        ButtonBg = Color3.fromRGB(40, 30, 60)       -- Purple-ish Button BG
     }
     UI.Colors = Colors
 
@@ -161,7 +162,7 @@ local KeySystemUI = (function()
         blur = Instance.new("BlurEffect")
         blur.Size = 0
         blur.Parent = game:GetService("Lighting")
-        TweenService:Create(blur, TweenInfo.new(0.5), { Size = 20 }):Play()
+        TweenService:Create(blur, TweenInfo.new(0.5), { Size = 24 }):Play() -- Stronger blur for glass effect
 
         -- Determine container size based on logo
         local hasLogo = UI.Keys.Assets and UI.Keys.Assets.Logo and UI.Keys.Assets.Logo.ID
@@ -175,7 +176,7 @@ local KeySystemUI = (function()
         container.AnchorPoint = Vector2.new(0.5, 0.5)
         container.BackgroundColor3 = Colors.Background
         container.BorderSizePixel = 0
-        container.BackgroundTransparency = 0.4 -- Thinner Glass Effect
+        container.BackgroundTransparency = 0.25 -- Glassy but readable
         container.Parent = gui
         container.ClipsDescendants = true
 
@@ -595,6 +596,7 @@ local KeySystemUI = (function()
     end
 
     function UI.Close()
+        getgenv().UI_CLOSED = true
         if blur then TweenService:Create(blur, TweenInfo.new(0.3), { Size = 0 }):Play() end
         if container then
             -- Shrink to center
@@ -625,6 +627,7 @@ end
 -- INITIALIZE KEY SYSTEM (Validation Logic)
 -- =====================================================
 getgenv().SCRIPT_KEY = nil
+getgenv().UI_CLOSED = false
 
 KeySystemUI.Initialize({
     KeyLink = Junkie.get_key_link(),
@@ -658,6 +661,6 @@ KeySystemUI.Initialize({
 -- =====================================================
 -- This ensures the Main Script (Bridge) is not loaded until
 -- the key is firmly established in getgenv
-while not getgenv().SCRIPT_KEY do
+while not getgenv().SCRIPT_KEY and not getgenv().UI_CLOSED do
     task.wait(0.1)
 end
