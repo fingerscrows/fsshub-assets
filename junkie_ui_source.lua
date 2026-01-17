@@ -640,7 +640,7 @@ local KeySystemUI = (function()
 
             -- Wait for Bridge to Fetch Payload
             local timeout = 0
-            while not getgenv().FSSHUB_MAIN_MENU_READY do
+            while not getgenv().FSSHUB_MAIN_MENU_READY and not _G.FSSHUB_WINDOW do
                 timeout = timeout + 0.1
                 task.wait(0.1)
 
@@ -656,7 +656,7 @@ local KeySystemUI = (function()
                 end
             end
 
-            if getgenv().FSSHUB_MAIN_MENU_READY then
+            if getgenv().FSSHUB_MAIN_MENU_READY or _G.FSSHUB_WINDOW then
                 TweenService:Create(barFill, TweenInfo.new(0.3), { Size = UDim2.new(1, 0, 1, 0) }):Play()
                 loadLabel.Text = "LAUNCHING..."
                 loadLabel.TextColor3 = Colors.Success
