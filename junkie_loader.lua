@@ -1354,22 +1354,9 @@ local function fetchAndExecutePayload(key)
         KeySystemUI.CompleteLoading(totalTime, updateUI)
         print(string.format("[FSSHUB] Total load time: %.2fs", totalTime))
 
-        -- Wait for Main Menu UI to be ready before closing
-        updateUI("Waiting for Main Menu...", 100)
-
-        local waitStart = tick()
-        local maxWait = 30 -- Maximum 30 seconds wait
-
-        while not getgenv().FSSHUB_MAIN_MENU_READY do
-            if tick() - waitStart > maxWait then
-                warn("[FSSHUB] Timeout waiting for Main Menu, closing loader anyway")
-                break
-            end
-            game:GetService("RunService").Heartbeat:Wait()
-        end
-
-        -- Small delay for smooth transition
-        task.wait(0.3)
+        -- Close immediately after payload execution starts
+        -- The payload handles its own bootstrapping asynchronously
+        task.wait(0.5) -- Brief delay to show completion message
         KeySystemUI.Close()
     end
 end

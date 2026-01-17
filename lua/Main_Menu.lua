@@ -408,13 +408,7 @@ InterfaceSection:AddKeybind("MenuKeybind", {
 
 Window:SelectTab(1)
 
--- Remove Loading GUI (Now that window is ready)
-if _G.FSSHUB_LOADING_GUI then
-    Loading.Update(1, "Ready!")
-    task.delay(0.2, function()
-        Loading.Destroy()
-    end)
-end
+-- Loading GUI is handled by junkie_loader.lua - no action needed here
 
 Fluent:Notify({
     Title = "FSSHUB Loaded",
