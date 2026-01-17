@@ -2,7 +2,7 @@
     FSSHUB Main Menu - Fluent Renewed (v4.0.8)
     Architecture: Async Background Execution + Time Slicing
     Mode: Headless (Visuals handled by Junkie Loader)
-    Workspace: FSSHUBLibrary/
+    Workspace: FSSHUB/
 ]]
 
 -- 1. UTILITIES & CONFIG
@@ -27,8 +27,13 @@ _G.FSSHUB_WINDOW = nil
 local Info = getgenv().FSSHUB_INFO
 
 -- Theme System
-local THEME_FILE = "FSSHUBLibrary/theme.cfg"
-if makefolder then pcall(function() makefolder("FSSHUBLibrary") end) end
+local THEME_FILE = "FSSHUB/Config/theme.cfg"
+if makefolder then
+    pcall(function()
+        if not isfolder("FSSHUB") then makefolder("FSSHUB") end
+        if not isfolder("FSSHUB/Config") then makefolder("FSSHUB/Config") end
+    end)
+end
 
 local function SaveTheme(themeName)
     if writefile then pcall(writefile, THEME_FILE, themeName) end
@@ -109,14 +114,30 @@ local function InitUI(Fluent)
     Toggle(Tabs.Movement, "Speed", "Walk Speed", false,
         function(v) Events:Emit("toggle_speed", v, Fluent.Options.SpeedVal.Value) end)
     Tabs.Movement:AddSlider("SpeedVal",
-        { Title = "Value", Default = 16, Min = 16, Max = 500, Callback = function(v) Events:Emit("toggle_speed",
-                Fluent.Options.Speed.Value, v) end })
+        {
+            Title = "Value",
+            Default = 16,
+            Min = 16,
+            Max = 500,
+            Callback = function(v)
+                Events:Emit("toggle_speed",
+                    Fluent.Options.Speed.Value, v)
+            end
+        })
 
     Toggle(Tabs.Movement, "Jump", "Jump Power", false,
         function(v) Events:Emit("toggle_jump", v, Fluent.Options.JumpVal.Value) end)
     Tabs.Movement:AddSlider("JumpVal",
-        { Title = "Value", Default = 50, Min = 50, Max = 500, Callback = function(v) Events:Emit("toggle_jump",
-                Fluent.Options.Jump.Value, v) end })
+        {
+            Title = "Value",
+            Default = 50,
+            Min = 50,
+            Max = 500,
+            Callback = function(v)
+                Events:Emit("toggle_jump",
+                    Fluent.Options.Jump.Value, v)
+            end
+        })
 
     if isPremium then
         Tabs.Movement:AddParagraph("Prem", { Title = "Premium", Content = "Fly & Noclip unlocked" })
@@ -172,12 +193,45 @@ task.spawn(function()
         end
     end
 
-    -- Download Fallback
-    Log("Downloading Fluent Library...")
+    -- Download Fallback with Caching
+    Log("Checking Local Cache...")
+    local CACHE_FILE = "FSSHUB/Bin/Fluent.luau"
+    local libraryLoader = nil
+
+    if isfile and isfile(CACHE_FILE) then
+        local s, r = pcall(readfile, CACHE_FILE)
+        if s then
+            local func, err = loadstring(r)
+            if func then
+                libraryLoader = func
+                Log("Loaded Fluent from Local Cache")
+            end
+        end
+    end
+
+    if not libraryLoader then
+        Log("Downloading Fluent Library...")
+        local success, result = pcall(function()
+            return game:HttpGet(
+            "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8")
+        end)
+
+        if success and result then
+            -- Cache it
+            if writefile then
+                pcall(function()
+                    if not isfolder("FSSHUB") then makefolder("FSSHUB") end
+                    if not isfolder("FSSHUB/Bin") then makefolder("FSSHUB/Bin") end
+                    writefile(CACHE_FILE, result)
+                end)
+            end
+            libraryLoader = loadstring(result)
+        end
+    end
+
     local success, result = pcall(function()
-        task.wait(0.1) -- Non-blocking yield
-        return loadstring(game:HttpGet(
-        "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
+        if libraryLoader then return libraryLoader() end
+        error("Failed to load library")
     end)
 
     if success and result then
