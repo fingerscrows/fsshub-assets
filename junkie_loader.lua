@@ -828,7 +828,13 @@ local KeySystemUI = (function()
         end
     end
 
-    function UI.CompleteLoading(totalTime)
+    function UI.CompleteLoading(totalTime, updateUIFunc)
+        -- Update via ShowLoadingMode's updateUI function if provided
+        if updateUIFunc then
+            updateUIFunc("LAUNCH READY", 100, string.format("Total load time: %.2fs", totalTime))
+            return
+        end
+
         if not loadingPanel or not loadingPanel.Parent then return end
 
         UI.StopPulseAnimation()
@@ -1345,11 +1351,25 @@ local function fetchAndExecutePayload(key)
         -- Record successful load time for future validation bypass
         lastSuccessTime = tick()
 
-        KeySystemUI.CompleteLoading(totalTime)
+        KeySystemUI.CompleteLoading(totalTime, updateUI)
         print(string.format("[FSSHUB] Total load time: %.2fs", totalTime))
 
-        -- Wait a moment to show completion, then close
-        task.wait(1.5)
+        -- Wait for Main Menu UI to be ready before closing
+        updateUI("Waiting for Main Menu...", 100)
+
+        local waitStart = tick()
+        local maxWait = 30 -- Maximum 30 seconds wait
+
+        while not getgenv().FSSHUB_MAIN_MENU_READY do
+            if tick() - waitStart > maxWait then
+                warn("[FSSHUB] Timeout waiting for Main Menu, closing loader anyway")
+                break
+            end
+            game:GetService("RunService").Heartbeat:Wait()
+        end
+
+        -- Small delay for smooth transition
+        task.wait(0.3)
         KeySystemUI.Close()
     end
 end
