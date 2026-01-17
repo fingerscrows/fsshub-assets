@@ -13,7 +13,7 @@ local success, payload = pcall(game.HttpGet, game, url)
 
 if success and payload then
     -- Check for server-side errors returned as text
-    if payload:sub(1, 2) == "--" or payload:find("Error:") then
+    if payload:find("^Error:") then
         warn("[FSSHUB] Backend Error: " .. payload)
         return
     end
