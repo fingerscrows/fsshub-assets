@@ -595,6 +595,77 @@ local KeySystemUI = (function()
         UI.ShowError("ACCESS_DENIED: INVALID_KEY")
     end
 
+    function UI.TransitionToLoading()
+        -- Hide Input & Buttons with animation
+        if inputSection then inputSection.Visible = false end
+        local btnGet = container:FindFirstChild("BtnGet")
+        local btnVerify = container:FindFirstChild("BtnVerify")
+        if btnGet then btnGet.Visible = false end
+        if btnVerify then btnVerify.Visible = false end
+
+        -- Central Status
+        local loadLabel = Instance.new("TextLabel")
+        loadLabel.Name = "MasterLoader"
+        loadLabel.Size = UDim2.new(1, 0, 0, 30)
+        loadLabel.Position = UDim2.new(0, 0, 0.6, 0)
+        loadLabel.BackgroundTransparency = 1
+        loadLabel.TextColor3 = Colors.Accent
+        loadLabel.Font = Enum.Font.GothamBold
+        loadLabel.TextSize = 16
+        loadLabel.Text = "AUTHENTICATED"
+        loadLabel.Parent = container
+
+        -- Progress Bar
+        local barBg = Instance.new("Frame")
+        barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        barBg.Size = UDim2.new(0.7, 0, 0, 4)
+        barBg.Position = UDim2.new(0.5, 0, 0.7, 0)
+        barBg.AnchorPoint = Vector2.new(0.5, 0)
+        barBg.BorderSizePixel = 0
+        barBg.Parent = container
+        Instance.new("UICorner", barBg).CornerRadius = UDim.new(1, 0)
+
+        local barFill = Instance.new("Frame")
+        barFill.BackgroundColor3 = Colors.Success
+        barFill.Size = UDim2.new(0, 0, 1, 0)
+        barFill.BorderSizePixel = 0
+        barFill.Parent = barBg
+        Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
+
+        -- Start Wait Loop
+        task.spawn(function()
+            local TweenService = game:GetService("TweenService")
+            TweenService:Create(barFill, TweenInfo.new(1), { Size = UDim2.new(0.3, 0, 1, 0) }):Play()
+            loadLabel.Text = "DOWNLOADING PAYLOAD..."
+
+            -- Wait for Bridge to Fetch Payload
+            local timeout = 0
+            while not getgenv().FSSHUB_MAIN_MENU_READY do
+                timeout = timeout + 0.1
+                task.wait(0.1)
+
+                -- Fake Progress
+                local progress = 0.3 + (timeout / 20) * 0.6 -- Max 90% via fake
+                TweenService:Create(barFill, TweenInfo.new(0.5), { Size = UDim2.new(math.min(progress, 0.9), 0, 1, 0) })
+                    :Play()
+
+                if timeout > 30 then
+                    loadLabel.Text = "TIMEOUT - RETRYING..."
+                    loadLabel.TextColor3 = Colors.Error
+                    break
+                end
+            end
+
+            if getgenv().FSSHUB_MAIN_MENU_READY then
+                TweenService:Create(barFill, TweenInfo.new(0.3), { Size = UDim2.new(1, 0, 1, 0) }):Play()
+                loadLabel.Text = "LAUNCHING..."
+                loadLabel.TextColor3 = Colors.Success
+                task.wait(0.5)
+                UI.Close()
+            end
+        end)
+    end
+
     function UI.Close()
         getgenv().UI_CLOSED = true
         if blur then TweenService:Create(blur, TweenInfo.new(0.3), { Size = 0 }):Play() end
@@ -637,15 +708,16 @@ KeySystemUI.Initialize({
 
         if result and (result.valid or result.message == "KEY_VALID" or result.message == "KEYLESS") then
             -- SUCCESS
-            -- We can show a visual success indicator here using the detailed UI methods
-            KeySystemUI.Authorize()
+            -- Note: We do NOT close immediately. We signal the bridge to start via SCRIPT_KEY
+            -- and transition the UI to a loading state.
 
             getgenv().SCRIPT_KEY = userInput
 
-            -- Wait a moment for the "ACCESS_GRANTED" animation to be seen
-            task.wait(1.5)
+            KeySystemUI.Authorize()
+            task.wait(1)
 
-            KeySystemUI.Close()
+            -- Transition to Loader instead of Closing
+            KeySystemUI.TransitionToLoading()
         else
             -- FAIL
             KeySystemUI.ShowStatus(result.message or "INVALID KEY", KeySystemUI.Colors.Error)
