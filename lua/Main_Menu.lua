@@ -81,17 +81,148 @@ end
 
 -- Loading GUI completely removed - handled by junkie_loader.lua
 -- This stub ensures backward compatibility if anything still calls Loading.Update/Destroy
-local Loading = {
-    Update = function(...) end, -- Accept any arguments (no-op)
-    Destroy = function() end,
-    Gui = nil
-}
+-- Loading GUI (Restored & Modernized)
+local Loading = {}
+Loading.Gui = nil
+Loading.Bar = nil
+Loading.Status = nil
+
+function Loading.Create()
+    if Loading.Gui then return end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "FSSHUB_Loading"
+    gui.IgnoreGuiInset = true
+    gui.ResetOnSpawn = false
+
+    -- Protect GUI
+    if gethui then
+        gui.Parent = gethui()
+    elseif game:GetService("CoreGui") then
+        gui.Parent = game:GetService("CoreGui")
+    else
+        gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    end
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.fromOffset(250, 70)
+    mainFrame.Position = UDim2.fromScale(0.5, 0.5)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = gui
+
+    -- Rounded Corners
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 8)
+    uiCorner.Parent = mainFrame
+
+    -- Glow/Stroke
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = Color3.fromRGB(50, 50, 50)
+    uiStroke.Thickness = 1
+    uiStroke.Parent = mainFrame
+
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Text = "FSSHUB"
+    title.Size = UDim2.new(1, -20, 0, 20)
+    title.Position = UDim2.new(0, 10, 0, 10)
+    title.BackgroundTransparency = 1
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 16
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = mainFrame
+
+    -- Version
+    local ver = Instance.new("TextLabel")
+    ver.Text = getgenv().FSSHUB_INFO and getgenv().FSSHUB_INFO.Version or "v2.0"
+    ver.Size = UDim2.new(1, -20, 0, 20)
+    ver.Position = UDim2.new(0, 10, 0, 10)
+    ver.BackgroundTransparency = 1
+    ver.TextColor3 = Color3.fromRGB(100, 100, 100)
+    ver.TextSize = 12
+    ver.Font = Enum.Font.Gotham
+    ver.TextXAlignment = Enum.TextXAlignment.Right
+    ver.Parent = mainFrame
+
+    -- Status
+    local status = Instance.new("TextLabel")
+    status.Text = "Initializing..."
+    status.Size = UDim2.new(1, -20, 0, 15)
+    status.Position = UDim2.new(0, 10, 0, 35)
+    status.BackgroundTransparency = 1
+    status.TextColor3 = Color3.fromRGB(180, 180, 180)
+    status.TextSize = 12
+    status.Font = Enum.Font.Gotham
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Parent = mainFrame
+    Loading.Status = status
+
+    -- Progress Bar BG
+    local barBg = Instance.new("Frame")
+    barBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    barBg.Size = UDim2.new(1, -20, 0, 4)
+    barBg.Position = UDim2.new(0, 10, 0, 55)
+    barBg.BorderSizePixel = 0
+    barBg.Parent = mainFrame
+
+    local barCorner = Instance.new("UICorner")
+    barCorner.CornerRadius = UDim.new(1, 0)
+    barCorner.Parent = barBg
+
+    -- Progress Bar Fill
+    local barFill = Instance.new("Frame")
+    barFill.BackgroundColor3 = Color3.fromRGB(96, 205, 255) -- Accent
+    barFill.Size = UDim2.new(0, 0, 1, 0)
+    barFill.BorderSizePixel = 0
+    barFill.Parent = barBg
+    Loading.Bar = barFill
+
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(1, 0)
+    fillCorner.Parent = barFill
+
+    Loading.Gui = gui
+end
+
+function Loading.Update(progress, text)
+    if not Loading.Gui then Loading.Create() end
+    if Loading.Status then Loading.Status.Text = text or "Loading..." end
+    if Loading.Bar then
+        -- Smooth tween
+        local TS = game:GetService("TweenService")
+        TS:Create(Loading.Bar, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(math.clamp(progress, 0, 1), 0, 1, 0)
+        }):Play()
+    end
+end
+
+function Loading.Destroy()
+    if Loading.Gui then
+        local TS = game:GetService("TweenService")
+        local frame = Loading.Gui:FindFirstChild("MainFrame")
+        if frame then
+            TS:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+                Size = UDim2.new(0, 0, 0, 0),
+                BackgroundTransparency = 1
+            }):Play()
+            task.wait(0.5)
+        end
+        Loading.Gui:Destroy()
+        Loading.Gui = nil
+    end
+end
 
 -- LOAD FLUENT RENEWED (v4.0.8 with FSSHUBLibrary workspace)
 local Fluent
 local loadStart = tick()
 
+Loading.Create()
 Loading.Update(0.1, "Checking resources...")
+task.wait(0.1)
 
 -- Check if Fluent was pre-loaded by payload (parallel loading optimization)
 if getgenv().FSSHUB_GET_FLUENT then
@@ -110,12 +241,15 @@ if not Fluent then
     Log("Fallback: Loading Fluent normally...")
 
     local success, result = pcall(function()
+        task.wait(0.1) -- Yield
         return loadstring(game:HttpGet(
             "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8"))()
     end)
 
     if success and result then
+        task.wait(0.1) -- Yield
         Fluent = result
+        Loading.Update(0.6, "Library Loaded")
     else
         Loading.Update(0, "FAILED TO LOAD UI")
         warn("[FSSHUB] Critical Error: Failed to load Fluent UI Library!")
@@ -130,10 +264,8 @@ if not Fluent then
     end
 end
 
-Loading.Update(0.9, "Initializing UI...")
+Loading.Update(0.9, "Initializing Interface...")
 Log("Fluent ready in " .. string.format("%.2f", tick() - loadStart) .. "s")
-
--- Loading GUI destruction moved to end of script
 
 -- Event System
 -- Event Bus (Centralized in Payload)
@@ -164,8 +296,8 @@ local username = Info.User.Username or "User"
 local tier = Info.User.Tier or "Free"
 
 local expiryTimestamp = Info.User.ExpiryTimestamp or 0
-local gameName = Info.Game.Name or "Universal"
-local version = Info.Version or "v3.5.0"
+local gameName = Info.Game.Name or "Blox Fruits"
+local version = Info.Version or "v2.0.0"
 
 local function formatExpiry()
     if expiryTimestamp == 0 then return "Lifetime ∞" end
@@ -178,7 +310,6 @@ local function formatExpiry()
 end
 
 -- Window
-Loading.Update(0.95, "Creating Interface...")
 local Window = Fluent:Window({
     Title = isPremium and "FSSHUB 👑 | " .. gameName or "FSSHUB | " .. gameName,
     SubTitle = version .. (isPremium and " Premium" or ""),
@@ -190,14 +321,28 @@ local Window = Fluent:Window({
     Theme = "Dark"   -- Changed to a known working theme
 })
 
-local Tabs = {
-    Home = Window:Tab({ Title = "Dashboard", Icon = "home" }),
-    Movement = Window:Tab({ Title = "Movement", Icon = "footprints" }),
-    Visual = Window:Tab({ Title = "Visual", Icon = "eye" }),
-    Utility = Window:Tab({ Title = "Utility", Icon = "wrench" }),
-    Player = Window:Tab({ Title = "Player", Icon = "user" }),
-    Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
-}
+task.wait(0.05) -- Yield before creating tabs
+Loading.Update(0.92, "Building Dashboard...")
+local Tabs = {}
+
+Tabs.Home = Window:Tab({ Title = "Dashboard", Icon = "home" })
+task.wait(0.02) -- Micro-yield
+
+Loading.Update(0.94, "Building Features...")
+Tabs.Movement = Window:Tab({ Title = "Movement", Icon = "footprints" })
+task.wait(0.02)
+
+Tabs.Visual = Window:Tab({ Title = "Visual", Icon = "eye" })
+task.wait(0.02)
+
+Tabs.Utility = Window:Tab({ Title = "Utility", Icon = "wrench" })
+task.wait(0.02)
+
+Tabs.Player = Window:Tab({ Title = "Player", Icon = "user" })
+task.wait(0.02)
+
+Tabs.Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
+task.wait(0.05) -- Yield after tabs created
 
 local Options = Fluent.Options
 

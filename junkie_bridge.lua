@@ -18,6 +18,7 @@ if success and payload then
         return
     end
 
+    task.wait(0.05) -- Anti-Timeout: Yield before compiling large payload
     local chunk, err = loadstring(payload)
     if chunk then
         -- Detach completely from the current thread
