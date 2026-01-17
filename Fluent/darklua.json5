@@ -1,7 +1,0 @@
-{
-  "bundle": {
-    "require_mode": {
-      "name": "path"
-    }
-  }
-}
