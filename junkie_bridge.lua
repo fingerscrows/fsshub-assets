@@ -20,7 +20,7 @@ if success and payload then
 
     local chunk, err = loadstring(payload)
     if chunk then
-        chunk()
+        task.spawn(chunk)
     else
         warn("[FSSHUB] Compile error: " .. tostring(err))
     end
