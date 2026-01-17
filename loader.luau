@@ -1,81 +1,65 @@
 --[[ 
-    FSSHUB Loader Bundle
-    Generated: 2026-01-17T18:31:46.473Z
+    FSSHUB UI Bundle (Two-File Architecture)
+    Generated: 2026-01-17T19:07:29.083Z
+    
+    This bundle contains:
+    - Fluent UI Library (46 modules)
+    - Main Menu UI
+    - Base64 Encoded Assets (0 assets)
+    
+    Execute via: loadstring(content)()
 ]]
 
--- Load Time Tracking
-local __LOAD_START = os.clock()
-local function logLoadTime(phase)
-    print(string.format("[FSSHUB] %s: %.3fs", phase, os.clock() - __LOAD_START))
+-- ===== PERFORMANCE TRACKING =====
+local __BUNDLE_START = os.clock()
+local function _log(msg)
+    if getgenv and getgenv().FSSHUB_DEBUG then
+        print("[UI_Bundle] " .. msg .. string.format(" (%.3fs)", os.clock() - __BUNDLE_START))
+    end
 end
 
+-- ===== EMBEDDED ASSETS =====
+local __ASSETS = {
 
--- FSSHUB Lazy Loader (Visual Feedback Immediate)
-local CoreGui = game:GetService("CoreGui")
-local TweenService = game:GetService("TweenService")
-local overlay = Instance.new("ScreenGui")
-overlay.Name = "FSSHUB_Lazy_Loader"
-overlay.IgnoreGuiInset = true
-overlay.DisplayOrder = 9999
-if syn and syn.protect_gui then syn.protect_gui(overlay) overlay.Parent = CoreGui
-elseif gethui then overlay.Parent = gethui()
-else overlay.Parent = CoreGui end
+}
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(1,0,1,0)
-frame.BackgroundColor3 = Color3.new(0,0,0)
-frame.BackgroundTransparency = 1
-frame.Parent = overlay
+-- Asset decoder utility
+local function decodeAsset(name)
+    local b64 = __ASSETS[name]
+    if not b64 then return nil end
+    -- Roblox doesn't have native base64 decode for images,
+    -- but we can use HttpService if needed or just store URLs
+    return b64
+end
 
-local text = Instance.new("TextLabel")
-text.Text = "FSSHUB LOADING..."
-text.Font = Enum.Font.Code
-text.TextSize = 24
-text.TextColor3 = Color3.fromRGB(0, 255, 255)
-text.Size = UDim2.new(0, 200, 0, 50)
-text.Position = UDim2.new(0.5, 0, 0.5, 0)
-text.AnchorPoint = Vector2.new(0.5, 0.5)
-text.BackgroundTransparency = 1
-text.Parent = frame
-
--- Fade In
-TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency=0.3}):Play()
-
--- Pulse Text
-task.spawn(function()
-    while overlay.Parent do
-        TweenService:Create(text, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {TextTransparency=0.5}):Play()
-        task.wait(1.6)
-    end
-end)
-
-logLoadTime("Lazy Loader Visible")
-
+-- ===== MODULE SYSTEM =====
 local __MODULES = {}
 local __CACHE = {}
 
--- Create script proxy for Roblox-style requires (script.Parent, script.Components, etc.)
--- Enhanced to support :GetChildren(), :FindFirstChild(), and .Name
+-- Create script proxy for Roblox-style requires
 local function createScriptProxy(path)
-    -- Helper function to get children for this script path
     local function getChildrenForPath()
         local children = {}
-        local prefix = path == "Root" and "" or (path .. "/")
+        -- Fix: Strip 'Root/' from path to match __MODULES keys
+        local lookupPath = path:gsub("^Root/", "")
+        if lookupPath == "Root" then lookupPath = "" end
+        
+        local prefix = (lookupPath == "" or lookupPath == "Root") and "" or (lookupPath .. "/")
         local seenChildren = {}
         
         for key, _ in pairs(__MODULES) do
             local childName = nil
             
             if prefix == "" then
-                -- Root level: match keys that are direct children
+                -- Root level children
                 local firstSlash = key:find("/")
                 if firstSlash then
                     childName = key:sub(1, firstSlash - 1)
-                elseif key ~= "Root" then
+                elseif key ~= "Root" and key ~= "init" then
                     childName = key
                 end
             else
-                -- Match keys that start with our prefix
+                -- Sub directory children
                 if key:sub(1, #prefix) == prefix then
                     local remaining = key:sub(#prefix + 1)
                     local firstSlash = remaining:find("/")
@@ -100,7 +84,6 @@ local function createScriptProxy(path)
     local meta = getmetatable(proxy)
     
     meta.__index = function(_, key)
-        -- Handle Roblox Instance methods
         if key == "GetChildren" then
             return function() return getChildrenForPath() end
         end
@@ -109,8 +92,8 @@ local function createScriptProxy(path)
             return function(_, childName)
                 local childPath = (path == "Root") and childName or (path .. "/" .. childName)
                 if __MODULES[childPath] then return createScriptProxy(childPath) end
-                for key, _ in pairs(__MODULES) do
-                    if key:sub(1, #childPath + 1) == childPath .. "/" then return createScriptProxy(childPath) end
+                for k, _ in pairs(__MODULES) do
+                    if k:sub(1, #childPath + 1) == childPath .. "/" then return createScriptProxy(childPath) end
                 end
                 return nil
             end
@@ -126,7 +109,6 @@ local function createScriptProxy(path)
             if lastSep then return createScriptProxy(path:sub(1, lastSep - 1)) else return createScriptProxy("Root") end
         end
         
-        -- Return a new proxy for the child, blindly assuming it might exist
         local childPath = (path == "Root") and key or (path .. "/" .. key)
         return createScriptProxy(childPath)
     end
@@ -156,7 +138,9 @@ local function __REQUIRE(modulePath)
     return result
 end
 
--- MODULE DEFINITIONS
+_log("Module system initialized")
+
+-- ===== MODULE DEFINITIONS =====
 
 __MODULES["Components/Assets"] = function()
     local script = createScriptProxy("Root/Components/Assets")
@@ -59799,463 +59783,26 @@ return {
     end)()
 end
 
--- MAIN LOGIC
-local FSSHUB_UI = __REQUIRE("Root") -- Load init.luau (stored as Root)
-logLoadTime("Fluent UI Loaded")
+_log("Fluent modules defined (46 total)")
 
--- Load KeySystem
-local KeySystem = (function()
-    local Fluent = FSSHUB_UI
-    --[[
-    FSSHUB UI Source (Refined)
-    Junkie Inline Architecture
+-- ===== INITIALIZE FLUENT =====
+local Fluent = __REQUIRE("Root")
+_log("Fluent UI initialized")
 
-    Features:
-    - Persistent Key System
-    - Advanced Toast Notifications
-    - Dynamic Interaction Polish
-    - Config-Driven Architecture
-]]
-
-local TweenService = game:GetService("TweenService")
-local CoreGui = game:GetService("CoreGui")
-
--- [ JUNKIE SDK INITIALIZATION ]
--- Safe check for Junkie SDK
-local Junkie = getgenv().Junkie
-if not Junkie then
-    pcall(function()
-        Junkie = loadstring(game:HttpGet("https://jnkie.com/sdk/library.lua"))()
-        if Junkie then
-            Junkie.service = "FSSHUB Official"
-            Junkie.identifier = "1000139"
-            Junkie.provider = "FSSHUB - KEY SYSTEM"
-        end
-    end)
+-- Store globally for pre-load optimization
+getgenv().FSSHUB_FLUENT = Fluent
+getgenv().FSSHUB_GET_FLUENT = function(timeout)
+    -- Instant return since already loaded
+    return Fluent
 end
 
--- [ CONFIGURATION ]
-local Config = {
-    Title = "FSSHUB",
-    Desc = "KEYSYSTEM GATEWAY",
-    KeyFile = "FSSHUB/Data/key.cfg",
-    Assets = {
-        Logo = "rbxassetid://120860566854298" -- FSS Logo
-    },
-    Colors = {
-        Background = Color3.fromRGB(15, 15, 20),
-        MainStroke = Color3.fromRGB(140, 120, 210),
-        Accent = Color3.fromRGB(127, 106, 196),
-        Secondary = Color3.fromRGB(160, 140, 230),
-        Error = Color3.fromRGB(255, 80, 100),
-        Success = Color3.fromRGB(50, 255, 120),
-        Info = Color3.fromRGB(0, 200, 255),
-        TextLight = Color3.fromRGB(240, 240, 255),
-        TextDim = Color3.fromRGB(140, 140, 170),
-        InputBg = Color3.fromRGB(20, 20, 30),
-        ButtonBg = Color3.fromRGB(30, 25, 45)
-    }
-}
+-- ===== MAIN MENU =====
+-- Pattern Registry: Virtual modules for organized code
+local App = { Modules = {} }
 
-local Library = {
-    Connections = {},
-    UI = nil,
-    Keys = { -- Added for compatibility with bundle_junkie.js
-        Assets = Config.Assets,
-        MainTitle = Config.Title,
-        MainDesc = Config.Desc
-    }
-}
-
--- [ UTILS ]
-local Utils = {}
-
-function Utils.RandomString(len)
-    local s = ""
-    for i = 1, len do s = s .. string.char(math.random(65, 90)) end
-    return s
-end
-
-function Utils.SaveKey(key)
-    if writefile then
-        if makefolder and not isfolder("FSSHUB") then
-            makefolder("FSSHUB")
-        end
-        if makefolder and not isfolder("FSSHUB/Data") then
-            makefolder("FSSHUB/Data")
-        end
-        pcall(function() writefile(Config.KeyFile, key) end)
-    end
-end
-
-function Utils.LoadKey()
-    if isfile and isfile(Config.KeyFile) then
-        local success, key = pcall(function() return readfile(Config.KeyFile) end)
-        if success then return key end
-    end
-    return nil
-end
-
-function Utils.NeonStroke(parent, color, thickness)
-    local stroke = Instance.new("UIStroke")
-    stroke.Thickness = thickness or 1
-    stroke.Color = color
-    stroke.Transparency = 0.2
-    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    stroke.Parent = parent
-    return stroke
-end
-
-function Utils.GlitchText(label, originalText, color)
-    task.spawn(function()
-        for i = 1, 10 do
-            if not label or not label.Parent then break end
-            label.Text = Utils.RandomString(#originalText)
-            label.TextColor3 = (i % 2 == 0) and Config.Colors.TextLight or color
-            task.wait(0.05)
-        end
-        if label and label.Parent then
-            label.Text = originalText
-            label.TextColor3 = color
-        end
-    end)
-end
-
--- [ TOAST SYSTEM ]
-local ToastSystem = {}
-ToastSystem.ActiveToasts = {}
-
-function ToastSystem.Notify(msg, type, duration)
-    local container = Library.UI and Library.UI:FindFirstChild("MainContainer")
-    if not container then return end
-
-    local color = Config.Colors.Info
-    if type == "success" then color = Config.Colors.Success end
-    if type == "error" then color = Config.Colors.Error end
-
-    -- Cleanup old toasts
-    if #ToastSystem.ActiveToasts >= 3 then
-        local old = table.remove(ToastSystem.ActiveToasts, 1)
-        if old and old.Parent then old:Destroy() end
-    end
-
-    local toast = Instance.new("Frame")
-    toast.Size = UDim2.new(0.8, 0, 0, 30)
-    toast.Position = UDim2.new(0.1, 0, 0.9, -40 * (#ToastSystem.ActiveToasts))
-    toast.BackgroundColor3 = Config.Colors.InputBg
-    toast.BackgroundTransparency = 0.2
-    toast.Parent = container
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = toast
-
-    Utils.NeonStroke(toast, color, 1)
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = "  " .. msg:upper()
-    label.TextColor3 = color
-    label.Font = Enum.Font.GothamMedium
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = toast
-
-    table.insert(ToastSystem.ActiveToasts, toast)
-
-    -- Animation
-    toast.Position = toast.Position + UDim2.new(0, 20, 0, 0)
-    toast.BackgroundTransparency = 1
-    label.TextTransparency = 1
-
-    TweenService:Create(toast, TweenInfo.new(0.3),
-        { Position = toast.Position - UDim2.new(0, 20, 0, 0), BackgroundTransparency = 0.2 }):Play()
-    TweenService:Create(label, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
-
-    task.delay(duration or 3, function()
-        if toast.Parent then
-            TweenService:Create(toast, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
-            TweenService:Create(label, TweenInfo.new(0.3), { TextTransparency = 1 }):Play()
-            task.wait(0.3)
-            toast:Destroy()
-            -- Remove from active list
-            for i, v in ipairs(ToastSystem.ActiveToasts) do
-                if v == toast then
-                    table.remove(ToastSystem.ActiveToasts, i)
-                    break
-                end
-            end
-        end
-    end)
-end
-
--- [ UI CONSTRUCTION ]
-function Library.Initialize(junkieConfig)
-    local validateCallback = junkieConfig.Function or junkieConfig.validateCallback
-    local keyLink = junkieConfig.KeyLink or "https://fsshub.com/getkey"
-
-    if Library.UI then Library.UI:Destroy() end
-
-    -- Main GUI
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "FSSHUB_Inline_UI"
-    gui.IgnoreGuiInset = true
-    gui.DisplayOrder = 10000
-    if gethui then gui.Parent = gethui() else gui.Parent = CoreGui end
-    Library.UI = gui
-
-    -- Blur
-    local blur = Instance.new("BlurEffect")
-    blur.Size = 0
-    blur.Parent = game:GetService("Lighting")
-    TweenService:Create(blur, TweenInfo.new(0.5), { Size = 20 }):Play()
-
-    -- Container
-    local container = Instance.new("Frame")
-    container.Name = "MainContainer"
-    container.Size = UDim2.new(0, 420, 0, 340) -- Adjusted height for logo
-    container.Position = UDim2.new(0.5, 0, 0.5, 0)
-    container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.BackgroundColor3 = Config.Colors.Background
-    container.BackgroundTransparency = 0.4
-    container.ClipsDescendants = true
-    container.Parent = gui
-
-    local containerCorner = Instance.new("UICorner")
-    containerCorner.CornerRadius = UDim.new(0, 12)
-    containerCorner.Parent = container
-
-    Utils.NeonStroke(container, Config.Colors.MainStroke, 2)
-
-    -- Galaxy Background (Simplified)
-    local galaxy = Instance.new("Frame")
-    galaxy.Size = UDim2.new(1, 0, 1, 0)
-    galaxy.BackgroundTransparency = 1
-    galaxy.Parent = container
-
-    task.spawn(function()
-        while galaxy.Parent do
-            if math.random() > 0.8 then
-                local p = Instance.new("Frame")
-                p.Size = UDim2.new(0, math.random(2, 4), 0, math.random(2, 4))
-                p.Position = UDim2.new(math.random(), 0, math.random(), 0)
-                p.BackgroundColor3 = Config.Colors.Accent
-                p.BorderSizePixel = 0
-                p.Parent = galaxy
-                TweenService:Create(p, TweenInfo.new(math.random(2, 5)),
-                    { BackgroundTransparency = 1, Position = p.Position + UDim2.new(0, 0, -0.2, 0) }):Play()
-                game.Debris:AddItem(p, 5)
-            end
-            task.wait(0.1)
-        end
-    end)
-
-    -- Elements
-    -- Logo Image
-    local logoYOffset = 30
-    local logo = nil
-    if Config.Assets.Logo then
-        logo = Instance.new("ImageLabel")
-        logo.Image = Config.Assets.Logo
-        logo.Size = UDim2.new(0, 80, 0, 80)
-        logo.Position = UDim2.new(0.5, 0, 0, 20)
-        logo.AnchorPoint = Vector2.new(0.5, 0)
-        logo.BackgroundTransparency = 1
-        logo.Parent = container
-        Instance.new("UICorner", logo).CornerRadius = UDim.new(0, 12)
-        logoYOffset = 110
-    end
-
-    local logoLabel = Instance.new("TextLabel")
-    logoLabel.Text = Config.Title
-    logoLabel.Font = Enum.Font.GothamBold
-    logoLabel.TextSize = 28
-    logoLabel.TextColor3 = Config.Colors.Accent
-    logoLabel.Size = UDim2.new(1, 0, 0, 30)
-    logoLabel.Position = UDim2.new(0, 0, 0, logoYOffset)
-    logoLabel.BackgroundTransparency = 1
-    logoLabel.Parent = container
-
-    local subLabel = Instance.new("TextLabel")
-    subLabel.Text = Config.Desc
-    subLabel.Font = Enum.Font.Gotham
-    subLabel.TextSize = 12
-    subLabel.TextColor3 = Config.Colors.TextDim
-    subLabel.Size = UDim2.new(1, 0, 0, 20)
-    subLabel.Position = UDim2.new(0, 0, 0, logoYOffset + 30)
-    subLabel.BackgroundTransparency = 1
-    subLabel.Parent = container
-
-    -- Input
-    local inputFrame = Instance.new("Frame")
-    inputFrame.Size = UDim2.new(0.8, 0, 0, 42)
-    inputFrame.Position = UDim2.new(0.5, 0, 0, logoYOffset + 70)
-    inputFrame.AnchorPoint = Vector2.new(0.5, 0)
-    inputFrame.BackgroundColor3 = Config.Colors.InputBg
-    inputFrame.BackgroundTransparency = 0.5
-    inputFrame.Parent = container
-
-    Instance.new("UICorner", inputFrame).CornerRadius = UDim.new(0, 6)
-    Utils.NeonStroke(inputFrame, Config.Colors.TextDim, 1)
-
-    local input = Instance.new("TextBox")
-    input.Size = UDim2.new(1, -20, 1, 0)
-    input.Position = UDim2.new(0, 10, 0, 0)
-    input.BackgroundTransparency = 1
-    input.Font = Enum.Font.Code
-    input.Text = ""
-    input.PlaceholderText = "ENTER KEY"
-    input.TextColor3 = Config.Colors.Secondary
-    input.TextSize = 14
-    input.Parent = inputFrame
-
-    -- Check Saved Key & Auto-Verify
-    local savedKey = Utils.LoadKey()
-    if savedKey then
-        input.Text = savedKey
-        ToastSystem.Notify("Saved Key Loaded", "success", 2)
-
-        -- Auto Verify
-        task.delay(0.5, function()
-            if validateCallback then
-                ToastSystem.Notify("Auto-Verifying...", "info", 2)
-                validateCallback(savedKey)
-            end
-        end)
-    end
-
-    -- Buttons
-    local function CreateButton(text, pos, primary, callback)
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0.38, 0, 0, 35)
-        btn.Position = pos
-        btn.AnchorPoint = Vector2.new(0.5, 0)
-        btn.BackgroundColor3 = Config.Colors.ButtonBg
-        btn.BackgroundTransparency = 0.3
-        btn.Text = text
-        btn.TextColor3 = primary and Config.Colors.Accent or Config.Colors.TextDim
-        btn.Font = Enum.Font.GothamBold
-        btn.TextSize = 14
-        btn.Parent = container
-
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-        local s = Utils.NeonStroke(btn, primary and Config.Colors.Accent or Config.Colors.TextDim, 1)
-
-        btn.MouseButton1Click:Connect(callback)
-
-        -- Polish: Hover
-        btn.MouseEnter:Connect(function()
-            TweenService:Create(s, TweenInfo.new(0.2), { Color = Config.Colors.Secondary }):Play()
-            btn.TextColor3 = Config.Colors.Secondary
-        end)
-        btn.MouseLeave:Connect(function()
-            TweenService:Create(s, TweenInfo.new(0.2),
-                { Color = primary and Config.Colors.Accent or Config.Colors.TextDim }):Play()
-            btn.TextColor3 = primary and Config.Colors.Accent or Config.Colors.TextDim
-        end)
-        return btn
-    end
-
-    local btnY = logoYOffset + 130
-    CreateButton("GET KEY", UDim2.new(0.25, 0, 0, btnY), false, function()
-        if setclipboard then
-            setclipboard(keyLink)
-            ToastSystem.Notify("Link Copied to Clipboard", "info", 2)
-        end
-    end)
-
-    local verifyBtn = CreateButton("VERIFY", UDim2.new(0.75, 0, 0, btnY), true, function()
-        local key = input.Text:gsub("%s+", "")
-        if key == "" then
-            -- Shake Effect
-            local x = inputFrame.Position.X.Scale
-            local y = inputFrame.Position.Y.Scale
-            for i = 1, 5 do
-                inputFrame.Position = UDim2.new(x + math.random(-5, 5) / 1000, 0, y, 0)
-                task.wait(0.05)
-            end
-            inputFrame.Position = UDim2.new(x, 0, y, 0)
-            ToastSystem.Notify("Please enter a key", "error", 2)
-            return
-        end
-
-        ToastSystem.Notify("Verifying...", "info", 1)
-        if validateCallback then
-            validateCallback(key)
-        end
-    end)
-
-    -- Close
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -30, 0, 0)
-    closeBtn.BackgroundTransparency = 1
-    closeBtn.Text = "X"
-    closeBtn.TextColor3 = Config.Colors.TextDim
-    closeBtn.Parent = container
-    closeBtn.MouseButton1Click:Connect(function()
-        gui:Destroy()
-        if blur then blur:Destroy() end
-    end)
-
-    -- Functions for external use
-    function Library.Close()
-        gui:Destroy()
-        if blur then blur:Destroy() end
-    end
-
-    function Library.Succeed(key)
-        Utils.SaveKey(key) -- Auto Save
-        ToastSystem.Notify("Access Granted", "success", 2)
-        -- Transition to Loader...
-        container:ClearAllChildren()
-
-        -- Centered Loader
-        local loadLabel = Instance.new("TextLabel")
-        loadLabel.Text = "AUTHENTICATED"
-        loadLabel.Size = UDim2.new(1, 0, 1, 0)
-        loadLabel.BackgroundTransparency = 1
-        loadLabel.TextColor3 = Config.Colors.Success
-        loadLabel.Font = Enum.Font.GothamBold
-        loadLabel.TextSize = 18
-        loadLabel.Parent = container
-
-        -- Wait loop for Signal
-        task.spawn(function()
-            local dots = ""
-            while not getgenv().FSSHUB_MAIN_MENU_READY and not _G.FSSHUB_WINDOW do
-                dots = dots .. "."
-                if #dots > 3 then dots = "" end
-                loadLabel.Text = "LOADING PAYLOAD" .. dots
-                task.wait(0.5)
-            end
-            Library.Close()
-        end)
-    end
-
-    function Library.Fail()
-        ToastSystem.Notify("Invalid Key", "error", 3)
-        Utils.GlitchText(subLabel, "ACCESS DENIED", Config.Colors.Error)
-        task.delay(2, function()
-            subLabel.Text = Config.Desc
-            subLabel.TextColor3 = Config.Colors.TextDim
-        end)
-    end
-
-    -- Expose Authorize/Fail aliases for bundle_junkie compatibility
-    Library.Authorize = Library.Succeed
-end
-
-return Library
-
-end)()
-logLoadTime("KeySystem Ready")
-
--- Load Main Menu (only if validated, but for bundle we define it)
-local MainMenu = function()
-    local Fluent = FSSHUB_UI
-    --[[
+-- Main Menu Executor (called after key validation)
+local function ExecuteMainMenu()
+--[[
     FSSHUB Main Menu - Fluent Renewed (v4.0.8)
     Architecture: Async Background Execution + Time Slicing
     Mode: Headless (Visuals handled by Junkie Loader)
@@ -60510,36 +60057,16 @@ end)
 
 end
 
--- AUTO EXECUTE KEY SYSTEM (For Testing/Dev)
-if KeySystem and KeySystem.Initialize then
-    task.defer(function()
-        logLoadTime("KeySystem Initializing")
-        KeySystem.Initialize({
-            validateCallback = function(key) 
-                print("[FSSHUB] Key Submitted:", key)
-                -- Simulate success for now:
-                task.spawn(function()
-                    if KeySystem.Authorize then
-                        KeySystem.Authorize()
-                    end
-                    task.wait(2)
-                    if MainMenu then 
-                        logLoadTime("MainMenu Launching")
-                        MainMenu() 
-                        logLoadTime("MainMenu Visible")
-                    end
-                end)
-            end,
-            keyLink = "https://fsshub.com/getkey"
-        })
-    end)
-end
-
--- Export to global for payload invocation
-_G.FSSHUB_MAIN_MENU = MainMenu
-
-return {
-    UI = FSSHUB_UI,
-    KeySystem = KeySystem,
-    MainMenu = MainMenu
+-- Export for Worker payload invocation
+_G.FSSHUB_EXECUTE_UI = ExecuteMainMenu
+getgenv().FSSHUB_UI_BUNDLE = {
+    Fluent = Fluent,
+    Execute = ExecuteMainMenu,
+    Assets = __ASSETS,
+    DecodeAsset = decodeAsset,
 }
+
+_log("UI Bundle ready")
+
+-- Return for direct loadstring execution
+return getgenv().FSSHUB_UI_BUNDLE

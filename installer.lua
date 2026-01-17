@@ -1,53 +1,53 @@
 --[[
-    FSSHUB Installer v2.0 (Two-File Architecture)
-    Entry point for FSSHUB execution
+    FSSHUB Installer & Bootstrapper (Unified)
+    Version: 2.1.0
 
-    Flow:
-    1. Initialize workspace structure
-    2. Perform clean migration from legacy structure
-    3. Load Main_Entry bootstrapper from Worker
-    4. Main_Entry handles caching and UI loading
-
-    Local Workspace Structure:
-    FSSHUB/
-    ├── cache/              -- Cached UI bundle & version
-    │   ├── UI_Bundle.bin
-    │   └── version.txt
-    ├── config/             -- User settings & preferences
-    │   └── theme.cfg
-    ├── data/               -- Key storage & user data
-    │   └── key.cfg
-    └── assets/             -- Images & other assets
+    This script handles the entire lifecycle:
+    1. Workspace Initialization (FSSHUB/)
+    2. Version Validation & Health Check
+    3. Bundle Downloading & Caching (loader.luau)
+    4. Execution of the UI Bundle
 ]]
 
-local INSTALLER_VERSION = "2.0.0"
+local INSTALLER_VERSION = "2.1.0"
 
-local WORKSPACE = {
-    Root = "FSSHUB",
-    Cache = "FSSHUB/Cache",
-    Config = "FSSHUB/Config",
-    Data = "FSSHUB/Data",
-    Assets = "FSSHUB/Assets",
+local CONFIG = {
+    -- Worker Endpoints
+    HealthUrl = "https://script.fsshub-services.workers.dev/health",
+    BundleUrl = "https://script.fsshub-services.workers.dev/bundle",
 
-    -- Files
-    BundleFile = "FSSHUB/Cache/UI_Bundle.bin",
-    VersionFile = "FSSHUB/Cache/version.txt",
-    KeyFile = "FSSHUB/Data/key.cfg",
-    ThemeFile = "FSSHUB/Config/theme.cfg",
+    -- Local Workspace Paths
+    Workspace = {
+        Root = "FSSHUB",
+        Cache = "FSSHUB/Cache",
+        Assets = "FSSHUB/Assets",
+        Config = "FSSHUB/Config",
+        Data = "FSSHUB/Data",
 
-    -- Legacy paths (for migration)
-    LegacyBin = "FSSHUB/Bin",
-    LegacyLoader = "FSSHUB/Bin/loader.luau",
-    LegacyKey = "FSSHUB/Data/SavedkeyFSSHUB_KeyData.cfg",
+        -- Files
+        BundleFile = "FSSHUB/Cache/loader.bin",
+        VersionFile = "FSSHUB/Cache/version.txt",
+        ThemeFile = "FSSHUB/Config/theme.cfg",
+        KeyFile = "FSSHUB/Data/key.cfg",
+
+        -- Legacy (for migration)
+        LegacyBin = "FSSHUB/Bin",
+        LegacyLoader = "FSSHUB/Bin/loader.luau",
+        LegacyKey = "FSSHUB/Data/SavedkeyFSSHUB_KeyData.cfg",
+    },
+
+    -- Retry Config
+    MaxRetries = 2,
+    RetryDelay = 1,
+
+    Debug = true
 }
-
--- Store globally for other scripts
-getgenv().FSSHUB_WORKSPACE = WORKSPACE
-getgenv().FSSHUB_INSTALLER_VERSION = INSTALLER_VERSION
 
 -- ===== UTILITIES =====
 local function Log(msg)
-    print("[FSSHUB Installer]: " .. tostring(msg))
+    if CONFIG.Debug then
+        print("[FSSHUB Installer]: " .. tostring(msg))
+    end
 end
 
 local function ensureFolder(path)
@@ -60,10 +60,6 @@ end
 
 local function fileExists(path)
     return isfile and isfile(path)
-end
-
-local function folderExists(path)
-    return isfolder and isfolder(path)
 end
 
 local function readFile(path)
@@ -92,45 +88,51 @@ local function deleteFolder(path)
     return ok
 end
 
-local function safeLoad(code)
-    local func, err = loadstring(code)
-    if not func then return false, err end
-    local s, r = pcall(func)
-    return s, r
+-- ===== HTTP WITH RETRY =====
+local function httpGet(url, maxRetries, retryDelay)
+    maxRetries = maxRetries or CONFIG.MaxRetries
+    retryDelay = retryDelay or CONFIG.RetryDelay
+
+    for attempt = 1, maxRetries do
+        local ok, result = pcall(function()
+            return game:HttpGet(url)
+        end)
+
+        if ok and result then
+            return true, result
+        end
+
+        Log("HTTP attempt " .. attempt .. " failed")
+        if attempt < maxRetries then
+            task.wait(retryDelay)
+        end
+    end
+
+    return false, "Network error after " .. maxRetries .. " attempts"
 end
 
--- ===== CLEAN MIGRATION =====
--- Migrate from legacy structure (v1.x) to new structure (v2.0)
-local function performCleanMigration()
-    Log("Checking for legacy structure...")
+-- ===== MIGRATION LOGIC =====
+local function performMigration()
+    local WS = CONFIG.Workspace
     local migrated = false
 
     -- Check for legacy bin folder
-    if folderExists(WORKSPACE.LegacyBin) then
-        Log("Legacy structure detected. Performing migration...")
+    if isfolder and isfolder(WS.LegacyBin) then
+        Log("Detected legacy structure, performing migration...")
 
-        -- 1. Migrate key file (old location to new)
-        if fileExists(WORKSPACE.LegacyKey) then
-            local keyContent = readFile(WORKSPACE.LegacyKey)
+        -- Migrate key file if exists in old location
+        if fileExists(WS.LegacyKey) then
+            local keyContent = readFile(WS.LegacyKey)
             if keyContent then
-                writeFile(WORKSPACE.KeyFile, keyContent)
-                deleteFile(WORKSPACE.LegacyKey)
-                Log("✓ Key file migrated")
+                writeFile(WS.KeyFile, keyContent)
+                Log("Migrated key file to new location")
             end
         end
 
-        -- 2. Delete legacy loader.luau (will be replaced by Main_Entry)
-        if fileExists(WORKSPACE.LegacyLoader) then
-            deleteFile(WORKSPACE.LegacyLoader)
-            Log("✓ Legacy loader removed")
-        end
-
-        -- 3. Remove legacy bin folder entirely
-        deleteFolder(WORKSPACE.LegacyBin)
-        Log("✓ Legacy bin folder removed")
-
+        -- Delete legacy bin folder (clean migration)
+        deleteFolder(WS.LegacyBin)
+        Log("Removed legacy bin folder")
         migrated = true
-        Log("Migration complete!")
     end
 
     return migrated
@@ -138,102 +140,213 @@ end
 
 -- ===== WORKSPACE INITIALIZATION =====
 local function initWorkspace()
-    Log("Initializing workspace...")
+    local WS = CONFIG.Workspace
 
     -- Create folder structure
-    ensureFolder(WORKSPACE.Root)
-    ensureFolder(WORKSPACE.Cache)
-    ensureFolder(WORKSPACE.Config)
-    ensureFolder(WORKSPACE.Data)
-    ensureFolder(WORKSPACE.Assets)
+    ensureFolder(WS.Root)
+    ensureFolder(WS.Cache)
+    ensureFolder(WS.Assets)
+    ensureFolder(WS.Config)
+    ensureFolder(WS.Data)
 
-    -- Perform migration
-    performCleanMigration()
+    -- Perform migration from legacy structure
+    performMigration()
 
-    Log("Workspace ready")
+    Log("Workspace initialized")
 end
 
--- ===== LOADER ENDPOINTS =====
-local ENDPOINTS = {
-    -- Main Entry bootstrapper (lightweight)
-    Entry = "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/Main_Entry.lua",
+-- ===== VERSION CHECK =====
+local function getServerVersion()
+    local ok, response = httpGet(CONFIG.HealthUrl, 2, 1)
 
-    -- Fallback: Direct worker loader (legacy compatibility)
-    WorkerLoader = "https://script.fsshub-services.workers.dev/loader",
-}
+    if not ok then
+        Log("Failed to reach health endpoint")
+        return nil, nil
+    end
 
--- ===== MAIN EXECUTION =====
-Log("FSSHUB Installer v" .. INSTALLER_VERSION)
-
--- 1. Initialize workspace
-initWorkspace()
-
--- 2. Try to load Main_Entry bootstrapper
-Log("Loading Main Entry...")
-local cached = false
-local entryFile = WORKSPACE.Cache .. "/Main_Entry.lua"
-
--- Check for cached entry (instant feedback)
-if fileExists(entryFile) then
-    cached = true
-    Log("Using cached Main Entry")
-    task.spawn(function()
-        local content = readFile(entryFile)
-        if content then
-            local s, e = safeLoad(content)
-            if not s then
-                warn("[FSSHUB] Cached Entry Error: " .. tostring(e))
-                -- Clear corrupted cache
-                deleteFile(entryFile)
-            end
-        end
+    -- Parse JSON response
+    local success, data = pcall(function()
+        return game:GetService("HttpService"):JSONDecode(response)
     end)
-end
 
--- 3. Background update / First load
-task.spawn(function()
-    local success, result = pcall(game.HttpGet, game, ENDPOINTS.Entry)
+    if not success or not data then
+        Log("Failed to parse health response")
+        return nil, nil
+    end
 
-    if success and result and #result > 100 then
-        -- Cache the entry script
-        writeFile(entryFile, result)
+    -- Check minimum installer version
+    if data.minInstallerVersion then
+        local minParts = string.split(data.minInstallerVersion, ".")
+        local currentParts = string.split(INSTALLER_VERSION, ".")
 
-        if not cached then
-            -- First run or cache miss - execute
-            Log("Executing fresh Main Entry")
-            local s, e = safeLoad(result)
-            if not s then
-                warn("[FSSHUB] Entry Error: " .. tostring(e))
+        local minMajor = tonumber(minParts[1]) or 0
+        local minMinor = tonumber(minParts[2]) or 0
+        local curMajor = tonumber(currentParts[1]) or 0
+        local curMinor = tonumber(currentParts[2]) or 0
 
-                -- Fallback to worker loader
-                Log("Falling back to Worker Loader...")
-                local fallbackOk, fallbackResult = pcall(game.HttpGet, game, ENDPOINTS.WorkerLoader)
-                if fallbackOk and fallbackResult then
-                    safeLoad(fallbackResult)
-                else
-                    warn("[FSSHUB] All load methods failed!")
-                end
-            end
-        else
-            Log("Entry updated in background")
-        end
-    else
-        -- Network failed
-        if not cached then
-            warn("[FSSHUB] Network error and no cache available!")
-
-            -- Last resort: Try direct worker loader
-            Log("Attempting direct Worker Loader...")
-            local fallbackOk, fallbackResult = pcall(game.HttpGet, game, ENDPOINTS.WorkerLoader)
-            if fallbackOk and fallbackResult then
-                safeLoad(fallbackResult)
-            else
-                warn("[FSSHUB] Complete load failure. Please check your connection.")
-            end
-        else
-            Log("Network error but cached version running")
+        if minMajor > curMajor or (minMajor == curMajor and minMinor > curMinor) then
+            warn("[FSSHUB] Installer outdated! Please update to v" .. data.minInstallerVersion)
+            -- Continue anyway, but warn user
         end
     end
-end)
 
-Log("Installer complete")
+    -- Check maintenance status
+    if data.status == "maintenance" then
+        Log("Server is under maintenance")
+        return "maintenance", data.maintenance and data.maintenance.message
+    end
+
+    return data.bundleHash, data.minInstallerVersion
+end
+
+local function getLocalVersion()
+    return readFile(CONFIG.Workspace.VersionFile)
+end
+
+-- ===== BUNDLE LOADING =====
+local function downloadBundle()
+    Log("Downloading UI Bundle from server...")
+
+    local ok, bundleContent = httpGet(CONFIG.BundleUrl, 3, 2)
+
+    if not ok then
+        Log("Failed to download bundle: " .. tostring(bundleContent))
+        return nil
+    end
+
+    -- Validate bundle - reject only if it's clearly an error response
+    -- Valid bundle should be > 1000 bytes (actual bundle is ~1.5MB)
+    if #bundleContent < 1000 then
+        -- Check if it's a JSON error response
+        if string.sub(bundleContent, 1, 1) == "{" then
+            Log("Bundle download returned JSON error: " .. string.sub(bundleContent, 1, 200))
+            return nil
+        end
+        Log("Bundle too small, may be invalid: " .. #bundleContent .. " bytes")
+        return nil
+    end
+
+    Log("Bundle downloaded: " .. #bundleContent .. " bytes")
+    return bundleContent
+end
+
+local function loadBundle()
+    local WS = CONFIG.Workspace
+    local serverVersion, _ = getServerVersion()
+
+    -- Handle maintenance mode
+    if serverVersion == "maintenance" then
+        warn("[FSSHUB] Server is under maintenance. Please try again later.")
+        return false
+    end
+
+    local localVersion = getLocalVersion()
+    local bundleContent = nil
+    local needsUpdate = false
+
+    -- Determine if update is needed
+    if not serverVersion then
+        -- Offline mode - use cache if available
+        Log("Offline mode - checking local cache")
+        if fileExists(WS.BundleFile) then
+            bundleContent = readFile(WS.BundleFile)
+            Log("Using cached bundle (offline fallback)")
+        else
+            warn("[FSSHUB] No network and no cache available!")
+            return false
+        end
+    elseif not localVersion or localVersion ~= serverVersion then
+        -- First run or version mismatch
+        needsUpdate = true
+        Log("Update needed: local=" .. tostring(localVersion) .. " server=" .. tostring(serverVersion))
+    else
+        -- Version match - check if bundle actually exists
+        if fileExists(WS.BundleFile) then
+            Log("Version match - using cached bundle")
+            bundleContent = readFile(WS.BundleFile)
+        else
+            Log("Version match but bundle file missing - forcing update")
+            needsUpdate = true
+        end
+    end
+
+    -- Download new bundle if needed
+    if needsUpdate then
+        bundleContent = downloadBundle()
+
+        if bundleContent then
+            -- Save to cache
+            if writeFile(WS.BundleFile, bundleContent) then
+                Log("Bundle cached successfully")
+            end
+
+            -- Update version file
+            if serverVersion then
+                writeFile(WS.VersionFile, serverVersion)
+                Log("Version file updated: " .. serverVersion)
+            end
+        else
+            -- Download failed - try fallback to existing cache
+            Log("Download failed, attempting cache fallback")
+            if fileExists(WS.BundleFile) then
+                bundleContent = readFile(WS.BundleFile)
+                Log("Using stale cache as fallback")
+            else
+                warn("[FSSHUB] No bundle available!")
+                return false
+            end
+        end
+    end
+
+    -- Execute bundle
+    if not bundleContent then
+        warn("[FSSHUB] No bundle content to execute!")
+        return false
+    end
+
+    Log("Executing bundle (" .. #bundleContent .. " bytes)")
+
+    local chunk, compileErr = loadstring(bundleContent)
+    if not chunk then
+        warn("[FSSHUB] Bundle compile error: " .. tostring(compileErr))
+        return false
+    end
+
+    local execOk, execErr = pcall(chunk)
+    if not execOk then
+        warn("[FSSHUB] Bundle execution error: " .. tostring(execErr))
+        return false
+    end
+
+    -- Run the UI if exported
+    if _G.FSSHUB_EXECUTE_UI then
+        Log("Executing UI...")
+        task.spawn(function()
+            local uiSuccess, uiErr = pcall(_G.FSSHUB_EXECUTE_UI)
+            if not uiSuccess then
+                warn("UI Execution Error: " .. tostring(uiErr))
+            end
+        end)
+    end
+
+    Log("Bundle executed successfully!")
+    return true
+end
+
+-- ===== MAIN ENTRY POINT =====
+Log("FSSHUB Entry v" .. INSTALLER_VERSION)
+
+-- Initialize workspace
+initWorkspace()
+
+-- Store workspace config globally for other scripts
+getgenv().FSSHUB_WORKSPACE = CONFIG.Workspace
+
+-- Load and execute bundle
+local success = loadBundle()
+
+if not success then
+    warn("[FSSHUB] Failed to load UI. Please check your connection and try again.")
+end
+
+return success
