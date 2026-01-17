@@ -59883,153 +59883,12 @@ local function SaveTheme(themeName)
     end
 end
 
--- Loading GUI
-local function CreateLoadingGui()
-    if _G.FSSHUB_LOADING_GUI then pcall(function() _G.FSSHUB_LOADING_GUI:Destroy() end) end
-
-    local TweenService = game:GetService("TweenService")
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "FSSHUB_Loading"
-    gui.IgnoreGuiInset = true
-    gui.ResetOnSpawn = false
-    gui.DisplayOrder = 100 -- Ensure it's on top
-
-    local parent = gethui and gethui() or game:GetService("CoreGui")
-    pcall(function() gui.Parent = parent end)
-
-    _G.FSSHUB_LOADING_GUI = gui
-
-    local theme = GetSavedTheme()
-
-    -- Main Container (Bottom Center) - Reverted to Frame for performance
-    local container = Instance.new("Frame")
-    container.Name = "Container"
-    container.Size = UDim2.fromOffset(300, 70)
-    container.Position = UDim2.fromScale(0.5, 0.85) -- Bottom center
-    container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.BackgroundColor3 = theme.Main
-    container.BackgroundTransparency = 0.1
-    container.BorderSizePixel = 0
-    container.Parent = gui
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = container
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = theme.Stroke
-    stroke.Thickness = 1
-    stroke.Parent = container
-
-    -- Title
-    local title = Instance.new("TextLabel")
-    title.Name = "Title"
-    title.Size = UDim2.new(1, -20, 0, 20)
-    title.Position = UDim2.new(0, 10, 0, 10)
-    title.BackgroundTransparency = 1
-    title.Text = "FSSHUB"
-    title.TextColor3 = theme.Text
-    title.TextSize = 16
-    title.Font = Enum.Font.GothamBold
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = container
-
-    -- Status Text (Dynamic)
-    local status = Instance.new("TextLabel")
-    status.Name = "Status"
-    status.Size = UDim2.new(1, -20, 0, 15)
-    status.Position = UDim2.new(0, 10, 0, 30)
-    status.BackgroundTransparency = 1
-    status.Text = "Initializing..."
-    status.TextColor3 = theme.SubText
-    status.TextSize = 12
-    status.Font = Enum.Font.Gotham
-    status.TextXAlignment = Enum.TextXAlignment.Left
-    status.Parent = container
-
-    -- Progress Bar Background
-    local barBg = Instance.new("Frame")
-    barBg.Name = "BarBackground"
-    barBg.Size = UDim2.new(1, -20, 0, 4)
-    barBg.Position = UDim2.new(0, 10, 0, 55)
-    barBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    barBg.BorderSizePixel = 0
-    barBg.Parent = container
-
-    local barCorner = Instance.new("UICorner")
-    barCorner.CornerRadius = UDim.new(0, 2)
-    barCorner.Parent = barBg
-
-    -- Progress Bar Fill
-    local barFill = Instance.new("Frame")
-    barFill.Name = "BarFill"
-    barFill.Size = UDim2.fromScale(0, 1)           -- Start at 0 width
-    barFill.BackgroundColor3 = Color3.new(1, 1, 1) -- White for gradient tint
-    barFill.BorderSizePixel = 0
-    barFill.Parent = barBg
-
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(0, 2)
-    fillCorner.Parent = barFill
-
-    -- Gradient for extra polish + Shimmer
-    local gradient = Instance.new("UIGradient")
-    local accentH, accentS, accentV = theme.Accent:ToHSV()
-    gradient.Color = ColorSequence.new {
-        ColorSequenceKeypoint.new(0, Color3.fromHSV(accentH, accentS * 0.8, math.min(accentV * 1.2, 1))),
-        ColorSequenceKeypoint.new(1, theme.Accent)
-    }
-    gradient.Transparency = NumberSequence.new {
-        NumberSequenceKeypoint.new(0, 0),
-        NumberSequenceKeypoint.new(1, 0)
-    }
-    gradient.Parent = barFill
-
-    -- Animations
-    container.Position = UDim2.fromScale(0.5, 0.9)
-    TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        { Position = UDim2.fromScale(0.5, 0.85) }):Play()
-
-    -- Shimmer Loop
-    task.spawn(function()
-        local shimmer = Instance.new("UIGradient")
-        shimmer.Color = ColorSequence.new(Color3.new(1, 1, 1))
-        shimmer.Transparency = NumberSequence.new {
-            NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(0.5, 0.3),
-            NumberSequenceKeypoint.new(1, 1)
-        }
-        shimmer.Rotation = 45
-        shimmer.Parent = barFill
-
-        while container.Parent do
-            shimmer.Offset = Vector2.new(-1, 0)
-            TweenService:Create(shimmer, TweenInfo.new(1, Enum.EasingStyle.Linear), { Offset = Vector2.new(1, 0) }):Play()
-            task.wait(2)
-        end
-    end)
-
-    return {
-        Gui = gui,
-        Update = function(progress, text)
-            if not gui.Parent then return end
-            status.Text = text or status.Text
-            TweenService:Create(barFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                { Size = UDim2.fromScale(math.clamp(progress, 0, 1), 1) }):Play()
-        end,
-        Destroy = function()
-            -- Slide down animation (Performance friendly, no GroupTransparency)
-            TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-                { Position = UDim2.fromScale(0.5, 0.9) }):Play()
-            task.delay(0.3, function()
-                if gui and gui.Parent then gui:Destroy() end
-                _G.FSSHUB_LOADING_GUI = nil
-            end)
-        end
-    }
-end
-
-local Loading = CreateLoadingGui()
+-- Loading GUI completely removed - handled by junkie_loader.lua
+local Loading = {
+    Update = function(...) end,
+    Destroy = function() end,
+    Gui = nil
+}
 
 -- LOAD FLUENT RENEWED (v4.0.8 with FSSHUBLibrary workspace)
 local Fluent
@@ -60352,13 +60211,7 @@ InterfaceSection:AddKeybind("MenuKeybind", {
 
 Window:SelectTab(1)
 
--- Remove Loading GUI (Now that window is ready)
-if _G.FSSHUB_LOADING_GUI then
-    Loading.Update(1, "Ready!")
-    task.delay(0.2, function()
-        Loading.Destroy()
-    end)
-end
+-- Loading GUI is handled by junkie_loader.lua - no action needed here
 
 Fluent:Notify({
     Title = "FSSHUB Loaded",
