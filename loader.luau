@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB UI Bundle (Two-File Architecture)
-    Generated: 2026-01-18T16:00:38.579Z
+    Generated: 2026-01-18T16:55:14.982Z
     
     This bundle contains:
     - Fluent UI Library (46 modules)
@@ -4102,9 +4102,26 @@ function Element:New(Idx, Config)
 				},
 			})
 		
+			-- Clear Button (New)
+			local KeybindClearButton = New("TextButton", {
+				Size = UDim2.fromOffset(20, 20), -- Small square
+				Position = UDim2.new(1, -10, 0.5, 0),
+				AnchorPoint = Vector2.new(1, 0.5),
+				BackgroundTransparency = 1,
+				Text = "X",
+				TextColor3 = Color3.fromRGB(100, 100, 100),
+				TextSize = 12,
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+				Parent = ToggleFrame.Frame,
+				ThemeTag = {
+					TextColor3 = "SubText"
+				},
+				Visible = false -- Hidden by default, shown when hovered? Or always? Let's show when keybind exists
+			})
+		
 			local KeybindDisplayFrame: TextButton = New("TextButton", {
 				Size = UDim2.fromOffset(0, 30),
-				Position = UDim2.new(1, -10, 0.5, 0),
+				Position = UDim2.new(1, -30, 0.5, 0), -- Shifted left to make room for X
 				AnchorPoint = Vector2.new(1, 0.5),
 				BackgroundTransparency = 0.9,
 				Parent = ToggleFrame.Frame,
@@ -4129,6 +4146,17 @@ function Element:New(Idx, Config)
 				}),
 				KeybindDisplayLabel
 			})
+
+			-- Logic to show/hide X button
+			local function UpdateClearButton()
+				KeybindClearButton.Visible = (Keybind.Value ~= "None" and Keybind.Value ~= Enum.KeyCode.Unknown)
+			end
+			
+			-- Clear Action (Button)
+			KeybindClearButton.MouseButton1Click:Connect(function()
+				Keybind:SetValue("None")
+				UpdateClearButton()
+			end)
 
 			Keybind.Instance = setmetatable({
 				CreatedAt = tick()
@@ -4180,6 +4208,7 @@ function Element:New(Idx, Config)
 				self.Mode = Mode
 		
 				KeybindDisplayLabel.Text = Library.Utilities:Prettify(self.Value)
+				UpdateClearButton()
 			end
 		
 			function Keybind:OnClick(Callback)
@@ -4210,6 +4239,13 @@ function Element:New(Idx, Config)
 			end
 		
 			Creator.AddSignal(KeybindDisplayFrame.InputBegan, function(Input)
+				-- Feature: Right Click to Clear
+				if Input.UserInputType == Enum.UserInputType.MouseButton2 then
+					Keybind:SetValue("None")
+					UpdateClearButton()
+					return
+				end
+
 				if
 					Input.UserInputType == Enum.UserInputType.MouseButton1
 					or Input.UserInputType == Enum.UserInputType.Touch
@@ -4297,6 +4333,11 @@ function Element:New(Idx, Config)
 	Library.Options[Idx] = Toggle
 
 	Toggle.Instance = ToggleFrame
+
+		end
+	})
+
+	UpdateClearButton() -- Initial check
 
 	return setmetatable(Toggle, {
 		__newindex =  function(self, index, newvalue)
@@ -59458,49 +59499,49 @@ __MODULES["Themes/Cyber"] = function()
     
     return (function()
 local Theme = {
-	Accent = Color3.fromRGB(0, 255, 255), -- Neon Cyan
+	Accent = Color3.fromRGB(138, 110, 215), -- Vibrant Purple (Junkie Accent)
 	
-	AcrylicMain = Color3.fromRGB(5, 5, 5),   -- Deep Black
-	AcrylicBorder = Color3.fromRGB(0, 255, 255), -- Cyan Border
-	AcrylicGradient = ColorSequence.new(Color3.fromRGB(5, 5, 5), Color3.fromRGB(10, 10, 10)),
-	AcrylicNoise = 1, -- Digital noise effect
+	AcrylicMain = Color3.fromRGB(25, 20, 35),   -- Dark Purple Glass Tint (Junkie Bg)
+	AcrylicBorder = Color3.fromRGB(140, 120, 210), -- Lighter Purple Stroke
+	AcrylicGradient = ColorSequence.new(Color3.fromRGB(20, 20, 25), Color3.fromRGB(10, 10, 15)), -- Gradient from Junkie UI
+	AcrylicNoise = 1, 
 
-	TitleBarLine = Color3.fromRGB(0, 255, 255),
-	Tab = Color3.fromRGB(150, 255, 255),
+	TitleBarLine = Color3.fromRGB(140, 120, 210),
+	Tab = Color3.fromRGB(180, 180, 200), -- TextDim
 
-	Element = Color3.fromRGB(10, 10, 10),
-	ElementBorder = Color3.fromRGB(0, 100, 100),
-	InElementBorder = Color3.fromRGB(0, 255, 255),
-	ElementTransparency = 0.9, -- Slight transparency for cyber feel
+	Element = Color3.fromRGB(15, 12, 25), -- InputBg
+	ElementBorder = Color3.fromRGB(40, 30, 60), -- ButtonBg as border
+	InElementBorder = Color3.fromRGB(138, 110, 215), -- Accent
+	ElementTransparency = 0.5,
 
-	ToggleSlider = Color3.fromRGB(0, 200, 200),
-	ToggleToggled = Color3.fromRGB(0, 0, 0),
+	ToggleSlider = Color3.fromRGB(138, 110, 215),
+	ToggleToggled = Color3.fromRGB(20, 20, 25),
 
-	SliderRail = Color3.fromRGB(0, 100, 100),
+	SliderRail = Color3.fromRGB(40, 30, 60),
 
-	DropdownFrame = Color3.fromRGB(20, 20, 20),
-	DropdownHolder = Color3.fromRGB(10, 10, 10),
-	DropdownBorder = Color3.fromRGB(0, 200, 200),
-	DropdownOption = Color3.fromRGB(200, 255, 255),
+	DropdownFrame = Color3.fromRGB(15, 12, 25),
+	DropdownHolder = Color3.fromRGB(15, 12, 25),
+	DropdownBorder = Color3.fromRGB(40, 30, 60),
+	DropdownOption = Color3.fromRGB(180, 180, 200),
 
-	Keybind = Color3.fromRGB(200, 255, 255),
+	Keybind = Color3.fromRGB(180, 180, 200),
 
-	Input = Color3.fromRGB(20, 20, 20),
-	InputFocused = Color3.fromRGB(0, 0, 0),
-	InputIndicator = Color3.fromRGB(0, 255, 255),
+	Input = Color3.fromRGB(15, 12, 25),
+	InputFocused = Color3.fromRGB(20, 20, 25),
+	InputIndicator = Color3.fromRGB(170, 150, 240), -- Secondary Purple
 
-	Dialog = Color3.fromRGB(10, 10, 10),
-	DialogHolder = Color3.fromRGB(5, 5, 5),
-	DialogHolderLine = Color3.fromRGB(0, 100, 100),
-	DialogButton = Color3.fromRGB(10, 10, 10),
-	DialogButtonBorder = Color3.fromRGB(0, 255, 255),
-	DialogBorder = Color3.fromRGB(0, 255, 255),
-	DialogInput = Color3.fromRGB(15, 15, 15),
-	DialogInputLine = Color3.fromRGB(0, 255, 255),
+	Dialog = Color3.fromRGB(25, 20, 35),
+	DialogHolder = Color3.fromRGB(15, 12, 25),
+	DialogHolderLine = Color3.fromRGB(140, 120, 210),
+	DialogButton = Color3.fromRGB(40, 30, 60),
+	DialogButtonBorder = Color3.fromRGB(140, 120, 210),
+	DialogBorder = Color3.fromRGB(140, 120, 210),
+	DialogInput = Color3.fromRGB(15, 12, 25),
+	DialogInputLine = Color3.fromRGB(138, 110, 215),
 
-	Text = Color3.fromRGB(200, 255, 255), -- White-Cyan text
-	SubText = Color3.fromRGB(100, 200, 200),
-	Hover = Color3.fromRGB(0, 255, 255),
+	Text = Color3.fromRGB(255, 255, 255),
+	SubText = Color3.fromRGB(180, 180, 200),
+	Hover = Color3.fromRGB(170, 150, 240), -- Secondary Purple
 	HoverChange = 0.1
 }
 
@@ -59867,9 +59908,9 @@ local function SaveTheme(themeName)
 end
 
 local function GetSavedTheme()
-    if not readfile then return "Dark" end
+    if not readfile then return "Cyber" end
     local success, themeName = pcall(readfile, THEME_FILE)
-    return success and themeName or "Dark"
+    return success and themeName or "Cyber"
 end
 
 -- 2. MAIN UI LOGIC (InitUI)
@@ -59949,9 +59990,13 @@ local function InitUI(Fluent)
     local function Toggle(tab, id, title, default, callback, keybind)
         local config = { Title = title, Default = default, Callback = callback or function() end }
         local toggle = tab:AddToggle(id, config)
-        if keybind then
+
+        -- Feature: Keybinds only for Premium
+        if isPremium then
+            -- Default keybind (None if not provided)
+            local kbind = keybind or Enum.KeyCode.Unknown
             toggle:Keybind("Key_" .. id,
-                { Title = "Key", Default = keybind, Mode = "Toggle", Callback = function() end, ChangedCallback = function() end })
+                { Title = "Key", Default = kbind, Mode = "Toggle", Callback = function() end, ChangedCallback = function() end })
         end
         return toggle
     end
