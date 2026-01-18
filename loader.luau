@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB UI Bundle (Two-File Architecture)
-    Generated: 2026-01-17T19:07:29.083Z
+    Generated: 2026-01-18T10:24:52.742Z
     
     This bundle contains:
     - Fluent UI Library (46 modules)
@@ -59789,10 +59789,11 @@ _log("Fluent modules defined (46 total)")
 local Fluent = __REQUIRE("Root")
 _log("Fluent UI initialized")
 
--- Store globally for pre-load optimization
+-- Store Fluent globally but with proper cleanup support
+-- Note: Main_Menu.lua clears these globals on re-run to prevent stale references
 getgenv().FSSHUB_FLUENT = Fluent
 getgenv().FSSHUB_GET_FLUENT = function(timeout)
-    -- Instant return since already loaded
+    -- Return from module cache (will be cleared by Main_Menu cleanup)
     return Fluent
 end
 
@@ -59822,11 +59823,22 @@ if not getgenv().FSSHUB_INFO then
     return
 end
 
--- Cleanup Old UI
+-- Cleanup Old UI AND cached references (Critical for re-run stability)
 if _G.FSSHUB_FLUENT then
     pcall(function() _G.FSSHUB_FLUENT:Destroy() end)
+    -- Clear Options cache to prevent stale references
+    pcall(function()
+        if _G.FSSHUB_FLUENT.Options then
+            _G.FSSHUB_FLUENT.Options = {}
+        end
+    end)
 end
 _G.FSSHUB_WINDOW = nil
+_G.FSSHUB_OPTIONS = nil
+
+-- CRITICAL: Clear cached Fluent getter to force fresh instance on re-run
+getgenv().FSSHUB_GET_FLUENT = nil
+getgenv().FSSHUB_FLUENT = nil
 
 local Info = getgenv().FSSHUB_INFO
 
@@ -59863,6 +59875,18 @@ local function InitUI(Fluent)
     -- Window Setup
     local isPremium = (Info.User.IsPremium == true or Info.User.IsPremium == "true")
     local gameName = Info.Game.Name or "Universal"
+
+    -- Cleanup Old UI (Robust)
+    if _G.FSSHUB_WINDOW and _G.FSSHUB_WINDOW.Destroy then
+        pcall(function() _G.FSSHUB_WINDOW:Destroy() end)
+    end
+    -- Fallback: Search CoreGui manually
+    if game:GetService("CoreGui"):FindFirstChild("FSSHUB") then
+        pcall(function() game:GetService("CoreGui").FSSHUB:Destroy() end)
+    elseif game:GetService("CoreGui"):FindFirstChild("ScreenGui") then
+        -- Fluent sometimes names it "ScreenGui" if not set?
+        -- Safer not to blindly destroy "ScreenGui", rely on Window:Destroy
+    end
 
     local Window = Fluent:Window({
         Title = isPremium and "FSSHUB 👑 | " .. gameName or "FSSHUB | " .. gameName,
@@ -59914,9 +59938,10 @@ local function InitUI(Fluent)
     task.wait(0.02)
 
     Tabs.Movement = Window:Tab({ Title = "Movement", Icon = "footprints" })
+
     -- Movement Content
-    Toggle(Tabs.Movement, "Speed", "Walk Speed", false,
-        function(v) Events:Emit("toggle_speed", v, Fluent.Options.SpeedVal.Value) end)
+    -- FIX: Reordered to ensure Sliders exist, but more importantly, added safe checks in callbacks
+
     Tabs.Movement:AddSlider("SpeedVal",
         {
             Title = "Value",
@@ -59924,13 +59949,19 @@ local function InitUI(Fluent)
             Min = 16,
             Max = 500,
             Callback = function(v)
-                Events:Emit("toggle_speed",
-                    Fluent.Options.Speed.Value, v)
+                local enabled = false
+                if Fluent.Options.Speed and Fluent.Options.Speed.Value then enabled = Fluent.Options.Speed.Value end
+                Events:Emit("toggle_speed", enabled, v)
             end
         })
 
-    Toggle(Tabs.Movement, "Jump", "Jump Power", false,
-        function(v) Events:Emit("toggle_jump", v, Fluent.Options.JumpVal.Value) end)
+    Toggle(Tabs.Movement, "Speed", "Walk Speed", false,
+        function(v)
+            local val = 16
+            if Fluent.Options.SpeedVal and Fluent.Options.SpeedVal.Value then val = Fluent.Options.SpeedVal.Value end
+            Events:Emit("toggle_speed", v, val)
+        end)
+
     Tabs.Movement:AddSlider("JumpVal",
         {
             Title = "Value",
@@ -59938,10 +59969,18 @@ local function InitUI(Fluent)
             Min = 50,
             Max = 500,
             Callback = function(v)
-                Events:Emit("toggle_jump",
-                    Fluent.Options.Jump.Value, v)
+                local enabled = false
+                if Fluent.Options.Jump and Fluent.Options.Jump.Value then enabled = Fluent.Options.Jump.Value end
+                Events:Emit("toggle_jump", enabled, v)
             end
         })
+
+    Toggle(Tabs.Movement, "Jump", "Jump Power", false,
+        function(v)
+            local val = 50
+            if Fluent.Options.JumpVal and Fluent.Options.JumpVal.Value then val = Fluent.Options.JumpVal.Value end
+            Events:Emit("toggle_jump", v, val)
+        end)
 
     if isPremium then
         Tabs.Movement:AddParagraph("Prem", { Title = "Premium", Content = "Fly & Noclip unlocked" })
@@ -60017,7 +60056,7 @@ task.spawn(function()
         Log("Downloading Fluent Library...")
         local success, result = pcall(function()
             return game:HttpGet(
-            "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8")
+                "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/main/lua/fluent_loader.lua?v=4.0.8")
         end)
 
         if success and result then
