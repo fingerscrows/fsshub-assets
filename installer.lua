@@ -11,6 +11,13 @@
 
 local INSTALLER_VERSION = "2.1.0"
 
+-- ===== AUTO-CLEANUP ON RE-EXECUTION =====
+-- Destroy any existing FSSHUB UI before starting fresh
+if _G.FSSHUB_CLEANUP then
+    _G.FSSHUB_CLEANUP()
+    task.wait(0.1) -- Brief pause to ensure cleanup completes
+end
+
 local CONFIG = {
     -- Worker Endpoints
     HealthUrl = "https://script.fsshub-services.workers.dev/health",

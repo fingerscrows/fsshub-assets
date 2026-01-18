@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB UI Bundle (Two-File Architecture)
-    Generated: 2026-01-18T10:48:46.616Z
+    Generated: 2026-01-18T11:18:04.749Z
     
     This bundle contains:
     - Fluent UI Library (46 modules)
@@ -59896,7 +59896,13 @@ local function InitUI(Fluent)
         Resize = false,
         MinimizeKey = Enum.KeyCode.RightControl,
         Acrylic = false,
-        Theme = GetSavedTheme()
+        Theme = GetSavedTheme(),
+        -- CLEANUP: Reset everything when Main Menu is closed
+        OnClose = function()
+            if _G.FSSHUB_CLEANUP then
+                _G.FSSHUB_CLEANUP()
+            end
+        end
     })
 
     -- Theme Saving Hook
