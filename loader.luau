@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB UI Bundle (Two-File Architecture)
-    Generated: 2026-01-18T10:24:52.742Z
+    Generated: 2026-01-18T10:48:46.616Z
     
     This bundle contains:
     - Fluent UI Library (46 modules)
@@ -59836,9 +59836,9 @@ end
 _G.FSSHUB_WINDOW = nil
 _G.FSSHUB_OPTIONS = nil
 
--- CRITICAL: Clear cached Fluent getter to force fresh instance on re-run
-getgenv().FSSHUB_GET_FLUENT = nil
-getgenv().FSSHUB_FLUENT = nil
+-- CRITICAL: Use the bundled Fluent instance for optimal performance
+-- Do NOT clear FSSHUB_GET_FLUENT here, as it is set by the bundle loader wrapper.
+
 
 local Info = getgenv().FSSHUB_INFO
 
