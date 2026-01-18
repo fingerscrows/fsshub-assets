@@ -322,21 +322,43 @@ local function loadBundle()
         return false
     end
 
-    local execOk, execErr = pcall(chunk)
+    local execOk, result = pcall(chunk)
     if not execOk then
-        warn("[FSSHUB] Bundle execution error: " .. tostring(execErr))
+        warn("[FSSHUB] Bundle execution error: " .. tostring(result))
         return false
     end
 
-    -- Run the UI if exported
-    if _G.FSSHUB_EXECUTE_UI then
+    -- Run the UI (Robust Method: Return Value -> getgenv -> _G)
+    local ExecuteUI = nil
+
+    -- 1. Check Return Value
+    if type(result) == "table" and result.Execute then
+        ExecuteUI = result.Execute
+        Log("Using Bundle Return Value")
+    end
+
+    -- 2. Check getgenv
+    if not ExecuteUI and getgenv and getgenv().FSSHUB_UI_BUNDLE and getgenv().FSSHUB_UI_BUNDLE.Execute then
+        ExecuteUI = getgenv().FSSHUB_UI_BUNDLE.Execute
+        Log("Using getgenv().FSSHUB_UI_BUNDLE")
+    end
+
+    -- 3. Check _G (Legacy)
+    if not ExecuteUI and _G.FSSHUB_EXECUTE_UI then
+        ExecuteUI = _G.FSSHUB_EXECUTE_UI
+        Log("Using _G.FSSHUB_EXECUTE_UI")
+    end
+
+    if ExecuteUI then
         Log("Executing UI...")
         task.spawn(function()
-            local uiSuccess, uiErr = pcall(_G.FSSHUB_EXECUTE_UI)
+            local uiSuccess, uiErr = pcall(ExecuteUI)
             if not uiSuccess then
                 warn("UI Execution Error: " .. tostring(uiErr))
             end
         end)
+    else
+        warn("[FSSHUB] CRITICAL: Could not find ExecuteUI function in Bundle!")
     end
 
     Log("Bundle executed successfully!")

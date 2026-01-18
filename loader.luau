@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB UI Bundle (Two-File Architecture)
-    Generated: 2026-01-18T12:55:31.733Z
+    Generated: 2026-01-18T15:03:52.457Z
     
     This bundle contains:
     - Fluent UI Library (46 modules)
@@ -59878,7 +59878,18 @@ local function InitUI(Fluent)
     Log("Starting UI Build Phase...")
 
     -- Event Bus initialization
-    local Events = _G.FSSHUB_EVENTS or { listeners = {}, Emit = function() end, On = function() end }
+    -- Event Bus initialization
+    local Events = _G.FSSHUB_EVENTS
+    if not Events and getgenv then
+        Events = getgenv().FSSHUB_EVENTS
+    end
+
+    -- Fallback with Warning
+    if not Events then
+        warn("[FSSHUB] CRITICAL: Event Bus NOT Connected. Features will not work.")
+        Events = { listeners = {}, Emit = function() warn("[FSSHUB] Attempted to emit event on disconnected bus") end, On = function() end }
+    end
+
     if not _G.FSSHUB_EVENTS then
         _G.FSSHUB_EVENTS = Events
     end
@@ -59910,11 +59921,24 @@ local function InitUI(Fluent)
         Theme = GetSavedTheme(),
         -- CLEANUP: Reset everything when Main Menu is closed
         OnClose = function()
+            -- Unified Janitor Cleanup (Covers UI, Logic, Visuals)
             if _G.FSSHUB_CLEANUP then
                 _G.FSSHUB_CLEANUP()
             end
         end
     })
+
+    -- Register Window Cleanup to Janitor (Double Safety)
+    if getgenv().FSSHUB_JANITOR then
+        getgenv().FSSHUB_JANITOR.TrackInstance(Window)
+        -- Also register cache saving if needed
+        getgenv().FSSHUB_JANITOR.Register(function()
+            -- Save theme/config before death if needed?
+            -- already saved on change.
+            _G.FSSHUB_WINDOW = nil
+            _G.FSSHUB_FLUENT = nil
+        end)
+    end
 
     -- Theme Saving Hook
     if Fluent.ThemeChanged then
