@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB UI Bundle (Two-File Architecture)
-    Generated: 2026-01-18T11:18:04.749Z
+    Generated: 2026-01-18T11:31:02.170Z
     
     This bundle contains:
     - Fluent UI Library (46 modules)
@@ -1931,6 +1931,9 @@ return function(Config)
 	end
 
 	function Window:Destroy()
+		if Config.OnClose then
+			task.spawn(Config.OnClose)
+		end
 		if Library.UseAcrylic then
 			Window.AcrylicPaint.Model:Destroy()
 		end
