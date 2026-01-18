@@ -1,6 +1,6 @@
 --[[ 
     FSSHUB UI Bundle (Two-File Architecture)
-    Generated: 2026-01-18T11:31:02.170Z
+    Generated: 2026-01-18T12:55:31.733Z
     
     This bundle contains:
     - Fluent UI Library (46 modules)
@@ -1500,6 +1500,8 @@ end
 
     end)()
 end
+
+task.wait()
 
 __MODULES["Components/Window"] = function()
     local script = createScriptProxy("Root/Components/Window")
@@ -4310,6 +4312,8 @@ return Element
 
     end)()
 end
+
+task.wait()
 
 __MODULES["Root"] = function()
     local script = createScriptProxy("Root/Root")
@@ -58800,6 +58804,8 @@ return GroupMotor
     end)()
 end
 
+task.wait()
+
 __MODULES["Packages/Flipper"] = function()
     local script = createScriptProxy("Root/Packages/Flipper")
     local function require(p) 
@@ -59380,6 +59386,8 @@ return {
 
     end)()
 end
+
+task.wait()
 
 __MODULES["Themes/Aqua"] = function()
     local script = createScriptProxy("Root/Themes/Aqua")
