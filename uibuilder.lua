@@ -1,6 +1,6 @@
 -- [[ FSSHUB V5 Menu Builder ]]
 -- Architecture: Dual-Asset Lazy Cache
--- This script replaces the old Main_Menu.lua logic
+-- Updated: Added complete feature coverage for Free & Premium
 
 return function(Fluent)
     local Info = getgenv().FSSHUB_INFO
@@ -99,11 +99,23 @@ return function(Fluent)
 
     -- 6. Build Tabs
     local Tabs = {}
+
+    -- [[ HOME TAB ]]
     Tabs.Home = Window:Tab({ Title = "Dashboard", Icon = "home" })
     Tabs.Home:AddParagraph("Welcome", {
-        Title = isPremium and "Welcome, Premium User! 👑" or "Welcome to FSSHub",
-        Content = "User: " .. (Info.User.Username or "Guest") .. "\nTier: " .. (Info.User.Tier or "Free")
+        Title = isPremium and "Welcome, Premium Member 👑" or "Welcome to FSSHub",
+        Content = "User: " ..
+        (Info.User.Username or "Guest") ..
+        "\nTier: " .. (Info.User.Tier or "Free") .. "\nExpires: " .. (Info.User.ExpiryText or "Never")
     })
+
+    if isPremium then
+        Tabs.Home:AddButton({ Title = "Server Hop", Description = "Find a better server", Callback = function() Events
+                :Emit("action_serverhop") end })
+        Tabs.Home:AddButton({ Title = "Auto Rejoin", Description = "Rejoin on kick", Callback = function() Events:Emit(
+            "toggle_autorejoin", true) end })
+    end
+
     Tabs.Home:AddButton({
         Title = "Join Discord",
         Description = "Get Support",
@@ -113,9 +125,12 @@ return function(Fluent)
         end
     })
 
+    -- [[ MOVEMENT TAB ]]
     Tabs.Movement = Window:Tab({ Title = "Movement", Icon = "footprints" })
+
+    -- Speed
     Tabs.Movement:AddSlider("SpeedVal", {
-        Title = "Value",
+        Title = "Walk Speed Value",
         Default = 16,
         Min = 16,
         Max = 500,
@@ -125,14 +140,15 @@ return function(Fluent)
             Events:Emit("toggle_speed", e, v)
         end
     })
-    Toggle(Tabs.Movement, "Speed", "Walk Speed", false, function(v)
+    Toggle(Tabs.Movement, "Speed", "Enable Walk Speed", false, function(v)
         local val = 16
         if Fluent.Options.SpeedVal then val = Fluent.Options.SpeedVal.Value end
         Events:Emit("toggle_speed", v, val)
     end)
 
+    -- Jump
     Tabs.Movement:AddSlider("JumpVal", {
-        Title = "Value",
+        Title = "Jump Power Value",
         Default = 50,
         Min = 50,
         Max = 500,
@@ -142,31 +158,107 @@ return function(Fluent)
             Events:Emit("toggle_jump", e, v)
         end
     })
-    Toggle(Tabs.Movement, "Jump", "Jump Power", false, function(v)
+    Toggle(Tabs.Movement, "Jump", "Enable Jump Power", false, function(v)
         local val = 50
         if Fluent.Options.JumpVal then val = Fluent.Options.JumpVal.Value end
         Events:Emit("toggle_jump", v, val)
     end)
 
+    Toggle(Tabs.Movement, "InfJump", "Infinite Jump", false, function(v) Events:Emit("toggle_infinitejump", v) end)
+
     if isPremium then
-        Tabs.Movement:AddParagraph("Prem", { Title = "Premium", Content = "Fly & Noclip unlocked" })
-        Toggle(Tabs.Movement, "Fly", "Fly Mode", false, function(v) Events:Emit("toggle_fly", v) end, Enum.KeyCode.F)
+        Tabs.Movement:AddSection("Premium Movement")
+        Toggle(Tabs.Movement, "Fly", "Fly Mode", false, function(v)
+            local speed = Fluent.Options.FlySpeed and Fluent.Options.FlySpeed.Value or 50
+            Events:Emit("toggle_fly", v, speed)
+        end, Enum.KeyCode.F):AddSlider("FlySpeed", {
+            Title = "Fly Speed",
+            Default = 50,
+            Min = 10,
+            Max = 200,
+            Callback = function(v)
+                if Fluent.Options.Fly and Fluent.Options.Fly.Value then Events:Emit("toggle_fly", true, v) end
+            end
+        })
+
         Toggle(Tabs.Movement, "Noclip", "Noclip", false, function(v) Events:Emit("toggle_noclip", v) end)
+        Toggle(Tabs.Movement, "NoClipPhys", "Platform Stand", false,
+            function(v) Events:Emit("toggle_platformstand", v) end)
+
+        Tabs.Movement:AddSlider("Gravity",
+            { Title = "Gravity", Default = 196.2, Min = 0, Max = 200, Callback = function(v) Events:Emit("set_gravity", v) end })
     end
 
+    -- [[ VISUAL TAB ]]
     Tabs.Visual = Window:Tab({ Title = "Visual", Icon = "eye" })
-    Toggle(Tabs.Visual, "ESP", "Enable ESP", false, function(v) Events:Emit("toggle_esp", v) end, Enum.KeyCode.E)
+    Toggle(Tabs.Visual, "ESP", "Enable ESP", false, function(v)
+        local opts = { showName = true, showDistance = true, showHealth = true, showChams = true }
+        Events:Emit("toggle_esp", v, opts)
+    end, Enum.KeyCode.E)
+
     Toggle(Tabs.Visual, "Fullbright", "Fullbright", false, function(v) Events:Emit("toggle_fullbright", v) end)
 
-    Tabs.Utility = Window:Tab({ Title = "Utility", Icon = "wrench" })
-    Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
+    if isPremium then
+        Tabs.Visual:AddSection("Premium Visuals")
+        Toggle(Tabs.Visual, "SkelESP", "Skeleton ESP", false, function(v) Events:Emit("toggle_skeleton", v) end)
+        Toggle(Tabs.Visual, "Tracers", "Tracers", false, function(v) Events:Emit("toggle_tracers", v) end)
+    end
 
+    -- [[ PLAYER TAB ]]
     Tabs.Player = Window:Tab({ Title = "Player", Icon = "user" })
     Tabs.Player:AddButton({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
+    Toggle(Tabs.Player, "AutoRespawn", "Fast Respawn", false, function(v) Events:Emit("toggle_autorespawn", v) end)
+    Toggle(Tabs.Player, "NoCol", "Disable Collision", false, function(v) Events:Emit("toggle_nocollision", v) end)
 
+    if isPremium then
+        Tabs.Player:AddSection("Premium Player")
+        Toggle(Tabs.Player, "GodMode", "God Mode", false, function(v) Events:Emit("toggle_godmode", v) end)
+        Toggle(Tabs.Player, "NoFall", "No Fall Damage", false, function(v) Events:Emit("toggle_nofall", v) end)
+        Toggle(Tabs.Player, "NoRagdoll", "Anti-Ragdoll", false, function(v) Events:Emit("toggle_noragdoll", v) end)
+        Tabs.Player:AddSlider("AnimSpeed",
+            { Title = "Animation Speed", Default = 1, Min = 0, Max = 5, Callback = function(v) Events:Emit(
+                "toggle_animspeed", true, v) end })
+    end
+
+    -- [[ UTILITY TAB ]]
+    Tabs.Utility = Window:Tab({ Title = "Utility", Icon = "wrench" })
+    Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
+    Tabs.Utility:AddButton({ Title = "Unlock FPS", Description = "Boost FPS Cap", Callback = function() Events:Emit(
+        "action_unlockfps") end })
+    Toggle(Tabs.Utility, "AntiAFK", "Anti-AFK", false, function(v) Events:Emit("toggle_antiafk", v) end)
+    Toggle(Tabs.Utility, "FPSBoost", "FPS Boost (Low Quality)", false, function(v) Events:Emit("toggle_fpsboost", v) end)
+
+    if isPremium then
+        Tabs.Utility:AddSection("Premium Utilities")
+        Toggle(Tabs.Utility, "PerfMon", "Performance Monitor", false, function(v) Events:Emit("toggle_perfmon", v) end)
+        Toggle(Tabs.Utility, "AntiLag", "Anti-Lag (Textures Off)", false,
+            function(v) Events:Emit("toggle_antilag", v) end)
+    end
+
+    -- [[ SETTINGS TAB ]]
     Tabs.Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
     Tabs.Settings:AddDropdown("Theme",
-        { Title = "Theme", Values = Fluent.Themes, Default = Fluent.Theme, Callback = function(v) Fluent:SetTheme(v) end })
+        { Title = "Interface Theme", Values = Fluent.Themes, Default = Fluent.Theme, Callback = function(v) Fluent
+                :SetTheme(v) end })
+
+    if isPremium then
+        Tabs.Settings:AddSection("Config Manager")
+        Tabs.Settings:AddInput("ConfName", { Title = "Config Name", Default = "default" })
+        Tabs.Settings:AddButton({
+            Title = "Save Config",
+            Callback = function()
+                local name = Fluent.Options.ConfName and Fluent.Options.ConfName.Value or "default"
+                Events:Emit("action_saveconfig", name)
+            end
+        })
+        Tabs.Settings:AddButton({
+            Title = "Load Config",
+            Callback = function()
+                local name = Fluent.Options.ConfName and Fluent.Options.ConfName.Value or "default"
+                Events:Emit("action_loadconfig", name)
+            end
+        })
+    end
 
     Window:SelectTab(1)
 
