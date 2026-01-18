@@ -45,6 +45,9 @@ local CONFIG = {
 
 -- ===== UTILITIES =====
 local function Log(msg)
+    if _G.FSSHUB_STATUS then
+        _G.FSSHUB_STATUS = tostring(msg) -- Broadcast to UI
+    end
     if CONFIG.Debug then
         print("[FSSHUB Installer]: " .. tostring(msg))
     end
