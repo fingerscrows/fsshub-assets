@@ -5494,6 +5494,10 @@ if n['phosphor-eye-bold']then n.eye=n['phosphor-eye-bold']end
 if n['phosphor-user-bold']then n.user=n['phosphor-user-bold']end
 if n['phosphor-wrench-bold']then n.wrench=n['phosphor-wrench-bold']end
 if n['phosphor-gear-bold']then n.settings=n['phosphor-gear-bold']end
+
+
+if n.eye then n['phosphor-eye']=n.eye end
+if n['eye-off']then n['phosphor-eye-slash']=n['eye-off']end
 return n
 end)()
 end
