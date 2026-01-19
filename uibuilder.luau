@@ -170,12 +170,7 @@ return function(Fluent)
         "\nTier: " .. (Info.User.Tier or "Free") .. "\nExpires: " .. (Info.User.ExpiryText or "Never")
     })
 
-    if isPremium then
-        Tabs.Home:AddButton({ Title = "Server Hop", Description = "Find a better server", Icon = "server", Callback = function() Events
-                :Emit("action_serverhop") end })
-        Tabs.Home:AddButton({ Title = "Auto Rejoin", Description = "Rejoin on kick", Icon = "repeat", Callback = function() Events:Emit(
-            "toggle_autorejoin", true) end })
-    end
+
 
     Tabs.Home:AddButton({
         Title = "Join Discord",
@@ -229,7 +224,7 @@ return function(Fluent)
     Toggle(Tabs.Movement, "InfJump", "Infinite Jump", false, function(v) Events:Emit("toggle_infinitejump", v) end, Enum.KeyCode.G) -- Default: G
 
     if isPremium then
-        Tabs.Movement:AddSection("Premium Movement")
+
         Toggle(Tabs.Movement, "Fly", "Fly Mode", false, function(v)
             local speed = Fluent.Options.FlySpeed and Fluent.Options.FlySpeed.Value or 50
             Events:Emit("toggle_fly", v, speed)
@@ -263,7 +258,7 @@ return function(Fluent)
     Toggle(Tabs.Visual, "Fullbright", "Fullbright", false, function(v) Events:Emit("toggle_fullbright", v) end, Enum.KeyCode.U) -- Default: U
 
     if isPremium then
-        Tabs.Visual:AddSection("Premium Visuals")
+
         Toggle(Tabs.Visual, "SkelESP", "Skeleton ESP", false, function(v) Events:Emit("toggle_skeleton", v) end, Enum.KeyCode.L) -- Default: L
         Toggle(Tabs.Visual, "Tracers", "Tracers", false, function(v) Events:Emit("toggle_tracers", v) end, Enum.KeyCode.K) -- Default: K
     end
@@ -275,7 +270,7 @@ return function(Fluent)
     Toggle(Tabs.Player, "NoCol", "Disable Collision", false, function(v) Events:Emit("toggle_nocollision", v) end)
 
     if isPremium then
-        Tabs.Player:AddSection("Premium Player")
+
         Toggle(Tabs.Player, "GodMode", "God Mode", false, function(v) Events:Emit("toggle_godmode", v) end, Enum.KeyCode.Delete) -- Default: Delete
         Toggle(Tabs.Player, "NoFall", "No Fall Damage", false, function(v) Events:Emit("toggle_nofall", v) end, Enum.KeyCode.End) -- Default: End
         Toggle(Tabs.Player, "NoRagdoll", "Anti-Ragdoll", false, function(v) Events:Emit("toggle_noragdoll", v) end)
@@ -293,7 +288,10 @@ return function(Fluent)
     Toggle(Tabs.Utility, "FPSBoost", "FPS Boost (Low Quality)", false, function(v) Events:Emit("toggle_fpsboost", v) end, Enum.KeyCode.O) -- Default: O
 
     if isPremium then
-        Tabs.Utility:AddSection("Premium Utilities")
+        Tabs.Utility:AddButton({ Title = "Server Hop", Description = "Find a better server", Icon = "server", Callback = function() Events
+                :Emit("action_serverhop") end })
+        Tabs.Utility:AddButton({ Title = "Auto Rejoin", Description = "Rejoin on kick", Icon = "repeat", Callback = function() Events:Emit(
+            "toggle_autorejoin", true) end })
         Toggle(Tabs.Utility, "PerfMon", "Performance Monitor", false, function(v) Events:Emit("toggle_perfmon", v) end)
         Toggle(Tabs.Utility, "AntiLag", "Anti-Lag (Textures Off)", false,
             function(v) Events:Emit("toggle_antilag", v) end)
