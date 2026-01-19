@@ -14,7 +14,17 @@ local function createProxy(d)
 local e={}
 e.__index=function(f,g)
 
-if g=="Name"then return d:match"([^/]+)$"or d end
+if g=="Name"then
+return d:match"([^/]+)$"or d
+elseif g=="Parent"then
+local h=d:match"^(.*)/[^/]+$"
+if h then
+return createProxy(h)
+elseif d~="Root"then
+return createProxy"Root"
+end
+return nil
+end
 return createProxy(d=="Root"and g or(d.."/"..g))
 end
 e.__tostring=function()return d end
