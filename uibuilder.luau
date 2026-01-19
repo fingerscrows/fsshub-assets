@@ -325,7 +325,11 @@ return function(Fluent)
         })
     end
 
-    Window:SelectTab(1)
+    -- Fix for empty tab on load: Yield briefly to ensure UI is ready
+    task.spawn(function()
+        task.wait(0.2)
+        if Window then Window:SelectTab(1) end
+    end)
 
     _G.FSSHUB_WINDOW = Window
     _G.FSSHUB_FLUENT = Fluent
