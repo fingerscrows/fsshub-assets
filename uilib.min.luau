@@ -5487,6 +5487,13 @@ ImageRectSize=m['64_64'],
 ImageRectOffset=m['640_192'],
 Image=l
 }
+
+if n['phosphor-house-bold']then n.home=n['phosphor-house-bold']end
+if n['phosphor-footprints-bold']then n.footprints=n['phosphor-footprints-bold']end
+if n['phosphor-eye-bold']then n.eye=n['phosphor-eye-bold']end
+if n['phosphor-user-bold']then n.user=n['phosphor-user-bold']end
+if n['phosphor-wrench-bold']then n.wrench=n['phosphor-wrench-bold']end
+if n['phosphor-gear-bold']then n.settings=n['phosphor-gear-bold']end
 return n
 end)()
 end
