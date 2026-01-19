@@ -17,6 +17,7 @@ e.__index=function(f,g)
 if g=="Name"then return d:match"([^/]+)$"or d end
 return createProxy(d=="Root"and g or(d.."/"..g))
 end
+e.__tostring=function()return d end
 return setmetatable({},e)
 end
 b["Components/Assets"]=function()
