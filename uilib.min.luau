@@ -3127,16 +3127,16 @@ return __REQUIRE(f)
 end
 return(function()
 
-local e={}
-
-
-local f=aa:GetChildren()
-
-
-for g=1,#f do
-e[g]=require(f[g])
-end
-
+local e={
+require(aa.Button),
+require(aa.Colorpicker),
+require(aa.Dropdown),
+require(aa.Input),
+require(aa.Keybind),
+require(aa.Paragraph),
+require(aa.Slider),
+require(aa.Toggle)
+}
 return e
 
 end)()
