@@ -228,7 +228,9 @@ return function(Fluent)
         Toggle(Tabs.Movement, "Fly", "Fly Mode", false, function(v)
             local speed = Fluent.Options.FlySpeed and Fluent.Options.FlySpeed.Value or 50
             Events:Emit("toggle_fly", v, speed)
-        end, Enum.KeyCode.H):AddSlider("FlySpeed", { -- Default: H
+        end, Enum.KeyCode.H) -- Default: H
+        
+        Tabs.Movement:AddSlider("FlySpeed", { 
             Title = "Fly Speed",
             Default = 50,
             Min = 10,
