@@ -9,8 +9,8 @@ return function(Fluent)
         return
     end
 
-    -- 1. Inject Cyber Theme
-    Fluent.Themes["Cyber"] = {
+    -- 1. Inject Default Theme
+    Fluent.Themes["Default"] = {
         Accent = Color3.fromRGB(138, 110, 215),
         AcrylicMain = Color3.fromRGB(25, 20, 35),
         AcrylicBorder = Color3.fromRGB(140, 120, 210),
@@ -58,9 +58,9 @@ return function(Fluent)
     end
 
     local function GetSavedTheme()
-        if not readfile or not isfile(THEME_FILE) then return "Cyber" end
+        if not readfile or not isfile(THEME_FILE) then return "FSSvs" end
         local s, t = pcall(readfile, THEME_FILE)
-        return s and t or "Cyber"
+        return s and t or "FSSvs"
     end
 
     local function SaveConfig(name)
@@ -77,6 +77,8 @@ return function(Fluent)
                  data[key] = { Type = "Slider", Value = option.Value }
             elseif option.Type == "Dropdown" then
                  data[key] = { Type = "Dropdown", Value = option.Value }
+            elseif option.Type == "Keybind" then
+                 data[key] = { Type = "Keybind", Value = option.Value.Name }
             end
         end
         
@@ -108,6 +110,8 @@ return function(Fluent)
                         option:SetValue(setting.Value)
                     elseif setting.Type == "Dropdown" then
                         option:SetValue(setting.Value)
+                    elseif setting.Type == "Keybind" then
+                        pcall(function() option:SetValue(Enum.KeyCode[setting.Value]) end)
                     end
                 end
             end
@@ -167,15 +171,16 @@ return function(Fluent)
     })
 
     if isPremium then
-        Tabs.Home:AddButton({ Title = "Server Hop", Description = "Find a better server", Callback = function() Events
+        Tabs.Home:AddButton({ Title = "Server Hop", Description = "Find a better server", Icon = "server", Callback = function() Events
                 :Emit("action_serverhop") end })
-        Tabs.Home:AddButton({ Title = "Auto Rejoin", Description = "Rejoin on kick", Callback = function() Events:Emit(
+        Tabs.Home:AddButton({ Title = "Auto Rejoin", Description = "Rejoin on kick", Icon = "repeat", Callback = function() Events:Emit(
             "toggle_autorejoin", true) end })
     end
 
     Tabs.Home:AddButton({
         Title = "Join Discord",
         Description = "Get Support",
+        Icon = "gamepad-2",
         Callback = function()
             if setclipboard then setclipboard("https://discord.gg/fsshub") end
             Fluent:Notify({ Title = "Link Copied!", Content = "Discord link copied.", Duration = 3 })
@@ -183,7 +188,7 @@ return function(Fluent)
     })
 
     -- [[ MOVEMENT TAB ]]
-    Tabs.Movement = Window:Tab({ Title = "Movement", Icon = "footprints" })
+    Tabs.Movement = Window:Tab({ Title = "Movement", Icon = "run" })
 
     -- Speed
     Tabs.Movement:AddSlider("SpeedVal", {
@@ -265,7 +270,7 @@ return function(Fluent)
 
     -- [[ PLAYER TAB ]]
     Tabs.Player = Window:Tab({ Title = "Player", Icon = "user" })
-    Tabs.Player:AddButton({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
+    Tabs.Player:AddButton({ Title = "Reset Character", Icon = "skull", Callback = function() Events:Emit("action_reset") end })
     Toggle(Tabs.Player, "AutoRespawn", "Fast Respawn", false, function(v) Events:Emit("toggle_autorespawn", v) end, Enum.KeyCode.RightBracket) -- Default: RightBracket
     Toggle(Tabs.Player, "NoCol", "Disable Collision", false, function(v) Events:Emit("toggle_nocollision", v) end)
 
@@ -281,8 +286,8 @@ return function(Fluent)
 
     -- [[ UTILITY TAB ]]
     Tabs.Utility = Window:Tab({ Title = "Utility", Icon = "wrench" })
-    Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
-    Tabs.Utility:AddButton({ Title = "Unlock FPS", Description = "Boost FPS Cap", Callback = function() Events:Emit(
+    Tabs.Utility:AddButton({ Title = "Rejoin Server", Icon = "refresh-cw", Callback = function() Events:Emit("action_rejoin") end })
+    Tabs.Utility:AddButton({ Title = "Unlock FPS", Description = "Boost FPS Cap", Icon = "unlock", Callback = function() Events:Emit(
         "action_unlockfps") end })
     Toggle(Tabs.Utility, "AntiAFK", "Anti-AFK", false, function(v) Events:Emit("toggle_antiafk", v) end, Enum.KeyCode.P) -- Default: P
     Toggle(Tabs.Utility, "FPSBoost", "FPS Boost (Low Quality)", false, function(v) Events:Emit("toggle_fpsboost", v) end, Enum.KeyCode.O) -- Default: O
@@ -297,20 +302,32 @@ return function(Fluent)
     -- [[ SETTINGS TAB ]]
     Tabs.Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
     
-    local ThemeNames = {}
-    for Name, _ in next, Fluent.Themes do
-        table.insert(ThemeNames, Name)
+    local ThemeNames = Fluent.Themes.Names or {}
+    if #ThemeNames == 0 then
+        for Name, _ in next, Fluent.Themes do
+            table.insert(ThemeNames, Name)
+        end
     end
     
     Tabs.Settings:AddDropdown("Theme",
         { Title = "Interface Theme", Values = ThemeNames, Default = Fluent.Theme, Callback = function(v) Fluent
                 :SetTheme(v) end })
 
+    Tabs.Settings:AddKeybind("CloseUI", {
+        Title = "Hide Menu Keybind",
+        Description = "Key to toggle the main menu visibility",
+        Default = Enum.KeyCode.RightControl,
+        ChangedCallback = function(New)
+            Fluent.MinimizeKey = New
+        end
+    })
+
     if isPremium then
         Tabs.Settings:AddSection("Config Manager")
         Tabs.Settings:AddInput("ConfName", { Title = "Config Name", Default = "default" })
         Tabs.Settings:AddButton({
             Title = "Save Config",
+            Icon = "save",
             Callback = function()
                 local name = Fluent.Options.ConfName and Fluent.Options.ConfName.Value or "default"
                 SaveConfig(name)
@@ -318,9 +335,48 @@ return function(Fluent)
         })
         Tabs.Settings:AddButton({
             Title = "Load Config",
+            Icon = "file-output",
             Callback = function()
                 local name = Fluent.Options.ConfName and Fluent.Options.ConfName.Value or "default"
                 LoadConfig(name)
+            end
+        })
+        
+        Tabs.Settings:AddButton({
+            Title = "Reset Defaults",
+            Description = "Reset all settings to default values",
+            Icon = "rotate-ccw",
+            Callback = function()
+                Window:Dialog({
+                    Title = "Reset Settings?",
+                    Content = "Are you sure you want to reset all settings to their default values?",
+                    Buttons = {
+                        {
+                            Title = "Yes, Reset",
+                            Callback = function()
+                                for key, option in pairs(Fluent.Options) do
+                                    if option.Type == "Toggle" then
+                                        option:SetValue(option.Default ~= nil and option.Default or false)
+                                    elseif option.Type == "Slider" then
+                                        option:SetValue(option.Default or option.Min or 0)
+                                    elseif option.Type == "Dropdown" then
+                                        option:SetValue(option.Default or option.Values[1])
+                                    elseif option.Type == "Colorpicker" then
+                                        option:SetValue(option.Default or Color3.new(1,1,1))
+                                    elseif option.Type == "Keybind" then
+                                        option:SetValue(option.Default or "None")
+                                    end
+                                end
+                                Fluent:SetTheme("FSSvs")
+                                Fluent:Notify({ Title = "Reset Complete", Content = "Settings have been reset.", Duration = 3 })
+                            end
+                        },
+                        {
+                            Title = "Cancel",
+                            Callback = function() end
+                        }
+                    }
+                })
             end
         })
     end
