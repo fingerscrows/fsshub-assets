@@ -237,8 +237,14 @@ return function(Fluent)
 
     -- [[ SETTINGS TAB ]]
     Tabs.Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
+    
+    local ThemeNames = {}
+    for Name, _ in next, Fluent.Themes do
+        table.insert(ThemeNames, Name)
+    end
+    
     Tabs.Settings:AddDropdown("Theme",
-        { Title = "Interface Theme", Values = Fluent.Themes, Default = Fluent.Theme, Callback = function(v) Fluent
+        { Title = "Interface Theme", Values = ThemeNames, Default = Fluent.Theme, Callback = function(v) Fluent
                 :SetTheme(v) end })
 
     if isPremium then
