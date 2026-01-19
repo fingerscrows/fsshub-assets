@@ -48,14 +48,71 @@ return function(Fluent)
     }
 
     -- 2. Utilities
+    local CONFIG_FOLDER = "FSSHUB/Config"
     local THEME_FILE = "FSSHUB/Config/theme.cfg"
+    
     local function SaveTheme(themeName)
+        if not isfolder("FSSHUB") then makefolder("FSSHUB") end
+        if not isfolder(CONFIG_FOLDER) then makefolder(CONFIG_FOLDER) end
         if writefile then pcall(writefile, THEME_FILE, themeName) end
     end
+
     local function GetSavedTheme()
-        if not readfile then return "Cyber" end
+        if not readfile or not isfile(THEME_FILE) then return "Cyber" end
         local s, t = pcall(readfile, THEME_FILE)
         return s and t or "Cyber"
+    end
+
+    local function SaveConfig(name)
+        if not isfolder("FSSHUB") then makefolder("FSSHUB") end
+        if not isfolder(CONFIG_FOLDER) then makefolder(CONFIG_FOLDER) end
+        
+        local path = CONFIG_FOLDER .. "/" .. name .. ".json"
+        local data = {}
+
+        for key, option in pairs(Fluent.Options) do
+            if option.Type == "Toggle" then
+                data[key] = { Type = "Toggle", Value = option.Value, Key = option.Keybind and option.Keybind.Value.Name or "None" }
+            elseif option.Type == "Slider" then
+                 data[key] = { Type = "Slider", Value = option.Value }
+            elseif option.Type == "Dropdown" then
+                 data[key] = { Type = "Dropdown", Value = option.Value }
+            end
+        end
+        
+        if writefile then
+            local success, encoded = pcall(game:GetService("HttpService").JSONEncode, game:GetService("HttpService"), data)
+            if success then writefile(path, encoded) end
+        end
+        Fluent:Notify({ Title = "Config Saved", Content = "Saved config: " .. name, Duration = 3 })
+    end
+
+    local function LoadConfig(name)
+        local path = CONFIG_FOLDER .. "/" .. name .. ".json"
+        if not isfile(path) then
+             Fluent:Notify({ Title = "Load Error", Content = "Config not found: " .. name, Duration = 3 })
+             return
+        end
+        
+        local success, decoded = pcall(game:GetService("HttpService").JSONDecode, game:GetService("HttpService"), readfile(path))
+        if success and decoded then
+            for key, setting in pairs(decoded) do
+                local option = Fluent.Options[key]
+                if option then
+                    if setting.Type == "Toggle" then
+                        option:SetValue(setting.Value)
+                        if option.Keybind and setting.Key then
+                             pcall(function() option.Keybind:SetValue(Enum.KeyCode[setting.Key]) end)
+                        end
+                    elseif setting.Type == "Slider" then
+                        option:SetValue(setting.Value)
+                    elseif setting.Type == "Dropdown" then
+                        option:SetValue(setting.Value)
+                    end
+                end
+            end
+            Fluent:Notify({ Title = "Config Loaded", Content = "Loaded config: " .. name, Duration = 3 })
+        end
     end
 
     -- 3. Cleanup Old UI
@@ -144,7 +201,7 @@ return function(Fluent)
         local val = 16
         if Fluent.Options.SpeedVal then val = Fluent.Options.SpeedVal.Value end
         Events:Emit("toggle_speed", v, val)
-    end)
+    end, Enum.KeyCode.B) -- Default: B
 
     -- Jump
     Tabs.Movement:AddSlider("JumpVal", {
@@ -162,16 +219,16 @@ return function(Fluent)
         local val = 50
         if Fluent.Options.JumpVal then val = Fluent.Options.JumpVal.Value end
         Events:Emit("toggle_jump", v, val)
-    end)
+    end, Enum.KeyCode.V) -- Default: V
 
-    Toggle(Tabs.Movement, "InfJump", "Infinite Jump", false, function(v) Events:Emit("toggle_infinitejump", v) end)
+    Toggle(Tabs.Movement, "InfJump", "Infinite Jump", false, function(v) Events:Emit("toggle_infinitejump", v) end, Enum.KeyCode.G) -- Default: G
 
     if isPremium then
         Tabs.Movement:AddSection("Premium Movement")
         Toggle(Tabs.Movement, "Fly", "Fly Mode", false, function(v)
             local speed = Fluent.Options.FlySpeed and Fluent.Options.FlySpeed.Value or 50
             Events:Emit("toggle_fly", v, speed)
-        end, Enum.KeyCode.F):AddSlider("FlySpeed", {
+        end, Enum.KeyCode.H):AddSlider("FlySpeed", { -- Default: H
             Title = "Fly Speed",
             Default = 50,
             Min = 10,
@@ -181,9 +238,9 @@ return function(Fluent)
             end
         })
 
-        Toggle(Tabs.Movement, "Noclip", "Noclip", false, function(v) Events:Emit("toggle_noclip", v) end)
+        Toggle(Tabs.Movement, "Noclip", "Noclip", false, function(v) Events:Emit("toggle_noclip", v) end, Enum.KeyCode.N) -- Default: N
         Toggle(Tabs.Movement, "NoClipPhys", "Platform Stand", false,
-            function(v) Events:Emit("toggle_platformstand", v) end)
+            function(v) Events:Emit("toggle_platformstand", v) end, Enum.KeyCode.RightAlt) -- Default: RightAlt
 
         Tabs.Movement:AddSlider("Gravity",
             { Title = "Gravity", Default = 196.2, Min = 0, Max = 200, Callback = function(v) Events:Emit("set_gravity", v) end })
@@ -194,26 +251,26 @@ return function(Fluent)
     Toggle(Tabs.Visual, "ESP", "Enable ESP", false, function(v)
         local opts = { showName = true, showDistance = true, showHealth = true, showChams = true }
         Events:Emit("toggle_esp", v, opts)
-    end, Enum.KeyCode.E)
+    end, Enum.KeyCode.Y) -- Default: Y
 
-    Toggle(Tabs.Visual, "Fullbright", "Fullbright", false, function(v) Events:Emit("toggle_fullbright", v) end)
+    Toggle(Tabs.Visual, "Fullbright", "Fullbright", false, function(v) Events:Emit("toggle_fullbright", v) end, Enum.KeyCode.U) -- Default: U
 
     if isPremium then
         Tabs.Visual:AddSection("Premium Visuals")
-        Toggle(Tabs.Visual, "SkelESP", "Skeleton ESP", false, function(v) Events:Emit("toggle_skeleton", v) end)
-        Toggle(Tabs.Visual, "Tracers", "Tracers", false, function(v) Events:Emit("toggle_tracers", v) end)
+        Toggle(Tabs.Visual, "SkelESP", "Skeleton ESP", false, function(v) Events:Emit("toggle_skeleton", v) end, Enum.KeyCode.L) -- Default: L
+        Toggle(Tabs.Visual, "Tracers", "Tracers", false, function(v) Events:Emit("toggle_tracers", v) end, Enum.KeyCode.K) -- Default: K
     end
 
     -- [[ PLAYER TAB ]]
     Tabs.Player = Window:Tab({ Title = "Player", Icon = "user" })
     Tabs.Player:AddButton({ Title = "Reset Character", Callback = function() Events:Emit("action_reset") end })
-    Toggle(Tabs.Player, "AutoRespawn", "Fast Respawn", false, function(v) Events:Emit("toggle_autorespawn", v) end)
+    Toggle(Tabs.Player, "AutoRespawn", "Fast Respawn", false, function(v) Events:Emit("toggle_autorespawn", v) end, Enum.KeyCode.RightBracket) -- Default: RightBracket
     Toggle(Tabs.Player, "NoCol", "Disable Collision", false, function(v) Events:Emit("toggle_nocollision", v) end)
 
     if isPremium then
         Tabs.Player:AddSection("Premium Player")
-        Toggle(Tabs.Player, "GodMode", "God Mode", false, function(v) Events:Emit("toggle_godmode", v) end)
-        Toggle(Tabs.Player, "NoFall", "No Fall Damage", false, function(v) Events:Emit("toggle_nofall", v) end)
+        Toggle(Tabs.Player, "GodMode", "God Mode", false, function(v) Events:Emit("toggle_godmode", v) end, Enum.KeyCode.Delete) -- Default: Delete
+        Toggle(Tabs.Player, "NoFall", "No Fall Damage", false, function(v) Events:Emit("toggle_nofall", v) end, Enum.KeyCode.End) -- Default: End
         Toggle(Tabs.Player, "NoRagdoll", "Anti-Ragdoll", false, function(v) Events:Emit("toggle_noragdoll", v) end)
         Tabs.Player:AddSlider("AnimSpeed",
             { Title = "Animation Speed", Default = 1, Min = 0, Max = 5, Callback = function(v) Events:Emit(
@@ -225,8 +282,8 @@ return function(Fluent)
     Tabs.Utility:AddButton({ Title = "Rejoin Server", Callback = function() Events:Emit("action_rejoin") end })
     Tabs.Utility:AddButton({ Title = "Unlock FPS", Description = "Boost FPS Cap", Callback = function() Events:Emit(
         "action_unlockfps") end })
-    Toggle(Tabs.Utility, "AntiAFK", "Anti-AFK", false, function(v) Events:Emit("toggle_antiafk", v) end)
-    Toggle(Tabs.Utility, "FPSBoost", "FPS Boost (Low Quality)", false, function(v) Events:Emit("toggle_fpsboost", v) end)
+    Toggle(Tabs.Utility, "AntiAFK", "Anti-AFK", false, function(v) Events:Emit("toggle_antiafk", v) end, Enum.KeyCode.P) -- Default: P
+    Toggle(Tabs.Utility, "FPSBoost", "FPS Boost (Low Quality)", false, function(v) Events:Emit("toggle_fpsboost", v) end, Enum.KeyCode.O) -- Default: O
 
     if isPremium then
         Tabs.Utility:AddSection("Premium Utilities")
@@ -254,14 +311,14 @@ return function(Fluent)
             Title = "Save Config",
             Callback = function()
                 local name = Fluent.Options.ConfName and Fluent.Options.ConfName.Value or "default"
-                Events:Emit("action_saveconfig", name)
+                SaveConfig(name)
             end
         })
         Tabs.Settings:AddButton({
             Title = "Load Config",
             Callback = function()
                 local name = Fluent.Options.ConfName and Fluent.Options.ConfName.Value or "default"
-                Events:Emit("action_loadconfig", name)
+                LoadConfig(name)
             end
         })
     end
@@ -272,5 +329,16 @@ return function(Fluent)
     _G.FSSHUB_FLUENT = Fluent
     _G.FSSHUB_OPTIONS = Fluent.Options
     if getgenv then getgenv().FSSHUB_MAIN_MENU_READY = true end
+    
+    -- Auto Load 'default' config if it exists and user is Premium
+    if isPremium then
+        pcall(function()
+            local path = CONFIG_FOLDER .. "/default.json"
+            if isfile(path) then
+                LoadConfig("default")
+            end
+        end)
+    end
+    
     print("[FSSHUB] UI Builder Completed.")
 end
