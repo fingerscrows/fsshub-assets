@@ -3,32 +3,36 @@ local a={}
 
 local b={}
 local c={}
-local function __REQUIRE(d)
-if c[d]then return c[d]end
-if not b[d]then error("Mod 404: "..tostring(d))end
-local e=b[d]()
-c[d]=e
-return e
+local d={}
+local function __REQUIRE(e)
+if c[e]then return c[e]end
+if d[e]then error("Cyclic dependency detected: "..tostring(e))end
+if not b[e]then error("Mod 404: "..tostring(e))end
+d[e]=true
+local f=b[e]()
+d[e]=nil
+c[e]=f
+return f
 end
-local function createProxy(d)
-local e={}
-e.__index=function(f,g)
+local function createProxy(e)
+local f={}
+f.__index=function(g,h)
 
-if g=="Name"then
-return d:match"([^/]+)$"or d
-elseif g=="Parent"then
-local h=d:match"^(.*)/[^/]+$"
-if h then
-return createProxy(h)
-elseif d~="Root"then
+if h=="Name"then
+return e:match"([^/]+)$"or e
+elseif h=="Parent"then
+local i=e:match"^(.*)/[^/]+$"
+if i then
+return createProxy(i)
+elseif e~="Root"then
 return createProxy"Root"
 end
 return nil
 end
-return createProxy(d=="Root"and g or(d.."/"..g))
+return createProxy(e=="Root"and h or(e.."/"..h))
 end
-e.__tostring=function()return d end
-return setmetatable({},e)
+f.__tostring=function()return e end
+return setmetatable({},f)
 end
 b["Components/Assets"]=function()
 createProxy"Root/Components/Assets"
@@ -47,25 +51,25 @@ Restore="rbxassetid://9886659001",
 end)()
 end
 b["Components/Button"]=function()
-local d=createProxy"Root/Components/Button"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Components/Button"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=d.Parent.Parent
-local f=require(e.Packages.Flipper)
-local g=require(e.Modules.Creator)
-local h=g.New local i=
+local f=e.Parent.Parent
+local g=require(f.Packages.Flipper)
+local h=require(f.Modules.Creator)
+local i=h.New local j=
 
-f.Spring.new
+g.Spring.new
 
-return function(j,k,l)
-local m={}
+return function(k,l,m)
+local n={}
 
-l=l or false
+m=m or false
 
-m.Title=h("TextLabel",{
+n.Title=i("TextLabel",{
 FontFace=Font.new"rbxasset://fonts/families/GothamSSm.json",
 TextColor3=Color3.fromRGB(200,200,200),
 TextSize=14,
@@ -81,109 +85,109 @@ TextColor3="Text",
 },
 })
 
-m.HoverFrame=h("Frame",{
+n.HoverFrame=i("Frame",{
 Size=UDim2.fromScale(1,1),
 BackgroundTransparency=1,
 ThemeTag={
 BackgroundColor3="Hover",
 },
 },{
-h("UICorner",{
+i("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
 })
 
-m.Frame=h("TextButton",{
+n.Frame=i("TextButton",{
 Size=UDim2.new(0,0,0,32),
-Parent=k,
+Parent=l,
 ThemeTag={
 BackgroundColor3="DialogButton",
 },
 },{
-h("UICorner",{
+i("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
-h("UIStroke",{
+i("UIStroke",{
 ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
 Transparency=0.65,
 ThemeTag={
 Color="DialogButtonBorder",
 },
 }),
-m.HoverFrame,
-m.Title,
+n.HoverFrame,
+n.Title,
 })local
 
-n, o=g.SpringMotor(1,m.HoverFrame,"BackgroundTransparency",l)
-g.AddSignal(m.Frame.MouseEnter,function()
-o(0.97)
+o, p=h.SpringMotor(1,n.HoverFrame,"BackgroundTransparency",m)
+h.AddSignal(n.Frame.MouseEnter,function()
+p(0.97)
 end)
-g.AddSignal(m.Frame.MouseLeave,function()
-o(1)
+h.AddSignal(n.Frame.MouseLeave,function()
+p(1)
 end)
-g.AddSignal(m.Frame.MouseButton1Down,function()
-o(1)
+h.AddSignal(n.Frame.MouseButton1Down,function()
+p(1)
 end)
-g.AddSignal(m.Frame.MouseButton1Up,function()
-o(0.97)
+h.AddSignal(n.Frame.MouseButton1Up,function()
+p(0.97)
 end)
 
-return m
+return n
 end
 
 end)()
 end
 b["Components/Dialog"]=function()
-local d=createProxy"Root/Components/Dialog"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Components/Dialog"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=d.Parent.Parent
-local f=require(e.Modules.Creator)
-local g=require(e.Components.Button)
-local h=require(e.Packages.Signal)
+local f=e.Parent.Parent
+local g=require(f.Modules.Creator)
+local h=require(f.Components.Button)
+local i=require(f.Packages.Signal)
 
-local i=f.New
+local j=g.New
 
-local j={
+local k={
 Window=nil,
 }
 
-function j.Init(k,l)
-j.Window=l
-return j
+function k.Init(l,m)
+k.Window=m
+return k
 end
 
-function j.Create(k)
-local l,m={
+function k.Create(l)
+local m,n={
 Buttons=0,
-Closing=h.new(),
-Closed=h.new()
-},require(e)
+Closing=i.new(),
+Closed=i.new()
+},require(f)
 
-l.TintFrame=i("TextButton",{
+m.TintFrame=j("TextButton",{
 Text="",
 Size=UDim2.fromScale(1,1),
 BackgroundColor3=Color3.fromRGB(0,0,0),
 BackgroundTransparency=1,
-Parent=j.Window.Root,
+Parent=k.Window.Root,
 },{
-i("UICorner",{
+j("UICorner",{
 CornerRadius=UDim.new(0,8),
 }),
 })local
 
-n, o=f.SpringMotor(1,l.TintFrame,"BackgroundTransparency",true)
+o, p=g.SpringMotor(1,m.TintFrame,"BackgroundTransparency",true)
 
-l.ButtonHolder=i("Frame",{
+m.ButtonHolder=j("Frame",{
 Size=UDim2.new(1,-40,1,-40),
 AnchorPoint=Vector2.new(0.5,0.5),
 Position=UDim2.fromScale(0.5,0.5),
 BackgroundTransparency=1,
 },{
-i("UIListLayout",{
+j("UIListLayout",{
 Padding=UDim.new(0,10),
 FillDirection=Enum.FillDirection.Horizontal,
 HorizontalAlignment=Enum.HorizontalAlignment.Center,
@@ -191,23 +195,23 @@ SortOrder=Enum.SortOrder.LayoutOrder,
 }),
 })
 
-l.ButtonHolderFrame=i("Frame",{
+m.ButtonHolderFrame=j("Frame",{
 Size=UDim2.new(1,0,0,70),
 Position=UDim2.new(0,0,1,-70),
 ThemeTag={
 BackgroundColor3="DialogHolder",
 },
 },{
-i("Frame",{
+j("Frame",{
 Size=UDim2.new(1,0,0,1),
 ThemeTag={
 BackgroundColor3="DialogHolderLine",
 },
 }),
-l.ButtonHolder,
+m.ButtonHolder,
 })
 
-l.Title=i("TextLabel",{
+m.Title=j("TextLabel",{
 FontFace=Font.new(
 "rbxasset://fonts/families/GothamSSm.json",
 Enum.FontWeight.SemiBold,
@@ -226,113 +230,113 @@ TextColor3="Text",
 },
 })
 
-l.Scale=i("UIScale",{
+m.Scale=j("UIScale",{
 Scale=1,
 })local
 
-p, q=f.SpringMotor(1.1,l.Scale,"Scale")
+q, r=g.SpringMotor(1.1,m.Scale,"Scale")
 
-l.Root=i("CanvasGroup",{
+m.Root=j("CanvasGroup",{
 Size=UDim2.fromOffset(300,165),
 AnchorPoint=Vector2.new(0.5,0.5),
 Position=UDim2.fromScale(0.5,0.5),
 GroupTransparency=1,
-Parent=l.TintFrame,
+Parent=m.TintFrame,
 ThemeTag={
 BackgroundColor3="Dialog",
 },
 },{
-i("UICorner",{
+j("UICorner",{
 CornerRadius=UDim.new(0,8),
 }),
-i("UIStroke",{
+j("UIStroke",{
 Transparency=0.5,
 ThemeTag={
 Color="DialogBorder",
 },
 }),
-l.Scale,
-l.Title,
-l.ButtonHolderFrame,
+m.Scale,
+m.Title,
+m.ButtonHolderFrame,
 })local
 
-r, s=f.SpringMotor(1,l.Root,"GroupTransparency")
+s, t=g.SpringMotor(1,m.Root,"GroupTransparency")
 
-function l.Open(t)
-m.DialogOpen=true
-l.Scale.Scale=1.1
-o(0.75)
-s(0)
-q(1)
+function m.Open(u)
+n.DialogOpen=true
+m.Scale.Scale=1.1
+p(0.75)
+t(0)
+r(1)
 end
 
-function l.Close(t)
-l.Closing:Fire()
-m.DialogOpen=false
-o(1)
-s(1)
-q(1.1)
-l.Root.UIStroke:Destroy()
+function m.Close(u)
+m.Closing:Fire()
+n.DialogOpen=false
+p(1)
+t(1)
+r(1.1)
+m.Root.UIStroke:Destroy()
 task.wait(0.15)
-l.TintFrame:Destroy()
-l.Closed:Fire()
+m.TintFrame:Destroy()
+m.Closed:Fire()
 end
 
-function l.Button(t,u,v)
-l.Buttons=l.Buttons+1
-u=u or"Button"
-v=v or function()end
+function m.Button(u,v,w)
+m.Buttons=m.Buttons+1
+v=v or"Button"
+w=w or function()end
 
-local w=g("",l.ButtonHolder,true)
-w.Title.Text=u
+local x=h("",m.ButtonHolder,true)
+x.Title.Text=v
 
-for x,y in next,l.ButtonHolder:GetChildren()do
-if y:IsA"TextButton"then
-y.Size=UDim2.new(1/l.Buttons,-((l.Buttons-1)*10/l.Buttons),0,32)
+for y,z in next,m.ButtonHolder:GetChildren()do
+if z:IsA"TextButton"then
+z.Size=UDim2.new(1/m.Buttons,-((m.Buttons-1)*10/m.Buttons),0,32)
 end
 end
 
-f.AddSignal(w.Frame.MouseButton1Click,function()
-m:SafeCallback(v)
+g.AddSignal(x.Frame.MouseButton1Click,function()
+n:SafeCallback(w)
 pcall(function()
-l:Close()
+m:Close()
 end)
 end)
 
-return w
+return x
 end
 
-return l
+return m
 end
 
-return j
+return k
 
 end)()
 end
 b["Components/Element"]=function()
-local d=createProxy"Root/Components/Element"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Components/Element"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=d.Parent.Parent
-local f=require(e.Modules.Creator)
-local g=f.New
+local f=e.Parent.Parent
+local g=require(f.Modules.Creator)
+local h=g.New
 
-return function(h,i,j,k,l)
-local m={
+return function(i,j,k,l,m)
+local n={
 CreatedAt=tick()
 }
 
-l=typeof(l)=="table"and l or{}
+m=typeof(m)=="table"and m or{}
 
-m.TitleLabel=g("TextLabel",{
+n.TitleLabel=h("TextLabel",{
 FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Medium,Enum.FontStyle.Normal),
-Text=h,
+Text=i,
 TextColor3=Color3.fromRGB(240,240,240),
 TextSize=13,
-TextXAlignment=l.TitleAlignment or Enum.TextXAlignment.Left,
+TextXAlignment=m.TitleAlignment or Enum.TextXAlignment.Left,
 Size=UDim2.new(1,0,0,14),
 BackgroundColor3=Color3.fromRGB(255,255,255),
 BackgroundTransparency=1,
@@ -341,13 +345,13 @@ TextColor3="Text",
 },
 })::TextLabel
 
-m.DescLabel=g("TextLabel",{
+n.DescLabel=h("TextLabel",{
 FontFace=Font.new"rbxasset://fonts/families/GothamSSm.json",
-Text=i,
+Text=j,
 TextColor3=Color3.fromRGB(200,200,200),
 TextSize=12,
 TextWrapped=true,
-TextXAlignment=l.DescriptionAlignment or Enum.TextXAlignment.Left,
+TextXAlignment=m.DescriptionAlignment or Enum.TextXAlignment.Left,
 BackgroundColor3=Color3.fromRGB(255,255,255),
 AutomaticSize=Enum.AutomaticSize.Y,
 BackgroundTransparency=1,
@@ -357,26 +361,26 @@ TextColor3="SubText",
 },
 })::TextLabel
 
-m.LabelHolder=g("Frame",{
+n.LabelHolder=h("Frame",{
 AutomaticSize=Enum.AutomaticSize.Y,
 BackgroundColor3=Color3.fromRGB(255,255,255),
 BackgroundTransparency=1,
 Position=UDim2.fromOffset(10,0),
 Size=UDim2.new(1,-28,0,0),
 },{
-g("UIListLayout",{
+h("UIListLayout",{
 SortOrder=Enum.SortOrder.LayoutOrder,
 VerticalAlignment=Enum.VerticalAlignment.Center,
 }),
-g("UIPadding",{
+h("UIPadding",{
 PaddingBottom=UDim.new(0,13),
 PaddingTop=UDim.new(0,13),
 }),
-m.TitleLabel,
-m.DescLabel,
+n.TitleLabel,
+n.DescLabel,
 })::Frame
 
-m.Border=g("UIStroke",{
+n.Border=h("UIStroke",{
 Transparency=0.5,
 ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
 Color=Color3.fromRGB(0,0,0),
@@ -385,11 +389,11 @@ Color="ElementBorder",
 },
 })::UIStroke
 
-m.Frame=g("TextButton",{
+n.Frame=h("TextButton",{
 Size=UDim2.new(1,0,0,0),
 BackgroundTransparency=0.89,
 BackgroundColor3=Color3.fromRGB(130,130,130),
-Parent=j,
+Parent=k,
 AutomaticSize=Enum.AutomaticSize.Y,
 Text="",
 LayoutOrder=7,
@@ -398,68 +402,68 @@ BackgroundColor3="Element",
 BackgroundTransparency="ElementTransparency",
 },
 },{
-g("UICorner",{
+h("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
-m.Border,
-m.LabelHolder,
+n.Border,
+n.LabelHolder,
 })::TextButton
 
-function m.SetTitle(n,o)
-m.TitleLabel.Text=o
+function n.SetTitle(o,p)
+n.TitleLabel.Text=p
 end
 
-function m.SetDesc(n,o)
-if o==nil then
-o=""
+function n.SetDesc(o,p)
+if p==nil then
+p=""
 end
-if o==""then
-m.DescLabel.Visible=false
+if p==""then
+n.DescLabel.Visible=false
 else
-m.DescLabel.Visible=true
+n.DescLabel.Visible=true
 end
-m.DescLabel.Text=o
-end
-
-function m.Destroy(n)
-m.Frame:Destroy()
+n.DescLabel.Text=p
 end
 
-m:SetTitle(h)
-m:SetDesc(i)
+function n.Destroy(o)
+n.Frame:Destroy()
+end
 
-if k then local n=
-e.Themes local
-o, p=f.SpringMotor(
-f.GetThemeProperty"ElementTransparency",
-m.Frame,
+n:SetTitle(i)
+n:SetDesc(j)
+
+if l then local o=
+f.Themes local
+p, q=g.SpringMotor(
+g.GetThemeProperty"ElementTransparency",
+n.Frame,
 "BackgroundTransparency",
 false,
 true
 )
 
-f.AddSignal(m.Frame.MouseEnter,function()
-p(f.GetThemeProperty"ElementTransparency"-f.GetThemeProperty"HoverChange")
+g.AddSignal(n.Frame.MouseEnter,function()
+q(g.GetThemeProperty"ElementTransparency"-g.GetThemeProperty"HoverChange")
 end)
-f.AddSignal(m.Frame.MouseLeave,function()
-p(f.GetThemeProperty"ElementTransparency")
+g.AddSignal(n.Frame.MouseLeave,function()
+q(g.GetThemeProperty"ElementTransparency")
 end)
-f.AddSignal(m.Frame.MouseButton1Down,function()
-p(f.GetThemeProperty"ElementTransparency"+f.GetThemeProperty"HoverChange")
+g.AddSignal(n.Frame.MouseButton1Down,function()
+q(g.GetThemeProperty"ElementTransparency"+g.GetThemeProperty"HoverChange")
 end)
-f.AddSignal(m.Frame.MouseButton1Up,function()
-p(f.GetThemeProperty"ElementTransparency"-f.GetThemeProperty"HoverChange")
+g.AddSignal(n.Frame.MouseButton1Up,function()
+q(g.GetThemeProperty"ElementTransparency"-g.GetThemeProperty"HoverChange")
 end)
 end
 
-return setmetatable(m,{
-__newindex=function(n,o,p)
-if o=="Title"then
-m:SetTitle(p)
-elseif o=="Description"or o=="Desc"then
-m:SetDesc(p)
+return setmetatable(n,{
+__newindex=function(o,p,q)
+if p=="Title"then
+n:SetTitle(q)
+elseif p=="Description"or p=="Desc"then
+n:SetDesc(q)
 end
-return rawset(n,o,p)
+return rawset(o,p,q)
 end
 })
 end
@@ -467,35 +471,35 @@ end
 end)()
 end
 b["Components/Notification"]=function()
-local d=createProxy"Root/Components/Notification"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Components/Notification"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=d.Parent.Parent
+local f=e.Parent.Parent
 
-local f=require(e.Packages.Flipper)
-local g=require(e.Modules.Creator)
-local h=require(e.Modules.Acrylic)
+local g=require(f.Packages.Flipper)
+local h=require(f.Modules.Creator)
+local i=require(f.Modules.Acrylic)
 
-local i=f.Spring.new local j=
-f.Instant.new
-local k=g.New
+local j=g.Spring.new local k=
+g.Instant.new
+local l=h.New
 
-local l=game:GetService"SoundService"
+local m=game:GetService"SoundService"
 
-local m={}
+local n={}
 
-function m.Init(n,o)
-m.Holder=k("Frame",{
+function n.Init(o,p)
+n.Holder=l("Frame",{
 Position=UDim2.new(1,-30,1,-30),
 Size=UDim2.new(0,310,1,-30),
 AnchorPoint=Vector2.new(1,1),
 BackgroundTransparency=1,
-Parent=o,
+Parent=p,
 },{
-k("UIListLayout",{
+l("UIListLayout",{
 HorizontalAlignment=Enum.HorizontalAlignment.Center,
 SortOrder=Enum.SortOrder.LayoutOrder,
 VerticalAlignment=Enum.VerticalAlignment.Bottom,
@@ -504,26 +508,26 @@ Padding=UDim.new(0,20),
 })
 end
 
-function m.New(n,o)
-local p={
+function n.New(o,p)
+local q={
 Closed=false,
 }
 
-o.Title=o.Title or"Title"
-o.Content=o.Content or"Content"
-o.SubContent=o.SubContent or""
-o.Duration=o.Duration or nil
-o.Buttons=o.Buttons or{}
-o.Sound=o.Sound or{}
+p.Title=p.Title or"Title"
+p.Content=p.Content or"Content"
+p.SubContent=p.SubContent or""
+p.Duration=p.Duration or nil
+p.Buttons=p.Buttons or{}
+p.Sound=p.Sound or{}
 
-o.Sound.Parent=l
-o.Sound.PlayOnRemove=true
+p.Sound.Parent=m
+p.Sound.PlayOnRemove=true
 
-p.AcrylicPaint=h.AcrylicPaint()
+q.AcrylicPaint=i.AcrylicPaint()
 
-p.Title=k("TextLabel",{
+q.Title=l("TextLabel",{
 Position=UDim2.new(0,14,0,17),
-Text=o.Title,
+Text=p.Title,
 RichText=true,
 TextColor3=Color3.fromRGB(255,255,255),
 TextTransparency=0,
@@ -539,9 +543,9 @@ TextColor3="Text",
 },
 })
 
-p.ContentLabel=k("TextLabel",{
+q.ContentLabel=l("TextLabel",{
 FontFace=Font.new"rbxasset://fonts/families/GothamSSm.json",
-Text=o.Content,
+Text=p.Content,
 TextColor3=Color3.fromRGB(240,240,240),
 TextSize=14,
 TextXAlignment=Enum.TextXAlignment.Left,
@@ -554,9 +558,9 @@ TextColor3="Text",
 },
 })
 
-p.SubContentLabel=k("TextLabel",{
+q.SubContentLabel=l("TextLabel",{
 FontFace=Font.new"rbxasset://fonts/families/GothamSSm.json",
-Text=o.SubContent,
+Text=p.SubContent,
 TextColor3=Color3.fromRGB(240,240,240),
 TextSize=14,
 TextXAlignment=Enum.TextXAlignment.Left,
@@ -570,31 +574,31 @@ TextColor3="SubText",
 },
 })
 
-p.LabelHolder=k("Frame",{
+q.LabelHolder=l("Frame",{
 AutomaticSize=Enum.AutomaticSize.Y,
 BackgroundColor3=Color3.fromRGB(255,255,255),
 BackgroundTransparency=1,
 Position=UDim2.fromOffset(14,40),
 Size=UDim2.new(1,-28,0,0),
 },{
-k("UIListLayout",{
+l("UIListLayout",{
 SortOrder=Enum.SortOrder.LayoutOrder,
 VerticalAlignment=Enum.VerticalAlignment.Center,
 Padding=UDim.new(0,3),
 }),
-p.ContentLabel,
-p.SubContentLabel,
+q.ContentLabel,
+q.SubContentLabel,
 })
 
-p.CloseButton=k("TextButton",{
+q.CloseButton=l("TextButton",{
 Text="",
 Position=UDim2.new(1,-14,0,13),
 Size=UDim2.fromOffset(20,20),
 AnchorPoint=Vector2.new(1,0),
 BackgroundTransparency=1,
 },{
-k("ImageLabel",{
-Image=require(d.Parent.Assets).Close,
+l("ImageLabel",{
+Image=require(e.Parent.Assets).Close,
 Size=UDim2.fromOffset(16,16),
 Position=UDim2.fromScale(0.5,0.5),
 AnchorPoint=Vector2.new(0.5,0.5),
@@ -605,133 +609,133 @@ ImageColor3="Text",
 }),
 })
 
-p.Root=k("Frame",{
+q.Root=l("Frame",{
 BackgroundTransparency=1,
 Size=UDim2.new(1,0,1,0),
 Position=UDim2.fromScale(1,0),
 },{
-p.AcrylicPaint.Frame,
-p.Title,
-p.CloseButton,
-p.LabelHolder,
+q.AcrylicPaint.Frame,
+q.Title,
+q.CloseButton,
+q.LabelHolder,
 })
 
-if o.Content==""then
-p.ContentLabel.Visible=false
+if p.Content==""then
+q.ContentLabel.Visible=false
 end
 
-if o.SubContent==""then
-p.SubContentLabel.Visible=false
+if p.SubContent==""then
+q.SubContentLabel.Visible=false
 end
 
-p.Holder=k("Frame",{
+q.Holder=l("Frame",{
 BackgroundTransparency=1,
 Size=UDim2.new(1,0,0,200),
-Parent=m.Holder,
+Parent=n.Holder,
 },{
-p.Root,
+q.Root,
 })
 
-local q=f.GroupMotor.new{
+local r=g.GroupMotor.new{
 Scale=1,
 Offset=60,
 }
 
-q:onStep(function(r)
-p.Root.Position=UDim2.new(r.Scale,r.Offset,0,0)
+r:onStep(function(s)
+q.Root.Position=UDim2.new(s.Scale,s.Offset,0,0)
 end)
 
-g.AddSignal(p.CloseButton.MouseButton1Click,function()
-p:Close()
+h.AddSignal(q.CloseButton.MouseButton1Click,function()
+q:Close()
 end)
 
-function p.Open(r)
-local s=p.LabelHolder.AbsoluteSize.Y
-p.Holder.Size=UDim2.new(1,0,0,58+s)
+function q.Open(s)
+local t=q.LabelHolder.AbsoluteSize.Y
+q.Holder.Size=UDim2.new(1,0,0,58+t)
 
-if o.Sound.SoundId then
-p.Sound=k("Sound",o.Sound)
+if p.Sound.SoundId then
+q.Sound=l("Sound",p.Sound)
 
-if not p.Sound.IsLoaded then
-p.Sound.Loaded:Wait()
+if not q.Sound.IsLoaded then
+q.Sound.Loaded:Wait()
 end
 
-p.Sound:Destroy()
-p.Sound=nil
+q.Sound:Destroy()
+q.Sound=nil
 end
 
-q:setGoal{
-Scale=i(0,{frequency=5}),
-Offset=i(0,{frequency=5}),
+r:setGoal{
+Scale=j(0,{frequency=5}),
+Offset=j(0,{frequency=5}),
 }
 end
 
-function p.Close(r)
-if not p.Closed then
-p.Closed=true
+function q.Close(s)
+if not q.Closed then
+q.Closed=true
 task.spawn(function()
-q:setGoal{
-Scale=i(1,{frequency=5}),
-Offset=i(60,{frequency=5}),
+r:setGoal{
+Scale=j(1,{frequency=5}),
+Offset=j(60,{frequency=5}),
 }
 task.wait(0.4)
-if require(e).UseAcrylic then
-p.AcrylicPaint.Model:Destroy()
+if require(f).UseAcrylic then
+q.AcrylicPaint.Model:Destroy()
 end
-p.Holder:Destroy()
+q.Holder:Destroy()
 end)
 end
 end
 
-p:Open()
-if o.Duration then
-task.delay(o.Duration,function()
-p:Close()
+q:Open()
+if p.Duration then
+task.delay(p.Duration,function()
+q:Close()
 end)
 end
-return p
+return q
 end
 
-return m
+return n
 
 end)()
 end
 b["Components/Section"]=function()
-local d=createProxy"Root/Components/Section"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Components/Section"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=d.Parent.Parent
-local f=require(e.Modules.Creator)
+local f=e.Parent.Parent
+local g=require(f.Modules.Creator)
 
-local g=f.New
+local h=g.New
 
-return function(h,i)
-local j={}
+return function(i,j)
+local k={}
 
-j.Layout=g("UIListLayout",{
+k.Layout=h("UIListLayout",{
 Padding=UDim.new(0,5),
 })
 
-j.Container=g("Frame",{
+k.Container=h("Frame",{
 Size=UDim2.new(1,0,0,26),
 Position=UDim2.fromOffset(0,24),
 BackgroundTransparency=1,
 },{
-j.Layout,
+k.Layout,
 })
 
-j.Root=g("Frame",{
+k.Root=h("Frame",{
 BackgroundTransparency=1,
 Size=UDim2.new(1,0,0,26),
 LayoutOrder=7,
-Parent=i,
+Parent=j,
 },{
-g("TextLabel",{
+h("TextLabel",{
 RichText=true,
-Text=h,
+Text=i,
 TextTransparency=0,
 FontFace=Font.new("rbxassetid://12187365364",Enum.FontWeight.SemiBold,Enum.FontStyle.Normal),
 TextSize=18,
@@ -743,38 +747,38 @@ ThemeTag={
 TextColor3="Text",
 },
 }),
-j.Container,
+k.Container,
 })
 
-f.AddSignal(j.Layout:GetPropertyChangedSignal"AbsoluteContentSize",function()
-if j.Container.Size~=UDim2.new(1,0,0,j.Layout.AbsoluteContentSize.Y)or j.Root.Size~=UDim2.new(1,0,0,j.Layout.AbsoluteContentSize.Y+25)then
-j.Container.Size=UDim2.new(1,0,0,j.Layout.AbsoluteContentSize.Y)
-j.Root.Size=UDim2.new(1,0,0,j.Layout.AbsoluteContentSize.Y+25)
+g.AddSignal(k.Layout:GetPropertyChangedSignal"AbsoluteContentSize",function()
+if k.Container.Size~=UDim2.new(1,0,0,k.Layout.AbsoluteContentSize.Y)or k.Root.Size~=UDim2.new(1,0,0,k.Layout.AbsoluteContentSize.Y+25)then
+k.Container.Size=UDim2.new(1,0,0,k.Layout.AbsoluteContentSize.Y)
+k.Root.Size=UDim2.new(1,0,0,k.Layout.AbsoluteContentSize.Y+25)
 end
 end)
 
-return j
+return k
 end
 
 end)()
 end
 b["Components/Tab"]=function()
-local d=createProxy"Root/Components/Tab"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Components/Tab"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=d.Parent.Parent
-local f=require(e.Packages.Flipper)
-local g=require(e.Modules.Creator)
+local f=e.Parent.Parent
+local g=require(f.Packages.Flipper)
+local h=require(f.Modules.Creator)
 
-local h=g.New
-local i=f.Spring.new local j=
-f.Instant.new
-local k=e.Components
+local i=h.New
+local j=g.Spring.new local k=
+g.Instant.new
+local l=f.Components
 
-local l={
+local m={
 Window=nil,
 Tabs={},
 Containers={},
@@ -782,53 +786,53 @@ SelectedTab=0,
 TabCount=0,
 }
 
-function l.Init(m,n)
-l.Window=n
-return l
+function m.Init(n,o)
+m.Window=o
+return m
 end
 
-function l.GetCurrentTabPos(m)
-local n=l.Window.TabHolder.AbsolutePosition.Y
-local o=l.Tabs[l.SelectedTab].Frame.AbsolutePosition.Y
+function m.GetCurrentTabPos(n)
+local o=m.Window.TabHolder.AbsolutePosition.Y
+local p=m.Tabs[m.SelectedTab].Frame.AbsolutePosition.Y
 
-return o-n
+return p-o
 end
 
-function l.New(m,n,o,p)
-local q=require(e)
-local r=l.Window
-local s=q.Elements
+function m.New(n,o,p,q)
+local r=require(f)
+local s=m.Window
+local t=r.Elements
 
-l.TabCount=l.TabCount+1
-local t=l.TabCount
+m.TabCount=m.TabCount+1
+local u=m.TabCount
 
-local u={
+local v={
 Selected=false,
-Name=n,
+Name=o,
 Type="Tab",
 }
 
-o=o:find"^rbxasset[://|id://]"==nil and q.Utilities:GetIcon(o)or{
-Image=o,
+p=p:find"^rbxasset[://|id://]"==nil and r.Utilities:GetIcon(p)or{
+Image=p,
 ImageRectOffset=Vector2.zero,
 ImageRectSize=Vector2.zero
 }
 
-u.Frame=h("TextButton",{
+v.Frame=i("TextButton",{
 Size=UDim2.new(1,0,0,34),
 BackgroundTransparency=1,
-Parent=p,
+Parent=q,
 ThemeTag={
 BackgroundColor3="Tab",
 },
 },{
-h("UICorner",{
+i("UICorner",{
 CornerRadius=UDim.new(0,6),
 }),
-h("TextLabel",{
+i("TextLabel",{
 AnchorPoint=Vector2.new(0,0.5),
-Position=o~=nil and UDim2.new(0,30,0.5,0)or UDim2.new(0,12,0.5,0),
-Text=n,
+Position=p~=nil and UDim2.new(0,30,0.5,0)or UDim2.new(0,12,0.5,0),
+Text=o,
 RichText=true,
 TextColor3=Color3.fromRGB(255,255,255),
 TextTransparency=0,
@@ -846,29 +850,29 @@ ThemeTag={
 TextColor3="Text",
 },
 }),
-h("ImageLabel",{
+i("ImageLabel",{
 AnchorPoint=Vector2.new(0,0.5),
 Size=UDim2.fromOffset(16,16),
 Position=UDim2.new(0,8,0.5,0),
 BackgroundTransparency=1,
-ImageRectOffset=o and o.ImageRectOffset or Vector2.zero,
-ImageRectSize=o and o.ImageRectSize or Vector2.zero,
-Image=o and o.Image or nil,
+ImageRectOffset=p and p.ImageRectOffset or Vector2.zero,
+ImageRectSize=p and p.ImageRectSize or Vector2.zero,
+Image=p and p.Image or nil,
 ThemeTag={
 ImageColor3="Text",
 },
 }),
 })
 
-local v=h("UIListLayout",{
+local w=i("UIListLayout",{
 Padding=UDim.new(0,5),
 SortOrder=Enum.SortOrder.LayoutOrder,
 })
 
-u.ContainerFrame=h("ScrollingFrame",{
+v.ContainerFrame=i("ScrollingFrame",{
 Size=UDim2.fromScale(1,1),
 BackgroundTransparency=1,
-Parent=r.ContainerHolder,
+Parent=s.ContainerHolder,
 Visible=false,
 BottomImage="rbxassetid://6889812791",
 MidImage="rbxassetid://6889812721",
@@ -880,8 +884,8 @@ BorderSizePixel=0,
 CanvasSize=UDim2.fromScale(0,0),
 ScrollingDirection=Enum.ScrollingDirection.Y,
 },{
-v,
-h("UIPadding",{
+w,
+i("UIPadding",{
 PaddingRight=UDim.new(0,10),
 PaddingLeft=UDim.new(0,1),
 PaddingTop=UDim.new(0,1),
@@ -889,117 +893,117 @@ PaddingBottom=UDim.new(0,1),
 }),
 })
 
-g.AddSignal(v:GetPropertyChangedSignal"AbsoluteContentSize",function()
-if u.ContainerFrame.CanvasSize~=UDim2.fromOffset(0,v.AbsoluteContentSize.Y+2)then
-u.ContainerFrame.CanvasSize=UDim2.fromOffset(0,v.AbsoluteContentSize.Y+2)
+h.AddSignal(w:GetPropertyChangedSignal"AbsoluteContentSize",function()
+if v.ContainerFrame.CanvasSize~=UDim2.fromOffset(0,w.AbsoluteContentSize.Y+2)then
+v.ContainerFrame.CanvasSize=UDim2.fromOffset(0,w.AbsoluteContentSize.Y+2)
 end
 end)
 
-u.Motor,u.SetTransparency=g.SpringMotor(1,u.Frame,"BackgroundTransparency")
+v.Motor,v.SetTransparency=h.SpringMotor(1,v.Frame,"BackgroundTransparency")
 
-g.AddSignal(u.Frame.MouseEnter,function()
-u.SetTransparency(u.Selected and 0.85 or 0.89)
+h.AddSignal(v.Frame.MouseEnter,function()
+v.SetTransparency(v.Selected and 0.85 or 0.89)
 end)
-g.AddSignal(u.Frame.MouseLeave,function()
-u.SetTransparency(u.Selected and 0.89 or 1)
+h.AddSignal(v.Frame.MouseLeave,function()
+v.SetTransparency(v.Selected and 0.89 or 1)
 end)
-g.AddSignal(u.Frame.MouseButton1Down,function()
-u.SetTransparency(0.92)
+h.AddSignal(v.Frame.MouseButton1Down,function()
+v.SetTransparency(0.92)
 end)
-g.AddSignal(u.Frame.MouseButton1Up,function()
-u.SetTransparency(u.Selected and 0.85 or 0.89)
+h.AddSignal(v.Frame.MouseButton1Up,function()
+v.SetTransparency(v.Selected and 0.85 or 0.89)
 end)
-g.AddSignal(u.Frame.MouseButton1Click,function()
-l:SelectTab(t)
+h.AddSignal(v.Frame.MouseButton1Click,function()
+m:SelectTab(u)
 end)
 
-l.Containers[t]=u.ContainerFrame
-l.Tabs[t]=u
+m.Containers[u]=v.ContainerFrame
+m.Tabs[u]=v
 
-u.Container=u.ContainerFrame
-u.ScrollFrame=u.Container
+v.Container=v.ContainerFrame
+v.ScrollFrame=v.Container
 
-function u.Section(w,x)
-local y={
+function v.Section(x,y)
+local z={
 Type="Section"
 }
 
-local z=require(k.Section)(x,u.Container)
-y.Container=z.Container
-y.ScrollFrame=u.Container
+local A=require(l.Section)(y,v.Container)
+z.Container=A.Container
+z.ScrollFrame=v.Container
 
-setmetatable(y,s)
-return y
+setmetatable(z,t)
+return z
 end
 
-u.CreateSection=u.Section
-u.AddSection=u.Section
+v.CreateSection=v.Section
+v.AddSection=v.Section
 
-setmetatable(u,s)
-return u
+setmetatable(v,t)
+return v
 end
 
-function l.SelectTab(m,n)
-local o=l.Window
+function m.SelectTab(n,o)
+local p=m.Window
 
-l.SelectedTab=n
+m.SelectedTab=o
 
-for p,q in next,l.Tabs do
-q.SetTransparency(1)
-q.Selected=false
+for q,r in next,m.Tabs do
+r.SetTransparency(1)
+r.Selected=false
 end
 
-l.Tabs[n].SetTransparency(0.89)
-l.Tabs[n].Selected=true
+m.Tabs[o].SetTransparency(0.89)
+m.Tabs[o].Selected=true
 
-o.TabDisplay.Text=l.Tabs[n].Name
-o.SelectorPosMotor:setGoal(i(l:GetCurrentTabPos(),{frequency=6}))
+p.TabDisplay.Text=m.Tabs[o].Name
+p.SelectorPosMotor:setGoal(j(m:GetCurrentTabPos(),{frequency=6}))
 
 task.spawn(function()
-o.ContainerHolder.Parent=o.ContainerAnim
+p.ContainerHolder.Parent=p.ContainerAnim
 
-o.ContainerPosMotor:setGoal(i(15,{frequency=10}))
-o.ContainerBackMotor:setGoal(i(1,{frequency=10}))
+p.ContainerPosMotor:setGoal(j(15,{frequency=10}))
+p.ContainerBackMotor:setGoal(j(1,{frequency=10}))
 
 task.wait(0.12)
 
-for p,q in next,l.Containers do
-q.Visible=false
+for q,r in next,m.Containers do
+r.Visible=false
 end
 
-l.Containers[n].Visible=true
-o.ContainerPosMotor:setGoal(i(0,{frequency=5}))
-o.ContainerBackMotor:setGoal(i(0,{frequency=8}))
+m.Containers[o].Visible=true
+p.ContainerPosMotor:setGoal(j(0,{frequency=5}))
+p.ContainerBackMotor:setGoal(j(0,{frequency=8}))
 
 task.wait(0.12)
 
-o.ContainerHolder.Parent=o.ContainerCanvas
+p.ContainerHolder.Parent=p.ContainerCanvas
 end)
 end
 
-return l
+return m
 
 end)()
 end
 b["Components/Textbox"]=function()
-local d=createProxy"Root/Components/Textbox"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Components/Textbox"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=game:GetService"TextService"
-local f=d.Parent.Parent
-require(f.Packages.Flipper)
-local g=require(f.Modules.Creator)
-local h=g.New
+local f=game:GetService"TextService"
+local g=e.Parent.Parent
+require(g.Packages.Flipper)
+local h=require(g.Modules.Creator)
+local i=h.New
 
-return function(i,j)
-local k={}
+return function(j,k)
+local l={}
 
-j=j or false
+k=k or false
 
-k.Input=h("TextBox",{
+l.Input=i("TextBox",{
 FontFace=Font.new"rbxasset://fonts/families/GothamSSm.json",
 TextColor3=Color3.fromRGB(200,200,200),
 TextSize=14,
@@ -1016,69 +1020,69 @@ PlaceholderColor3="SubText",
 },
 })
 
-k.Container=h("Frame",{
+l.Container=i("Frame",{
 BackgroundTransparency=1,
 ClipsDescendants=true,
 Position=UDim2.new(0,6,0,0),
 Size=UDim2.new(1,-12,1,0),
 },{
-k.Input,
+l.Input,
 })
 
-k.Indicator=h("Frame",{
+l.Indicator=i("Frame",{
 Size=UDim2.new(1,-4,0,1),
 Position=UDim2.new(0,2,1,0),
 AnchorPoint=Vector2.new(0,1),
-BackgroundTransparency=j and 0.5 or 0,
+BackgroundTransparency=k and 0.5 or 0,
 ThemeTag={
-BackgroundColor3=j and"InputIndicator"or"DialogInputLine",
+BackgroundColor3=k and"InputIndicator"or"DialogInputLine",
 },
 })
 
-k.Frame=h("Frame",{
+l.Frame=i("Frame",{
 Size=UDim2.new(0,0,0,30),
-BackgroundTransparency=j and 0.9 or 0,
-Parent=i,
+BackgroundTransparency=k and 0.9 or 0,
+Parent=j,
 ThemeTag={
-BackgroundColor3=j and"Input"or"DialogInput",
+BackgroundColor3=k and"Input"or"DialogInput",
 },
 },{
-h("UICorner",{
+i("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
-h("UIStroke",{
+i("UIStroke",{
 ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
-Transparency=j and 0.5 or 0.65,
+Transparency=k and 0.5 or 0.65,
 ThemeTag={
-Color=j and"InElementBorder"or"DialogButtonBorder",
+Color=k and"InElementBorder"or"DialogButtonBorder",
 },
 }),
-k.Indicator,
-k.Container,
+l.Indicator,
+l.Container,
 })
 
 local function Update()
-local l=2
-local m=k.Container.AbsoluteSize.X
+local m=2
+local n=l.Container.AbsoluteSize.X
 
-if not k.Input:IsFocused()or k.Input.TextBounds.X<=m-2*l then
-k.Input.Position=UDim2.new(0,l,0,0)
+if not l.Input:IsFocused()or l.Input.TextBounds.X<=n-2*m then
+l.Input.Position=UDim2.new(0,m,0,0)
 else
-local n=k.Input.CursorPosition
-if n~=-1 then
-local o=string.sub(k.Input.Text,1,n-1)
-local p=e:GetTextSize(
-o,
-k.Input.TextSize,
-k.Input.Font,
+local o=l.Input.CursorPosition
+if o~=-1 then
+local p=string.sub(l.Input.Text,1,o-1)
+local q=f:GetTextSize(
+p,
+l.Input.TextSize,
+l.Input.Font,
 Vector2.new(math.huge,math.huge)
 ).X
 
-local q=k.Input.Position.X.Offset+p
-if q<l then
-k.Input.Position=UDim2.fromOffset(l-p,0)
-elseif q>m-l-1 then
-k.Input.Position=UDim2.fromOffset(m-p-l-1,0)
+local r=l.Input.Position.X.Offset+q
+if r<m then
+l.Input.Position=UDim2.fromOffset(m-q,0)
+elseif r>n-m-1 then
+l.Input.Position=UDim2.fromOffset(n-q-m-1,0)
 end
 end
 end
@@ -1086,72 +1090,72 @@ end
 
 task.spawn(Update)
 
-g.AddSignal(k.Input:GetPropertyChangedSignal"Text",Update)
-g.AddSignal(k.Input:GetPropertyChangedSignal"CursorPosition",Update)
+h.AddSignal(l.Input:GetPropertyChangedSignal"Text",Update)
+h.AddSignal(l.Input:GetPropertyChangedSignal"CursorPosition",Update)
 
-g.AddSignal(k.Input.Focused,function()
+h.AddSignal(l.Input.Focused,function()
 Update()
-k.Indicator.Size=UDim2.new(1,-2,0,2)
-k.Indicator.Position=UDim2.new(0,1,1,0)
-k.Indicator.BackgroundTransparency=0
-g.OverrideTag(k.Frame,{BackgroundColor3=j and"InputFocused"or"DialogHolder"})
-g.OverrideTag(k.Indicator,{BackgroundColor3="Accent"})
+l.Indicator.Size=UDim2.new(1,-2,0,2)
+l.Indicator.Position=UDim2.new(0,1,1,0)
+l.Indicator.BackgroundTransparency=0
+h.OverrideTag(l.Frame,{BackgroundColor3=k and"InputFocused"or"DialogHolder"})
+h.OverrideTag(l.Indicator,{BackgroundColor3="Accent"})
 end)
 
-g.AddSignal(k.Input.FocusLost,function()
+h.AddSignal(l.Input.FocusLost,function()
 Update()
-k.Indicator.Size=UDim2.new(1,-4,0,1)
-k.Indicator.Position=UDim2.new(0,2,1,0)
-k.Indicator.BackgroundTransparency=0.5
-g.OverrideTag(k.Frame,{BackgroundColor3=j and"Input"or"DialogInput"})
-g.OverrideTag(k.Indicator,{BackgroundColor3=j and"InputIndicator"or"DialogInputLine"})
+l.Indicator.Size=UDim2.new(1,-4,0,1)
+l.Indicator.Position=UDim2.new(0,2,1,0)
+l.Indicator.BackgroundTransparency=0.5
+h.OverrideTag(l.Frame,{BackgroundColor3=k and"Input"or"DialogInput"})
+h.OverrideTag(l.Indicator,{BackgroundColor3=k and"InputIndicator"or"DialogInputLine"})
 end)
 
-return k
+return l
 end
 
 end)()
 end
 b["Components/TitleBar"]=function()
-local d=createProxy"Root/Components/TitleBar"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Components/TitleBar"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=d.Parent.Parent
-local f=require(e.Modules.Creator)
+local f=e.Parent.Parent
+local g=require(f.Modules.Creator)
 
-local g=f.New
-local h=f.AddSignal
+local h=g.New
+local i=g.AddSignal
 
-return function(i)
-local j={}
+return function(j)
+local k={}
 
-local k=require(e)
+local l=require(f)
 
-local function BarButton(l,m,n,o,p)
-local q={
-Callback=p or function()end,
+local function BarButton(m,n,o,p,q)
+local r={
+Callback=q or function()end,
 OnDebounce=false
 }
 
-q.Frame=g("TextButton",{
+r.Frame=h("TextButton",{
 Size=UDim2.new(0,34,1,-8),
 AnchorPoint=Vector2.new(1,0),
 BackgroundTransparency=1,
-Parent=n,
-Position=m,
+Parent=o,
+Position=n,
 Text="",
 ThemeTag={
 BackgroundColor3="Text",
 },
 },{
-g("UICorner",{
+h("UICorner",{
 CornerRadius=UDim.new(0,7),
 }),
-g("ImageLabel",{
-Image=l,
+h("ImageLabel",{
+Image=m,
 Size=UDim2.fromOffset(16,16),
 Position=UDim2.fromScale(0.5,0.5),
 AnchorPoint=Vector2.new(0.5,0.5),
@@ -1163,41 +1167,41 @@ ImageColor3="Text",
 }),
 })local
 
-r, s=f.SpringMotor(1,q.Frame,"BackgroundTransparency")
+s, t=g.SpringMotor(1,r.Frame,"BackgroundTransparency")
 
-h(q.Frame.MouseEnter,function()
-s(0.94)
+i(r.Frame.MouseEnter,function()
+t(0.94)
 end)
 
-h(q.Frame.MouseLeave,function()
-s(1,true)
+i(r.Frame.MouseLeave,function()
+t(1,true)
 end)
 
-h(q.Frame.MouseButton1Down,function()
-s(0.96)
+i(r.Frame.MouseButton1Down,function()
+t(0.96)
 end)
 
-h(q.Frame.MouseButton1Up,function()
-s(0.94)
+i(r.Frame.MouseButton1Up,function()
+t(0.94)
 end)
 
-h(q.Frame.MouseButton1Click,function(...)
-if not q.OnDebounce then
-q.OnDebounce=true
-task.delay(o,rawset,q,"OnDebounce",false)
-q.Callback(...)
+i(r.Frame.MouseButton1Click,function(...)
+if not r.OnDebounce then
+r.OnDebounce=true
+task.delay(p,rawset,r,"OnDebounce",false)
+r.Callback(...)
 end
 end)
 
-return q
+return r
 end
 
-j.Frame=g("Frame",{
+k.Frame=h("Frame",{
 Size=UDim2.new(1,0,0,42),
 BackgroundTransparency=1,
-Parent=i.Parent
+Parent=j.Parent
 },{
-g("Frame",{
+h("Frame",{
 BackgroundTransparency=0.5,
 Size=UDim2.new(1,0,0,1),
 Position=UDim2.new(0,0,1,0),
@@ -1207,23 +1211,23 @@ BackgroundColor3="TitleBarLine",
 })
 })
 
-j.TitleHolder=g("Frame",{
+k.TitleHolder=h("Frame",{
 Size=UDim2.new(1,-16,1,0),
-Parent=j.Frame,
+Parent=k.Frame,
 Position=UDim2.new(0,16,0,0),
 BackgroundTransparency=1,
 },{
-g("UIListLayout",{
+h("UIListLayout",{
 Padding=UDim.new(0,5),
 FillDirection=Enum.FillDirection.Horizontal,
 SortOrder=Enum.SortOrder.LayoutOrder,
 })
 })
 
-j.Title=g("TextLabel",{
+k.Title=h("TextLabel",{
 RichText=true,
-Text=i.Title or"FSSHUB",
-Parent=j.TitleHolder,
+Text=j.Title or"FSSHUB",
+Parent=k.TitleHolder,
 FontFace=Font.new(
 "rbxasset://fonts/families/GothamSSm.json",
 Enum.FontWeight.Bold,
@@ -1240,10 +1244,10 @@ TextColor3="Accent",
 }
 })
 
-j.SubTitle=g("TextLabel",{
+k.SubTitle=h("TextLabel",{
 RichText=true,
-Text=i.SubTitle,
-Parent=j.TitleHolder,
+Text=j.SubTitle,
+Parent=k.TitleHolder,
 TextTransparency=0.4,
 FontFace=Font.new(
 "rbxasset://fonts/families/GothamSSm.json",
@@ -1261,14 +1265,14 @@ TextColor3="Text",
 }
 })
 
-j.CloseButton=BarButton(k.Utilities:GetIcon"Close",UDim2.new(1,-4,0,4),j.Frame,0,function()
-k.CreatedWindow:Dialog{
+k.CloseButton=BarButton(l.Utilities:GetIcon"Close",UDim2.new(1,-4,0,4),k.Frame,0,function()
+l.CreatedWindow:Dialog{
 Title="Close",
 Content="Are you sure you want to unload the interface?",
 Buttons={
 {
 Title="Yes",
-Callback=k.Destroy,
+Callback=l.Destroy,
 },
 {
 Title="No",
@@ -1277,12 +1281,12 @@ Title="No",
 }
 end)
 
-j.MaxButton=BarButton(k.Utilities:GetIcon"Max",UDim2.new(1,-40,0,4),j.Frame,0,function()
-i.Window.Maximize(not i.Window.Maximized)
+k.MaxButton=BarButton(l.Utilities:GetIcon"Max",UDim2.new(1,-40,0,4),k.Frame,0,function()
+j.Window.Maximize(not j.Window.Maximized)
 end)
 
-j.MinButton=BarButton(k.Utilities:GetIcon"Min",UDim2.new(1,-80,0,4),j.Frame,0,function()
-i.Window:Minimize()
+k.MinButton=BarButton(l.Utilities:GetIcon"Min",UDim2.new(1,-80,0,4),k.Frame,0,function()
+j.Window:Minimize()
 end)
 
 
@@ -1357,69 +1361,69 @@ end)
 
 
 
-return j
+return k
 end
 
 end)()
 end
 b["Components/Window"]=function()
-local d=createProxy"Root/Components/Window"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Components/Window"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
 
 
-local e=d.Parent.Parent
-local f=require(e.Packages.Flipper)
-local g=require(e.Modules.Creator)
-local h=require(e.Modules.Acrylic)
-local i=require(e.Packages.Signal)
-local j=require(d.Parent.Assets)
-local k=d.Parent
+local f=e.Parent.Parent
+local g=require(f.Packages.Flipper)
+local h=require(f.Modules.Creator)
+local i=require(f.Modules.Acrylic)
+local j=require(f.Packages.Signal)
+local k=require(e.Parent.Assets)
+local l=e.Parent
 
-local l=require(e)
+local m=require(f)
 
-local m=l.Utilities:Clone(game:GetService"UserInputService")
-local n=l.Utilities:Clone(game:GetService"Players").LocalPlayer:GetMouse()
-local o=l.Utilities:Clone(game:GetService"Workspace").CurrentCamera
+local n=m.Utilities:Clone(game:GetService"UserInputService")
+local o=m.Utilities:Clone(game:GetService"Players").LocalPlayer:GetMouse()
+local p=m.Utilities:Clone(game:GetService"Workspace").CurrentCamera
 
-local p=f.Spring.new
-local q=f.Instant.new
-local r=g.New
+local q=g.Spring.new
+local r=g.Instant.new
+local s=h.New
 
-return function(s)
-assert(typeof(s.Mobile)=="table","Config key 'Mobile' must be a table!")
-assert(typeof(s.Mobile.GetIcon)=="function","Mobile Config key 'GetIcon' must be a function!")
-assert(typeof(s.Mobile.Size)=="UDim2","Mobile Config key 'Size' must be a UDim2!")
+return function(t)
+assert(typeof(t.Mobile)=="table","Config key 'Mobile' must be a table!")
+assert(typeof(t.Mobile.GetIcon)=="function","Mobile Config key 'GetIcon' must be a function!")
+assert(typeof(t.Mobile.Size)=="UDim2","Mobile Config key 'Size' must be a UDim2!")
 
-local t={
+local u={
 Minimized=false,
-OnMinimized=i.new(),
-PostMinimized=i.new(),
+OnMinimized=j.new(),
+PostMinimized=j.new(),
 Maximized=false,
-OnMaximized=i.new(),
-PostMaximized=i.new(),
-Size=s.Size,
-MinSize=s.MinSize,
+OnMaximized=j.new(),
+PostMaximized=j.new(),
+Size=t.Size,
+MinSize=t.MinSize,
 CurrentPos=0,
 TabWidth=0,
 Position=UDim2.fromOffset(
-o.ViewportSize.X/2-s.Size.X.Offset/2,
-o.ViewportSize.Y/2-s.Size.Y.Offset/2
+p.ViewportSize.X/2-t.Size.X.Offset/2,
+p.ViewportSize.Y/2-t.Size.Y.Offset/2
 ),
 }
 
-local u,v,w,x=false
-local y,z=false
-local A=false
-local B,C,D,E=false
+local v,w,x,y=false
+local z,A=false
+local B=false
+local C,D,E,F=false
 
-t.AcrylicPaint=h.AcrylicPaint()
-t.TabWidth=s.TabWidth
+u.AcrylicPaint=i.AcrylicPaint()
+u.TabWidth=t.TabWidth
 
-local F=r("Frame",{
+local G=s("Frame",{
 Size=UDim2.fromOffset(4,0),
 BackgroundColor3=Color3.fromRGB(76,194,255),
 Position=UDim2.fromOffset(0,17),
@@ -1428,18 +1432,18 @@ ThemeTag={
 BackgroundColor3="Accent",
 },
 },{
-r("UICorner",{
+s("UICorner",{
 CornerRadius=UDim.new(0,2),
 }),
 })
 
-local G=r("Frame",{
+local H=s("Frame",{
 Size=UDim2.fromOffset(20,20),
 BackgroundTransparency=1,
 Position=UDim2.new(1,-20,1,-20),
 })
 
-t.TabHolder=r("ScrollingFrame",{
+u.TabHolder=s("ScrollingFrame",{
 Size=UDim2.fromScale(1,1),
 BackgroundTransparency=1,
 ScrollBarImageTransparency=1,
@@ -1448,22 +1452,22 @@ BorderSizePixel=0,
 CanvasSize=UDim2.fromScale(0,0),
 ScrollingDirection=Enum.ScrollingDirection.Y,
 },{
-r("UIListLayout",{
+s("UIListLayout",{
 Padding=UDim.new(0,4),
 }),
 })
 
-local H=r("Frame",{
-Size=UDim2.new(0,t.TabWidth,1,-66),
+local I=s("Frame",{
+Size=UDim2.new(0,u.TabWidth,1,-66),
 Position=UDim2.new(0,12,0,54),
 BackgroundTransparency=1,
 ClipsDescendants=true,
 },{
-t.TabHolder,
-F,
+u.TabHolder,
+G,
 })
 
-t.TabDisplay=r("TextLabel",{
+u.TabDisplay=s("TextLabel",{
 RichText=true,
 Text="Tab",
 TextTransparency=0,
@@ -1472,341 +1476,341 @@ TextSize=28,
 TextXAlignment="Left",
 TextYAlignment="Center",
 Size=UDim2.new(1,-16,0,28),
-Position=UDim2.fromOffset(t.TabWidth+26,56),
+Position=UDim2.fromOffset(u.TabWidth+26,56),
 BackgroundTransparency=1,
 ThemeTag={
 TextColor3="Text",
 },
 })
 
-t.ContainerHolder=r("Frame",{
+u.ContainerHolder=s("Frame",{
 Size=UDim2.fromScale(1,1),
 BackgroundTransparency=1,
 })
 
-t.ContainerAnim=r("CanvasGroup",{
+u.ContainerAnim=s("CanvasGroup",{
 Size=UDim2.fromScale(1,1),
 BackgroundTransparency=1,
 })
 
-t.ContainerCanvas=r("Frame",{
-Size=UDim2.new(1,-t.TabWidth-32,1,-102),
-Position=UDim2.fromOffset(t.TabWidth+26,90),
+u.ContainerCanvas=s("Frame",{
+Size=UDim2.new(1,-u.TabWidth-32,1,-102),
+Position=UDim2.fromOffset(u.TabWidth+26,90),
 BackgroundTransparency=1,
 },{
-t.ContainerAnim,
-t.ContainerHolder
+u.ContainerAnim,
+u.ContainerHolder
 })
 
-t.Root=r("Frame",{
+u.Root=s("Frame",{
 BackgroundTransparency=1,
-Size=t.Size,
-Position=t.Position,
-Parent=s.Parent,
+Size=u.Size,
+Position=u.Position,
+Parent=t.Parent,
 },{
-t.AcrylicPaint.Frame,
-t.TabDisplay,
-t.ContainerCanvas,
+u.AcrylicPaint.Frame,
+u.TabDisplay,
+u.ContainerCanvas,
+I,
 H,
-G,
 })
 
-t.HideButton=r("ImageButton",{
-Visible=l.Utilities:GetOS()=="Mobile",
-Size=s.Mobile.Size,
+u.HideButton=s("ImageButton",{
+Visible=m.Utilities:GetOS()=="Mobile",
+Size=t.Mobile.Size,
 BackgroundTransparency=1,
-Position=UDim2.new(1,-s.Mobile.Size.X.Offset-25,0.5,-s.Mobile.Size.Y.Offset/2),
-Parent=s.Parent,
-Image=s.Mobile.GetIcon(false).Image,
-ImageRectOffset=s.Mobile.GetIcon(false).ImageRectOffset,
-ImageRectSize=s.Mobile.GetIcon(false).ImageRectSize
+Position=UDim2.new(1,-t.Mobile.Size.X.Offset-25,0.5,-t.Mobile.Size.Y.Offset/2),
+Parent=t.Parent,
+Image=t.Mobile.GetIcon(false).Image,
+ImageRectOffset=t.Mobile.GetIcon(false).ImageRectOffset,
+ImageRectSize=t.Mobile.GetIcon(false).ImageRectSize
 })
 
-t.TitleBar=require(d.Parent.TitleBar){
-Title=s.Title,
-SubTitle=s.SubTitle,
-Parent=t.Root,
-Window=t,
+u.TitleBar=require(e.Parent.TitleBar){
+Title=t.Title,
+SubTitle=t.SubTitle,
+Parent=u.Root,
+Window=u,
 }
 
-if l.UseAcrylic then
-t.AcrylicPaint.AddParent(t.Root)
+if m.UseAcrylic then
+u.AcrylicPaint.AddParent(u.Root)
 end
 
-local I=f.GroupMotor.new{
-X=t.Size.X.Offset,
-Y=t.Size.Y.Offset,
+local J=g.GroupMotor.new{
+X=u.Size.X.Offset,
+Y=u.Size.Y.Offset,
 }
 
-local J=f.GroupMotor.new{
-X=t.Position.X.Offset,
-Y=t.Position.Y.Offset,
+local K=g.GroupMotor.new{
+X=u.Position.X.Offset,
+Y=u.Position.Y.Offset,
 }
 
-t.SelectorPosMotor=f.SingleMotor.new(17)
-t.SelectorSizeMotor=f.SingleMotor.new(0)
-t.ContainerBackMotor=f.SingleMotor.new(0)
-t.ContainerPosMotor=f.SingleMotor.new(94)
+u.SelectorPosMotor=g.SingleMotor.new(17)
+u.SelectorSizeMotor=g.SingleMotor.new(0)
+u.ContainerBackMotor=g.SingleMotor.new(0)
+u.ContainerPosMotor=g.SingleMotor.new(94)
 
-I:onStep(function(K)
-t.Root.Size=UDim2.new(0,K.X,0,K.Y)
+J:onStep(function(L)
+u.Root.Size=UDim2.new(0,L.X,0,L.Y)
 end)
 
-J:onStep(function(K)
-t.Root.Position=UDim2.new(0,K.X,0,K.Y)
+K:onStep(function(L)
+u.Root.Position=UDim2.new(0,L.X,0,L.Y)
 end)
 
-local K=0
 local L=0
-t.SelectorPosMotor:onStep(function(M)
-F.Position=UDim2.new(0,0,0,M+17)
-local N=tick()
-local O=N-L
+local M=0
+u.SelectorPosMotor:onStep(function(N)
+G.Position=UDim2.new(0,0,0,N+17)
+local O=tick()
+local P=O-M
 
-if K~=nil then
-t.SelectorSizeMotor:setGoal(p((math.abs(M-K)/(O*60))+16))
-K=M
-end
+if L~=nil then
+u.SelectorSizeMotor:setGoal(q((math.abs(N-L)/(P*60))+16))
 L=N
+end
+M=O
 end)
 
-t.SelectorSizeMotor:onStep(function(M)
-F.Size=UDim2.new(0,4,0,M)
+u.SelectorSizeMotor:onStep(function(N)
+G.Size=UDim2.new(0,4,0,N)
 end)
 
-t.ContainerBackMotor:onStep(function(M)
-t.ContainerAnim.GroupTransparency=M
+u.ContainerBackMotor:onStep(function(N)
+u.ContainerAnim.GroupTransparency=N
 end)
 
-t.ContainerPosMotor:onStep(function(M)
-t.ContainerAnim.Position=UDim2.fromOffset(0,M)
+u.ContainerPosMotor:onStep(function(N)
+u.ContainerAnim.Position=UDim2.fromOffset(0,N)
 end)
 
-local M
 local N
-t.Maximize=function(O,P,Q)
-t.OnMaximized:Fire(tick())
+local O
+u.Maximize=function(P,Q,R)
+u.OnMaximized:Fire(tick())
 
-t.Maximized=O
-t.TitleBar.MaxButton.Frame.Icon.Image=O and j.Restore or j.Max
+u.Maximized=P
+u.TitleBar.MaxButton.Frame.Icon.Image=P and k.Restore or k.Max
 
-if O then
-M=t.Size.X.Offset
-N=t.Size.Y.Offset
+if P then
+N=u.Size.X.Offset
+O=u.Size.Y.Offset
 end
-local R=O and o.ViewportSize.X or M
-local S=O and o.ViewportSize.Y or N
-I:setGoal{
-X=f[Q and"Instant"or"Spring"].new(R,{frequency=6}),
-Y=f[Q and"Instant"or"Spring"].new(S,{frequency=6}),
-}
-t.Size=UDim2.fromOffset(R,S)
-
-if not P then
+local S=P and p.ViewportSize.X or N
+local T=P and p.ViewportSize.Y or O
 J:setGoal{
-X=p(O and 0 or t.Position.X.Offset,{frequency=6}),
-Y=p(O and 0 or t.Position.Y.Offset,{frequency=6}),
+X=g[R and"Instant"or"Spring"].new(S,{frequency=6}),
+Y=g[R and"Instant"or"Spring"].new(T,{frequency=6}),
+}
+u.Size=UDim2.fromOffset(S,T)
+
+if not Q then
+K:setGoal{
+X=q(P and 0 or u.Position.X.Offset,{frequency=6}),
+Y=q(P and 0 or u.Position.Y.Offset,{frequency=6}),
 }
 end
 
-t.PostMaximized:Fire(tick())
+u.PostMaximized:Fire(tick())
 end
 
-g.AddSignal(t.TitleBar.Frame.InputBegan,function(O)
+h.AddSignal(u.TitleBar.Frame.InputBegan,function(P)
 if
-O.UserInputType==Enum.UserInputType.MouseButton1
-or O.UserInputType==Enum.UserInputType.Touch
+P.UserInputType==Enum.UserInputType.MouseButton1
+or P.UserInputType==Enum.UserInputType.Touch
 then
-u=true
-w=O.Position
-x=t.Root.Position
+v=true
+x=P.Position
+y=u.Root.Position
 
-if t.Maximized then
-x=UDim2.fromOffset(
-n.X-(n.X*((M-100)/t.Root.AbsoluteSize.X)),
-n.Y-(n.Y*(N/t.Root.AbsoluteSize.Y))
+if u.Maximized then
+y=UDim2.fromOffset(
+o.X-(o.X*((N-100)/u.Root.AbsoluteSize.X)),
+o.Y-(o.Y*(O/u.Root.AbsoluteSize.Y))
 )
 end
 
-O.Changed:Connect(function()
-if O.UserInputState==Enum.UserInputState.End then
-u=false
+P.Changed:Connect(function()
+if P.UserInputState==Enum.UserInputState.End then
+v=false
 end
 end)
 end
 end)
 
-g.AddSignal(t.TitleBar.Frame.InputChanged,function(O)
+h.AddSignal(u.TitleBar.Frame.InputChanged,function(P)
 if
-O.UserInputType==Enum.UserInputType.MouseMovement
-or O.UserInputType==Enum.UserInputType.Touch
+P.UserInputType==Enum.UserInputType.MouseMovement
+or P.UserInputType==Enum.UserInputType.Touch
 then
-v=O
+w=P
 end
 end)
 
-g.AddSignal(G.InputBegan,function(O)
+h.AddSignal(H.InputBegan,function(P)
 if
-O.UserInputType==Enum.UserInputType.MouseButton1
-or O.UserInputType==Enum.UserInputType.Touch
+P.UserInputType==Enum.UserInputType.MouseButton1
+or P.UserInputType==Enum.UserInputType.Touch
 then
-y=true
-z=O.Position
+z=true
+A=P.Position
 end
 end)
 
-g.AddSignal(m.InputChanged,function(O)
-if O==v and u then
-local P=O.Position-w
-t.Position=UDim2.fromOffset(x.X.Offset+P.X,x.Y.Offset+P.Y)
+h.AddSignal(n.InputChanged,function(P)
+if P==w and v then
+local Q=P.Position-x
+u.Position=UDim2.fromOffset(y.X.Offset+Q.X,y.Y.Offset+Q.Y)
+K:setGoal{
+X=r(u.Position.X.Offset),
+Y=r(u.Position.Y.Offset),
+}
+
+if u.Maximized then
+u.Maximize(false,true,true)
+end
+end
+
+if
+(P.UserInputType==Enum.UserInputType.MouseMovement or P.UserInputType==Enum.UserInputType.Touch)
+and z
+then
+local Q=P.Position-A
+local R=u.Size
+
+local S=Vector3.new(R.X.Offset,R.Y.Offset,0)+Vector3.new(1,1,0)*Q
+local T=
+Vector2.new(math.clamp(S.X,u.MinSize.X,2048),math.clamp(S.Y,u.MinSize.Y,2048))
+
 J:setGoal{
-X=q(t.Position.X.Offset),
-Y=q(t.Position.Y.Offset),
-}
-
-if t.Maximized then
-t.Maximize(false,true,true)
-end
-end
-
-if
-(O.UserInputType==Enum.UserInputType.MouseMovement or O.UserInputType==Enum.UserInputType.Touch)
-and y
-then
-local P=O.Position-z
-local Q=t.Size
-
-local R=Vector3.new(Q.X.Offset,Q.Y.Offset,0)+Vector3.new(1,1,0)*P
-local S=
-Vector2.new(math.clamp(R.X,t.MinSize.X,2048),math.clamp(R.Y,t.MinSize.Y,2048))
-
-I:setGoal{
-X=f.Instant.new(S.X),
-Y=f.Instant.new(S.Y),
+X=g.Instant.new(T.X),
+Y=g.Instant.new(T.Y),
 }
 end
 end)
 
-g.AddSignal(m.InputEnded,function(O)
-if y==true or O.UserInputType==Enum.UserInputType.Touch then
-y=false
-t.Size=UDim2.fromOffset(I:getValue().X,I:getValue().Y)
+h.AddSignal(n.InputEnded,function(P)
+if z==true or P.UserInputType==Enum.UserInputType.Touch then
+z=false
+u.Size=UDim2.fromOffset(J:getValue().X,J:getValue().Y)
 end
 end)
 
-g.AddSignal(t.TabHolder.UIListLayout:GetPropertyChangedSignal"AbsoluteContentSize",function()
-if t.TabHolder.CanvasSize~=UDim2.fromOffset(0,t.TabHolder.UIListLayout.AbsoluteContentSize.Y)then
-t.TabHolder.CanvasSize=UDim2.fromOffset(0,t.TabHolder.UIListLayout.AbsoluteContentSize.Y)
+h.AddSignal(u.TabHolder.UIListLayout:GetPropertyChangedSignal"AbsoluteContentSize",function()
+if u.TabHolder.CanvasSize~=UDim2.fromOffset(0,u.TabHolder.UIListLayout.AbsoluteContentSize.Y)then
+u.TabHolder.CanvasSize=UDim2.fromOffset(0,u.TabHolder.UIListLayout.AbsoluteContentSize.Y)
 end
 end)
 
-function t.Minimize(O)
-t.Minimized=not t.Minimized
-t.Root.Visible=not t.Minimized
+function u.Minimize(P)
+u.Minimized=not u.Minimized
+u.Root.Visible=not u.Minimized
 
-t.OnMinimized:Fire(tick(),t.Root.Visible)
+u.OnMinimized:Fire(tick(),u.Root.Visible)
 
-if not A then
-local P=l.MinimizeKeybind and l.MinimizeKeybind.Value or typeof(l.MinimizeKey)=="string"and l.MinimizeKey or l.MinimizeKey.Name
+if not B then
+local Q=m.MinimizeKeybind and m.MinimizeKeybind.Value or typeof(m.MinimizeKey)=="string"and m.MinimizeKey or m.MinimizeKey.Name
 
-A=true
+B=true
 
-l:Notify{
+m:Notify{
 Title="Interface",
-Content=`Press {l.Utilities:Prettify(P)} to toggle the interface.`,
+Content=`Press {m.Utilities:Prettify(Q)} to toggle the interface.`,
 Duration=6
 }
 end
-if l.Utilities:GetOS()=="Mobile"then
-local P=s.Mobile.GetIcon(t.Minimized)
-t.HideButton.Image=P.Image
-t.HideButton.ImageRectOffset=P.ImageRectOffset
-t.HideButton.ImageRectSize=P.ImageRectSiz
+if m.Utilities:GetOS()=="Mobile"then
+local Q=t.Mobile.GetIcon(u.Minimized)
+u.HideButton.Image=Q.Image
+u.HideButton.ImageRectOffset=Q.ImageRectOffset
+u.HideButton.ImageRectSize=Q.ImageRectSiz
 end
-t.PostMinimized:Fire(tick(),t.Root.Visible)
+u.PostMinimized:Fire(tick(),u.Root.Visible)
 end
 
-g.AddSignal(m.InputBegan,function(O)
+h.AddSignal(n.InputBegan,function(P)
 if
-type(l.MinimizeKeybind)=="table"
-and l.MinimizeKeybind.Type=="Keybind"
-and not m:GetFocusedTextBox()
+type(m.MinimizeKeybind)=="table"
+and m.MinimizeKeybind.Type=="Keybind"
+and not n:GetFocusedTextBox()
 then
-if O.KeyCode.Name==l.MinimizeKeybind.Value or O.KeyCode.Name==l.MinimizeKeybind.Value.Name then
-t:Minimize()
+if P.KeyCode.Name==m.MinimizeKeybind.Value or P.KeyCode.Name==m.MinimizeKeybind.Value.Name then
+u:Minimize()
 end
-elseif(O.KeyCode==l.MinimizeKey or O.KeyCode.Name==l.MinimizeKey)and not m:GetFocusedTextBox()then
-t:Minimize()
+elseif(P.KeyCode==m.MinimizeKey or P.KeyCode.Name==m.MinimizeKey)and not n:GetFocusedTextBox()then
+u:Minimize()
 end
 end)
 
-g.AddSignal(t.HideButton.InputBegan,function(O)
+h.AddSignal(u.HideButton.InputBegan,function(P)
 if
-O.UserInputType==Enum.UserInputType.MouseButton1
-or O.UserInputType==Enum.UserInputType.Touch
+P.UserInputType==Enum.UserInputType.MouseButton1
+or P.UserInputType==Enum.UserInputType.Touch
 then
-B=true
-D=O.Position
-E=t.HideButton.Position
+C=true
+E=P.Position
+F=u.HideButton.Position
 
-O.Changed:Connect(function()
-if O.UserInputState==Enum.UserInputState.End then
-B=false
+P.Changed:Connect(function()
+if P.UserInputState==Enum.UserInputState.End then
+C=false
 end
 end)
 end
 end)
 
-g.AddSignal(t.HideButton.InputChanged,function(O)
+h.AddSignal(u.HideButton.InputChanged,function(P)
 if
-O.UserInputType==Enum.UserInputType.MouseMovement
-or O.UserInputType==Enum.UserInputType.Touch
+P.UserInputType==Enum.UserInputType.MouseMovement
+or P.UserInputType==Enum.UserInputType.Touch
 then
-C=O
+D=P
 end
 end)
 
-g.AddSignal(m.InputChanged,function(O)
-if O==C and B then
-local P=O.Position-D
-t.HideButton.Position=UDim2.new(E.X.Scale,E.X.Offset+P.X,E.Y.Scale,E.Y.Offset+P.Y)
+h.AddSignal(n.InputChanged,function(P)
+if P==D and C then
+local Q=P.Position-E
+u.HideButton.Position=UDim2.new(F.X.Scale,F.X.Offset+Q.X,F.Y.Scale,F.Y.Offset+Q.Y)
 end
 end)
 
-if l.Utilities:GetOS()=="Mobile"then
-g.AddSignal(t.HideButton.TouchTap,function()
-t.Minimized=not t.Minimized
-t.Root.Visible=not t.Minimized
-local O=s.Mobile.GetIcon(t.Minimized)
-t.HideButton.Image=O.Image
-t.HideButton.ImageRectOffset=O.ImageRectOffset
-t.HideButton.ImageRectSize=O.ImageRectSize
+if m.Utilities:GetOS()=="Mobile"then
+h.AddSignal(u.HideButton.TouchTap,function()
+u.Minimized=not u.Minimized
+u.Root.Visible=not u.Minimized
+local P=t.Mobile.GetIcon(u.Minimized)
+u.HideButton.Image=P.Image
+u.HideButton.ImageRectOffset=P.ImageRectOffset
+u.HideButton.ImageRectSize=P.ImageRectSize
 end)
 else
-g.AddSignal(t.HideButton.MouseButton1Click,function()
-t.Minimized=not t.Minimized
-t.Root.Visible=not t.Minimized
+h.AddSignal(u.HideButton.MouseButton1Click,function()
+u.Minimized=not u.Minimized
+u.Root.Visible=not u.Minimized
 end)
 end
 
-function t.Destroy(O)
-if s.OnClose then
-task.spawn(s.OnClose)
+function u.Destroy(P)
+if t.OnClose then
+task.spawn(t.OnClose)
 end
-if l.UseAcrylic then
-t.AcrylicPaint.Model:Destroy()
+if m.UseAcrylic then
+u.AcrylicPaint.Model:Destroy()
 end
-t.Root:Destroy()
+u.Root:Destroy()
 end
 
-local O=require(k.Dialog):Init(t)
-function t.Dialog(P,Q)
-local R=O:Create()
-R.Title.Text=Q.Title
+local P=require(l.Dialog):Init(u)
+function u.Dialog(Q,R)
+local S=P:Create()
+S.Title.Text=R.Title
 
-local S=r("TextLabel",{
+local T=s("TextLabel",{
 FontFace=Font.new"rbxasset://fonts/families/GothamSSm.json",
-Text=Q.Content,
+Text=R.Content,
 TextColor3=Color3.fromRGB(240,240,240),
 TextSize=14,
 TextXAlignment=Enum.TextXAlignment.Left,
@@ -1814,228 +1818,228 @@ TextYAlignment=Enum.TextYAlignment.Top,
 Size=UDim2.new(1,-40,1,0),
 Position=UDim2.fromOffset(20,60),
 BackgroundTransparency=1,
-Parent=R.Root,
+Parent=S.Root,
 ClipsDescendants=false,
 ThemeTag={
 TextColor3="Text",
 },
 })
 
-r("UISizeConstraint",{
+s("UISizeConstraint",{
 MinSize=Vector2.new(300,165),
 MaxSize=Vector2.new(620,math.huge),
-Parent=R.Root,
+Parent=S.Root,
 })
 
-R.Root.Size=UDim2.fromOffset(S.TextBounds.X+40,165)
-if S.TextBounds.X+40>t.Size.X.Offset-120 then
-R.Root.Size=UDim2.fromOffset(t.Size.X.Offset-120,165)
-S.TextWrapped=true
-R.Root.Size=UDim2.fromOffset(t.Size.X.Offset-120,S.TextBounds.Y+150)
+S.Root.Size=UDim2.fromOffset(T.TextBounds.X+40,165)
+if T.TextBounds.X+40>u.Size.X.Offset-120 then
+S.Root.Size=UDim2.fromOffset(u.Size.X.Offset-120,165)
+T.TextWrapped=true
+S.Root.Size=UDim2.fromOffset(u.Size.X.Offset-120,T.TextBounds.Y+150)
 end
 
-for T,U in next,Q.Buttons do
-R:Button(U.Title,U.Callback)
+for U,V in next,R.Buttons do
+S:Button(V.Title,V.Callback)
 end
 
-R:Open()
+S:Open()
 
-if Q.Yield then
-R.Closed:Wait()
+if R.Yield then
+S.Closed:Wait()
 end
 
-return R
+return S
 end
 
-local P=require(k.Tab):Init(t)
+local Q=require(l.Tab):Init(u)
 
-function t.Tab(Q,R)
-return P:New(R.Title,R.Icon,t.TabHolder)
+function u.Tab(R,S)
+return Q:New(S.Title,S.Icon,u.TabHolder)
 end
 
-function t.AddTab(Q,R)
-return t:Tab(R)
+function u.AddTab(R,S)
+return u:Tab(S)
 end
 
-function t.CreateTab(Q,R)
-return t:Tab(R)
+function u.CreateTab(R,S)
+return u:Tab(S)
 end
 
-function t.SelectTab(Q,R)
-P:SelectTab(R)
+function u.SelectTab(R,S)
+Q:SelectTab(S)
 end
 
-g.AddSignal(t.TabHolder:GetPropertyChangedSignal"CanvasPosition",function()
-K=P:GetCurrentTabPos()+16
-L=0
-t.SelectorPosMotor:setGoal(q(P:GetCurrentTabPos()))
+h.AddSignal(u.TabHolder:GetPropertyChangedSignal"CanvasPosition",function()
+L=Q:GetCurrentTabPos()+16
+M=0
+u.SelectorPosMotor:setGoal(r(Q:GetCurrentTabPos()))
 end)
 
-return t
+return u
 end
 
 end)()
 end
 b["Elements/Button"]=function()
-local d=createProxy"Root/Elements/Button"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Elements/Button"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=d.Parent.Parent
-local f=require(e.Modules.Creator)
+local f=e.Parent.Parent
+local g=require(f.Modules.Creator)
 
-local g=f.New
-local h=e.Components
+local h=g.New
+local i=f.Components
 
-local i={}
-i.__index=i
-i.__type="Button"
+local j={}
+j.__index=j
+j.__type="Button"
 
-function i.New(j,k)
-assert(k.Title,"Button - Missing Title")
-k.Callback=k.Callback or function()end
+function j.New(k,l)
+assert(l.Title,"Button - Missing Title")
+l.Callback=l.Callback or function()end
 
-local l=require(h.Element)(k.Title,k.Description,j.Container,true)
+local m=require(i.Element)(l.Title,l.Description,k.Container,true)
 
-local m=g("ImageLabel",{
+local n=h("ImageLabel",{
 Size=UDim2.fromOffset(16,16),
 AnchorPoint=Vector2.new(1,0.5),
 Position=UDim2.new(1,-10,0.5,0),
 BackgroundTransparency=1,
-Parent=l.Frame,
+Parent=m.Frame,
 ThemeTag={
 ImageColor3="Text",
 }
 })::ImageLabel
 
-j.Library.Utilities.Icons:SetIcon(m,"chevron-right")
+k.Library.Utilities.Icons:SetIcon(n,"chevron-right")
 
-f.AddSignal(l.Frame.MouseButton1Click,function()
-if typeof(k.Callback)=="function"then
-j.Library:SafeCallback(k.Callback,k.Value)
+g.AddSignal(m.Frame.MouseButton1Click,function()
+if typeof(l.Callback)=="function"then
+k.Library:SafeCallback(l.Callback,l.Value)
 end
 end)
 
-l.Instance=l
+m.Instance=m
 
-return l
+return m
 end
 
-return i
+return j
 
 end)()
 end
 b["Elements/Colorpicker"]=function()
-local d=createProxy"Root/Elements/Colorpicker"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Elements/Colorpicker"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=game:GetService"Players"
+local f=game:GetService"Players"
 
-local f=e.LocalPlayer
-local g=f:GetMouse()
+local g=f.LocalPlayer
+local h=g:GetMouse()
 
-local h=d.Parent.Parent
-local i=require(h.Modules.Creator)
+local i=e.Parent.Parent
+local j=require(i.Modules.Creator)
 
-local j=i.New
-local k=h.Components
+local k=j.New
+local l=i.Components
 
-local l={}
-l.__index=l
-l.__type="Colorpicker"
+local m={}
+m.__index=m
+m.__type="Colorpicker"
 
-function l.New(m,n,o)
-local p=m.Library
-assert(o.Title,"Colorpicker - Missing Title")
-assert(o.Default,"AddColorPicker: Missing default value.")
+function m.New(n,o,p)
+local q=n.Library
+assert(p.Title,"Colorpicker - Missing Title")
+assert(p.Default,"AddColorPicker: Missing default value.")
 
-local q={
-Value=o.Default or o.Value,
-Transparency=o.Transparency or 0,
-UpdateOnChange=o.UpdateOnChange or o.UpdateWhileSliding or false,
+local r={
+Value=p.Default or p.Value,
+Transparency=p.Transparency or 0,
+UpdateOnChange=p.UpdateOnChange or p.UpdateWhileSliding or false,
 Type="Colorpicker",
-Title=type(o.Title)=="string"and o.Title or"Colorpicker",
-Callback=o.Callback or function(q)end,
+Title=type(p.Title)=="string"and p.Title or"Colorpicker",
+Callback=p.Callback or function(r)end,
 }
 
-function q.SetHSVFromRGB(r,s)
-local t,u,v=Color3.toHSV(s)
-q.Hue=t
-q.Sat=u
-q.Vib=v
+function r.SetHSVFromRGB(s,t)
+local u,v,w=Color3.toHSV(t)
+r.Hue=u
+r.Sat=v
+r.Vib=w
 end
 
-q:SetHSVFromRGB(q.Value)
+r:SetHSVFromRGB(r.Value)
 
-local r=require(k.Element)(o.Title,o.Description,m.Container,true)
+local s=require(l.Element)(p.Title,p.Description,n.Container,true)
 
-q.SetTitle=r.SetTitle
-q.SetDesc=r.SetDesc
+r.SetTitle=s.SetTitle
+r.SetDesc=s.SetDesc
 
-local s=j("Frame",{
+local t=k("Frame",{
 Size=UDim2.fromScale(1,1),
-BackgroundColor3=q.Value,
-Parent=r.Frame,
+BackgroundColor3=r.Value,
+Parent=s.Frame,
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
 })::Frame
 
-j("ImageLabel",{
+k("ImageLabel",{
 Size=UDim2.fromOffset(26,26),
 Position=UDim2.new(1,-10,0.5,0),
 AnchorPoint=Vector2.new(1,0.5),
-Parent=r.Frame,
+Parent=s.Frame,
 Image="http://www.roblox.com/asset/?id=14204231522",
 ImageTransparency=0.45,
 ScaleType=Enum.ScaleType.Tile,
 TileSize=UDim2.fromOffset(40,40),
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
-s,
+t,
 })
 
 local function CreateColorDialog()
-local t=require(k.Dialog):Create()
-t.Title.Text=q.Title
-t.Root.Size=UDim2.fromOffset(430,330)
+local u=require(l.Dialog):Create()
+u.Title.Text=r.Title
+u.Root.Size=UDim2.fromOffset(430,330)
 
-local u,v,w=q.Hue,q.Sat,q.Vib
-local x=q.Transparency
+local v,w,x=r.Hue,r.Sat,r.Vib
+local y=r.Transparency
 
-local y,z,A,B=q.Hue,q.Sat,q.Vib,q.Transparency
+local z,A,B,C=r.Hue,r.Sat,r.Vib,r.Transparency
 
 local function CreateInput()
-local C=require(k.Textbox)()
-C.Frame.Parent=t.Root
-C.Frame.Size=UDim2.new(0,90,0,32)
+local D=require(l.Textbox)()
+D.Frame.Parent=u.Root
+D.Frame.Size=UDim2.new(0,90,0,32)
 
-return C
+return D
 end
 
-local function CreateInputLabel(C,D):TextLabel
-return j("TextLabel",{
+local function CreateInputLabel(D,E):TextLabel
+return k("TextLabel",{
 FontFace=Font.new(
 "rbxasset://fonts/families/GothamSSm.json",
 Enum.FontWeight.Medium,
 Enum.FontStyle.Normal
 ),
-Text=C,
+Text=D,
 TextColor3=Color3.fromRGB(240,240,240),
 TextSize=13,
 TextXAlignment=Enum.TextXAlignment.Left,
 Size=UDim2.new(1,0,0,32),
-Position=D,
+Position=E,
 BackgroundTransparency=1,
-Parent=t.Root,
+Parent=u.Root,
 ThemeTag={
 TextColor3="Text",
 },
@@ -2043,11 +2047,11 @@ TextColor3="Text",
 end
 
 local function GetRGB()
-local C=Color3.fromHSV(u,v,w)
-return{R=math.floor(C.R*255),G=math.floor(C.G*255),B=math.floor(C.B*255)}
+local D=Color3.fromHSV(v,w,x)
+return{R=math.floor(D.R*255),G=math.floor(D.G*255),B=math.floor(D.B*255)}
 end
 
-local C=j("ImageLabel",{
+local D=k("ImageLabel",{
 Size=UDim2.new(0,18,0,18),
 ScaleType=Enum.ScaleType.Fit,
 AnchorPoint=Vector2.new(0.5,0.5),
@@ -2055,31 +2059,31 @@ BackgroundTransparency=1,
 Image="http://www.roblox.com/asset/?id=4805639000",
 })::ImageLabel
 
-local D=j("ImageLabel",{
+local E=k("ImageLabel",{
 Size=UDim2.fromOffset(180,160),
 Position=UDim2.fromOffset(20,55),
 Image="rbxassetid://4155801252",
-BackgroundColor3=q.Value,
+BackgroundColor3=r.Value,
 BackgroundTransparency=0,
-Parent=t.Root,
+Parent=u.Root,
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
-C,
+D,
 })::ImageLabel
 
-local E=j("Frame",{
-BackgroundColor3=q.Value,
+local F=k("Frame",{
+BackgroundColor3=r.Value,
 Size=UDim2.fromScale(1,1),
-BackgroundTransparency=q.Transparency,
+BackgroundTransparency=r.Transparency,
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
 })::Frame
 
-j("ImageLabel",{
+k("ImageLabel",{
 Image="http://www.roblox.com/asset/?id=14204231522",
 ImageTransparency=0.45,
 ScaleType=Enum.ScaleType.Tile,
@@ -2087,29 +2091,29 @@ TileSize=UDim2.fromOffset(40,40),
 BackgroundTransparency=1,
 Position=UDim2.fromOffset(112,220),
 Size=UDim2.fromOffset(88,24),
-Parent=t.Root,
+Parent=u.Root,
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
-j("UIStroke",{
+k("UIStroke",{
 Thickness=2,
 Transparency=0.75,
 }),
-E,
+F,
 })
 
-local F=j("Frame",{
-BackgroundColor3=q.Value,
+local G=k("Frame",{
+BackgroundColor3=r.Value,
 Size=UDim2.fromScale(1,1),
 BackgroundTransparency=0,
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
 })::Frame
 
-j("ImageLabel",{
+k("ImageLabel",{
 Image="http://www.roblox.com/asset/?id=14204231522",
 ImageTransparency=0.45,
 ScaleType=Enum.ScaleType.Tile,
@@ -2117,218 +2121,218 @@ TileSize=UDim2.fromOffset(40,40),
 BackgroundTransparency=1,
 Position=UDim2.fromOffset(20,220),
 Size=UDim2.fromOffset(88,24),
-Parent=t.Root,
+Parent=u.Root,
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(0,4),
 }),
-j("UIStroke",{
+k("UIStroke",{
 Thickness=2,
 Transparency=0.75,
 }),
-F,
+G,
 })
 
-local G={}
+local H={}
 
-for H=0,1,0.1 do
-G[#G+1]=ColorSequenceKeypoint.new(H,Color3.fromHSV(H,1,1))
+for I=0,1,0.1 do
+H[#H+1]=ColorSequenceKeypoint.new(I,Color3.fromHSV(I,1,1))
 end
 
-local H=j("UIGradient",{
-Color=ColorSequence.new(G),
+local I=k("UIGradient",{
+Color=ColorSequence.new(H),
 Rotation=90,
 })::UIGradient
 
-local I=j("Frame",{
+local J=k("Frame",{
 Size=UDim2.new(1,0,1,-10),
 Position=UDim2.fromOffset(0,5),
 BackgroundTransparency=1,
 })::Frame
 
-local J=j("ImageLabel",{
+local K=k("ImageLabel",{
 Size=UDim2.fromOffset(14,14),
 Image="http://www.roblox.com/asset/?id=12266946128",
-Parent=I,
+Parent=J,
 ThemeTag={
 ImageColor3="DialogInput",
 },
 })::ImageLabel
 
-local K=j("Frame",{
+local L=k("Frame",{
 Size=UDim2.fromOffset(12,190),
 Position=UDim2.fromOffset(210,55),
-Parent=t.Root,
+Parent=u.Root,
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(1,0),
 }),
-H,
 I,
+J,
 })::Frame
 
-local L=CreateInput()
-L.Frame.Position=UDim2.fromOffset(o.Transparency and 260 or 240,55)
-CreateInputLabel("Hex",UDim2.fromOffset(o.Transparency and 360 or 340,55))
-
 local M=CreateInput()
-M.Frame.Position=UDim2.fromOffset(o.Transparency and 260 or 240,95)
-CreateInputLabel("Red",UDim2.fromOffset(o.Transparency and 360 or 340,95))
+M.Frame.Position=UDim2.fromOffset(p.Transparency and 260 or 240,55)
+CreateInputLabel("Hex",UDim2.fromOffset(p.Transparency and 360 or 340,55))
 
 local N=CreateInput()
-N.Frame.Position=UDim2.fromOffset(o.Transparency and 260 or 240,135)
-CreateInputLabel("Green",UDim2.fromOffset(o.Transparency and 360 or 340,135))
+N.Frame.Position=UDim2.fromOffset(p.Transparency and 260 or 240,95)
+CreateInputLabel("Red",UDim2.fromOffset(p.Transparency and 360 or 340,95))
 
 local O=CreateInput()
-O.Frame.Position=UDim2.fromOffset(o.Transparency and 260 or 240,175)
-CreateInputLabel("Blue",UDim2.fromOffset(o.Transparency and 360 or 340,175))
+O.Frame.Position=UDim2.fromOffset(p.Transparency and 260 or 240,135)
+CreateInputLabel("Green",UDim2.fromOffset(p.Transparency and 360 or 340,135))
 
-local P
-if o.Transparency then
-P=CreateInput()
-P.Frame.Position=UDim2.fromOffset(260,215)
+local P=CreateInput()
+P.Frame.Position=UDim2.fromOffset(p.Transparency and 260 or 240,175)
+CreateInputLabel("Blue",UDim2.fromOffset(p.Transparency and 360 or 340,175))
+
+local Q
+if p.Transparency then
+Q=CreateInput()
+Q.Frame.Position=UDim2.fromOffset(260,215)
 CreateInputLabel("Alpha",UDim2.fromOffset(360,215))
 end
 
-local Q,R,S
-if o.Transparency then
-local T=j("Frame",{
+local R,S,T
+if p.Transparency then
+local U=k("Frame",{
 Size=UDim2.new(1,0,1,-10),
 Position=UDim2.fromOffset(0,5),
 BackgroundTransparency=1,
 })::Frame
 
-R=j("ImageLabel",{
+S=k("ImageLabel",{
 Size=UDim2.fromOffset(14,14),
 Image="http://www.roblox.com/asset/?id=12266946128",
-Parent=T,
+Parent=U,
 ThemeTag={
 ImageColor3="DialogInput",
 },
 })::ImageLabel
 
-S=j("Frame",{
+T=k("Frame",{
 Size=UDim2.fromScale(1,1),
 },{
-j("UIGradient",{
+k("UIGradient",{
 Transparency=NumberSequence.new{
 NumberSequenceKeypoint.new(0,0),
 NumberSequenceKeypoint.new(1,1),
 },
 Rotation=270,
 }),
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(1,0),
 }),
 })::Frame
 
-Q=j("Frame",{
+R=k("Frame",{
 Size=UDim2.fromOffset(12,190),
 Position=UDim2.fromOffset(230,55),
-Parent=t.Root,
+Parent=u.Root,
 BackgroundTransparency=1,
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(1,0),
 }),
-j("ImageLabel",{
+k("ImageLabel",{
 Image="http://www.roblox.com/asset/?id=14204231522",
 ImageTransparency=0.45,
 ScaleType=Enum.ScaleType.Tile,
 TileSize=UDim2.fromOffset(40,40),
 BackgroundTransparency=1,
 Size=UDim2.fromScale(1,1),
-Parent=t.Root,
+Parent=u.Root,
 },{
-j("UICorner",{
+k("UICorner",{
 CornerRadius=UDim.new(1,0),
 }),
 }),
-S,
 T,
+U,
 })::Frame
 end
 
 local function Display()
-D.BackgroundColor3=Color3.fromHSV(u,1,1)
-J.Position=UDim2.new(0,-1,u,-6)
-C.Position=UDim2.new(v,0,1-w,0)
-F.BackgroundColor3=Color3.fromHSV(u,v,w)
+E.BackgroundColor3=Color3.fromHSV(v,1,1)
+K.Position=UDim2.new(0,-1,v,-6)
+D.Position=UDim2.new(w,0,1-x,0)
+G.BackgroundColor3=Color3.fromHSV(v,w,x)
 
-L.Input.Text=`#{Color3.fromHSV(u,v,w):ToHex()}`
-M.Input.Text=GetRGB().R
-N.Input.Text=GetRGB().G
-O.Input.Text=GetRGB().B
+M.Input.Text=`#{Color3.fromHSV(v,w,x):ToHex()}`
+N.Input.Text=GetRGB().R
+O.Input.Text=GetRGB().G
+P.Input.Text=GetRGB().B
 
-if o.Transparency then
-S.BackgroundColor3=Color3.fromHSV(u,v,w)
-F.BackgroundTransparency=x
-R.Position=UDim2.new(0,-1,1-x,-6)
-P.Input.Text=`{p.Utilities:Round((1-x)*100,0)}%`
+if p.Transparency then
+T.BackgroundColor3=Color3.fromHSV(v,w,x)
+G.BackgroundTransparency=y
+S.Position=UDim2.new(0,-1,1-y,-6)
+Q.Input.Text=`{q.Utilities:Round((1-y)*100,0)}%`
 end
 
-if q.UpdateOnChange then
-q:SetValue({u,v,w},x)
+if r.UpdateOnChange then
+r:SetValue({v,w,x},y)
 end
 end
 
-i.AddSignal(L.Input.FocusLost,function(T)
-if T then
-local U,V=pcall(Color3.fromHex,L.Input.Text)
-if U and typeof(V)=="Color3"then
-u,v,w=Color3.toHSV(V)
+j.AddSignal(M.Input.FocusLost,function(U)
+if U then
+local V,W=pcall(Color3.fromHex,M.Input.Text)
+if V and typeof(W)=="Color3"then
+v,w,x=Color3.toHSV(W)
 end
 end
 Display()
 end)
 
-i.AddSignal(M.Input.FocusLost,function(T)
-if T then
-local U=GetRGB()
-local V,W=pcall(Color3.fromRGB,M.Input.Text,U.G,U.B)
-if V and typeof(W)=="Color3"then
-if tonumber(M.Input.Text)<=255 then
-u,v,w=Color3.toHSV(W)
-end
-end
-end
-Display()
-end)
-
-i.AddSignal(N.Input.FocusLost,function(T)
-if T then
-local U=GetRGB()
-local V,W=
-pcall(Color3.fromRGB,U.R,N.Input.Text,U.B)
-if V and typeof(W)=="Color3"then
+j.AddSignal(N.Input.FocusLost,function(U)
+if U then
+local V=GetRGB()
+local W,X=pcall(Color3.fromRGB,N.Input.Text,V.G,V.B)
+if W and typeof(X)=="Color3"then
 if tonumber(N.Input.Text)<=255 then
-u,v,w=Color3.toHSV(W)
+v,w,x=Color3.toHSV(X)
 end
 end
 end
 Display()
 end)
 
-i.AddSignal(O.Input.FocusLost,function(T)
-if T then
-local U=GetRGB()
-local V,W=
-pcall(Color3.fromRGB,U.R,U.G,O.Input.Text)
-if V and typeof(W)=="Color3"then
+j.AddSignal(O.Input.FocusLost,function(U)
+if U then
+local V=GetRGB()
+local W,X=
+pcall(Color3.fromRGB,V.R,O.Input.Text,V.B)
+if W and typeof(X)=="Color3"then
 if tonumber(O.Input.Text)<=255 then
-u,v,w=Color3.toHSV(W)
+v,w,x=Color3.toHSV(X)
 end
 end
 end
 Display()
 end)
 
-if o.Transparency then
-i.AddSignal(P.Input.FocusLost,function(T)
-if T then
+j.AddSignal(P.Input.FocusLost,function(U)
+if U then
+local V=GetRGB()
+local W,X=
+pcall(Color3.fromRGB,V.R,V.G,P.Input.Text)
+if W and typeof(X)=="Color3"then
+if tonumber(P.Input.Text)<=255 then
+v,w,x=Color3.toHSV(X)
+end
+end
+end
+Display()
+end)
+
+if p.Transparency then
+j.AddSignal(Q.Input.FocusLost,function(U)
+if U then
 pcall(function()
-local U=tonumber(P.Input.Text)
-x=U>=0 and U<=100 and 1-U*0.01 or x
+local V=tonumber(Q.Input.Text)
+y=V>=0 and V<=100 and 1-V*0.01 or y
 end)
 end
 Display()
@@ -2336,95 +2340,95 @@ end)
 end
 
 local function UpdateSatVib()
-local T=D.AbsolutePosition.X
-local U=T+D.AbsoluteSize.X
-local V=math.clamp(g.X,T,U)
+local U=E.AbsolutePosition.X
+local V=U+E.AbsoluteSize.X
+local W=math.clamp(h.X,U,V)
 
-local W=D.AbsolutePosition.Y
-local X=W+D.AbsoluteSize.Y
-local Y=math.clamp(g.Y,W,X)
+local X=E.AbsolutePosition.Y
+local Y=X+E.AbsoluteSize.Y
+local Z=math.clamp(h.Y,X,Y)
 
-v=(V-T)/(U-T)
-w=1-((Y-W)/(X-W))
+w=(W-U)/(V-U)
+x=1-((Z-X)/(Y-X))
 Display()
 end
 
 local function UpdateHue()
-local T=K.AbsolutePosition.Y
-local U=T+K.AbsoluteSize.Y
-local V=math.clamp(g.Y,T,U)
+local U=L.AbsolutePosition.Y
+local V=U+L.AbsoluteSize.Y
+local W=math.clamp(h.Y,U,V)
 
-u=((V-T)/(U-T))
+v=((W-U)/(V-U))
 Display()
 end
 
 local function UpdateTransparency()
-local T=Q.AbsolutePosition.Y
-local U=T+Q.AbsoluteSize.Y
-local V=math.clamp(g.Y,T,U)
+local U=R.AbsolutePosition.Y
+local V=U+R.AbsoluteSize.Y
+local W=math.clamp(h.Y,U,V)
 
-x=1-((V-T)/(U-T))
+y=1-((W-U)/(V-U))
 Display()
 end
 
-local T
-i.AddSignal(D.InputBegan,function(U)
-if U.UserInputType==Enum.UserInputType.MouseButton1
-or U.UserInputType==Enum.UserInputType.Touch then
+local U
+j.AddSignal(E.InputBegan,function(V)
+if V.UserInputType==Enum.UserInputType.MouseButton1
+or V.UserInputType==Enum.UserInputType.Touch then
 
-T=g.Move:Connect(UpdateSatVib)
+U=h.Move:Connect(UpdateSatVib)
 UpdateSatVib()
 end
 end)
 
-i.AddSignal(D.InputEnded,function(U)
-if U.UserInputType==Enum.UserInputType.MouseButton1
-or U.UserInputType==Enum.UserInputType.Touch then
+j.AddSignal(E.InputEnded,function(V)
+if V.UserInputType==Enum.UserInputType.MouseButton1
+or V.UserInputType==Enum.UserInputType.Touch then
 
-if T then
-T:Disconnect()
-T=nil
+if U then
+U:Disconnect()
+U=nil
 end
 end
 end)
 
-i.AddSignal(K.InputBegan,function(U)
-if U.UserInputType==Enum.UserInputType.MouseButton1
-or U.UserInputType==Enum.UserInputType.Touch then
+j.AddSignal(L.InputBegan,function(V)
+if V.UserInputType==Enum.UserInputType.MouseButton1
+or V.UserInputType==Enum.UserInputType.Touch then
 
-T=g.Move:Connect(UpdateHue)
+U=h.Move:Connect(UpdateHue)
 UpdateHue()
 end
 end)
 
-i.AddSignal(K.InputEnded,function(U)
-if U.UserInputType==Enum.UserInputType.MouseButton1
-or U.UserInputType==Enum.UserInputType.Touch then
+j.AddSignal(L.InputEnded,function(V)
+if V.UserInputType==Enum.UserInputType.MouseButton1
+or V.UserInputType==Enum.UserInputType.Touch then
 
-if T then
-T:Disconnect()
-T=nil
+if U then
+U:Disconnect()
+U=nil
 end
 end
 end)
 
-if o.Transparency then
-i.AddSignal(Q.InputBegan,function(U)
-if U.UserInputType==Enum.UserInputType.MouseButton1
-or U.UserInputType==Enum.UserInputType.Touch then
+if p.Transparency then
+j.AddSignal(R.InputBegan,function(V)
+if V.UserInputType==Enum.UserInputType.MouseButton1
+or V.UserInputType==Enum.UserInputType.Touch then
 
-T=g.Move:Connect(UpdateTransparency)
+U=h.Move:Connect(UpdateTransparency)
 UpdateTransparency()
 end
 end)
 
-i.AddSignal(Q.InputEnded,function(U)
-if U.UserInputType==Enum.UserInputType.MouseButton1
-or U.UserInputType==Enum.UserInputType.Touch then
+j.AddSignal(R.InputEnded,function(V)
+if V.UserInputType==Enum.UserInputType.MouseButton1
+or V.UserInputType==Enum.UserInputType.Touch then
 
-if T then
-T:Disconnect()
-T=nil
+if U then
+U:Disconnect()
+U=nil
 end
 end
 end)
@@ -2432,145 +2436,145 @@ end
 
 Display()
 
-t:Button("Done",function()
-q:SetValue({u,v,w},x)
+u:Button("Done",function()
+r:SetValue({v,w,x},y)
 end)
 
-t:Button("Cancel",function()
-q:SetValue({y,z,A},B)
+u:Button("Cancel",function()
+r:SetValue({z,A,B},C)
 end)
 
-t:Open()
+u:Open()
 end
 
-function q.Display(t)
-rawset(q,"Value",Color3.fromHSV(q.Hue,q.Sat,q.Vib))
+function r.Display(u)
+rawset(r,"Value",Color3.fromHSV(r.Hue,r.Sat,r.Vib))
 
-s.BackgroundColor3=q.Value
-s.BackgroundTransparency=q.Transparency
+t.BackgroundColor3=r.Value
+t.BackgroundTransparency=r.Transparency
 
-if typeof(q.Callback)=="function"then
-p:SafeCallback(q.Callback,q.Value)
+if typeof(r.Callback)=="function"then
+q:SafeCallback(r.Callback,r.Value)
 end
-if typeof(q.Changed)=="function"then
-p:SafeCallback(q.Changed,q.Value)
+if typeof(r.Changed)=="function"then
+q:SafeCallback(r.Changed,r.Value)
 end
-end
-
-function q.SetValue(t,u,v)
-local w=Color3.fromHSV(u[1],u[2],u[3])
-
-rawset(q,"Transparency",v or 0)
-q:SetHSVFromRGB(w)
-q:Display()
 end
 
-function q.SetValueRGB(t,u,v)
-rawset(q,"Transparency",v or 0)
-q:SetHSVFromRGB(u)
-q:Display()
+function r.SetValue(u,v,w)
+local x=Color3.fromHSV(v[1],v[2],v[3])
+
+rawset(r,"Transparency",w or 0)
+r:SetHSVFromRGB(x)
+r:Display()
 end
 
-function q.OnChanged(t,u)
-q.Changed=u
-p:SafeCallback(u,q.Value,q.Value)
+function r.SetValueRGB(u,v,w)
+rawset(r,"Transparency",w or 0)
+r:SetHSVFromRGB(v)
+r:Display()
 end
 
-function q.Destroy(t)
-r:Destroy()
-p.Options[n]=nil
+function r.OnChanged(u,v)
+r.Changed=v
+q:SafeCallback(v,r.Value,r.Value)
 end
 
-i.AddSignal(r.Frame.MouseButton1Click,function()
+function r.Destroy(u)
+s:Destroy()
+q.Options[o]=nil
+end
+
+j.AddSignal(s.Frame.MouseButton1Click,function()
 CreateColorDialog()
 end)
 
-q:Display()
+r:Display()
 
-p.Options[n]=q
+q.Options[o]=r
 
-q.Instance=r
+r.Instance=s
 
-return setmetatable(q,{
-__newindex=function(t,u,v)
-local w=typeof(v)
-if u=="Value"then
-if w=="table"then
-task.spawn(q.SetValue,q,v,q.Transparency)
+return setmetatable(r,{
+__newindex=function(u,v,w)
+local x=typeof(w)
+if v=="Value"then
+if x=="table"then
+task.spawn(r.SetValue,r,w,r.Transparency)
 else
-task.spawn(q.SetValueRGB,q,v,q.Transparency)
+task.spawn(r.SetValueRGB,r,w,r.Transparency)
 end
-elseif u=="Transparency"and w=="number"then
-task.spawn(q.SetValueRGB,q,q.Value,v)
+elseif v=="Transparency"and x=="number"then
+task.spawn(r.SetValueRGB,r,r.Value,w)
 else
-rawset(t,u,v)
+rawset(u,v,w)
 end
 end
 })
 end
 
-return l
+return m
 end)()
 end
 b["Elements/Dropdown"]=function()
-local d=createProxy"Root/Elements/Dropdown"
-local function require(e)
-local f=tostring(e):gsub("Root/","")
-return __REQUIRE(f)
+local e=createProxy"Root/Elements/Dropdown"
+local function require(f)
+local g=tostring(f):gsub("Root/","")
+return __REQUIRE(g)
 end
 return(function()
-local e=game:GetService"UserInputService"
-local f=game:GetService"Players".LocalPlayer:GetMouse()
-local g=game:GetService"Workspace".CurrentCamera
+local f=game:GetService"UserInputService"
+local g=game:GetService"Players".LocalPlayer:GetMouse()
+local h=game:GetService"Workspace".CurrentCamera
 
-local h=d.Parent.Parent
-local i=require(h.Modules.Creator)
-local j=require(h.Packages.Flipper)
+local i=e.Parent.Parent
+local j=require(i.Modules.Creator)
+local k=require(i.Packages.Flipper)
 
-local k=i.New
-local l=h.Components
+local l=j.New
+local m=i.Components
 
-local m={}
-m.__index=m
-m.__type="Dropdown"
+local n={}
+n.__index=n
+n.__type="Dropdown"
 
-function m.New(n,o,p)
-local q=n.Library
+function n.New(o,p,q)
+local r=o.Library
 
-local r={
+local s={
 Values=(function()
-local r={}
+local s={}
 
-for s,t in next,p.Values or{}do
-r[#r+1]=t
+for t,u in next,q.Values or{}do
+s[#s+1]=u
 end
 
-return r
+return s
 end)(),
-Value=p.Default or p.Value,
-Multi=p.Multi or false,
-AutoDeselect=p.AutoDeselect or false,
-Searchable=p.Searchable or false,
-FocusSearch=p.FocusSearch or true,
-SearchPlaceholder=p.SearchPlaceholder or"Search...",
-Displayer=typeof(p.Displayer)=="function"and p.Displayer or function(r)
-return typeof(r)~="number"and tostring(q.Utilities:Prettify(r))or r
+Value=q.Default or q.Value,
+Multi=q.Multi or false,
+AutoDeselect=q.AutoDeselect or false,
+Searchable=q.Searchable or false,
+FocusSearch=q.FocusSearch or true,
+SearchPlaceholder=q.SearchPlaceholder or"Search...",
+Displayer=typeof(q.Displayer)=="function"and q.Displayer or function(s)
+return typeof(s)~="number"and tostring(r.Utilities:Prettify(s))or s
 end,
-CustomDisplayer=(typeof(p.Displayer)=="function"and p.Displayer and true)or false,
+CustomDisplayer=(typeof(q.Displayer)=="function"and q.Displayer and true)or false,
 Buttons={},
 Opened=false,
 Type="Dropdown",
-Callback=p.Callback or function()end,
-Changed=p.Changed or function()end
+Callback=q.Callback or function()end,
+Changed=q.Changed or function()end
 }
 
-local s=require(l.Element)(p.Title,p.Description,n.Container,false)
-s.DescLabel.Size=UDim2.new(1,-170,0,14)
+local t=require(m.Element)(q.Title,q.Description,o.Container,false)
+t.DescLabel.Size=UDim2.new(1,-170,0,14)
 
-r.SetTitle=s.SetTitle
-r.SetDesc=s.SetDesc
+s.SetTitle=t.SetTitle
+s.SetDesc=t.SetDesc
 
-local t=k("TextLabel",{
+local u=l("TextLabel",{
 FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular,Enum.FontStyle.Normal),
 Text="Value",
 TextColor3=Color3.fromRGB(240,240,240),
@@ -2587,7 +2591,7 @@ TextColor3="Text",
 },
 })
 
-local u=k("ImageLabel",{
+local v=l("ImageLabel",{
 Image="rbxassetid://10709790948",
 Size=UDim2.fromOffset(16,16),
 AnchorPoint=Vector2.new(1,0.5),
@@ -2598,37 +2602,37 @@ ImageColor3="SubText",
 }
 })
 
-local v=k("TextButton",{
+local w=l("TextButton",{
 Size=UDim2.fromOffset(160,30),
 Position=UDim2.new(1,-10,0.5,0),
 AnchorPoint=Vector2.new(1,0.5),
 BackgroundTransparency=0.9,
-Parent=s.Frame,
+Parent=t.Frame,
 ThemeTag={
 BackgroundColor3="DropdownFrame"
 }
 },{
-k("UICorner",{
+l("UICorner",{
 CornerRadius=UDim.new(0,5),
 }),
-k("UIStroke",{
+l("UIStroke",{
 Transparency=0.5,
 ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
 ThemeTag={
 Color="InElementBorder",
 },
 }),
+v,
 u,
-t,
 })
 
-local w=k("UIListLayout",{
+local x=l("UIListLayout",{
 Padding=UDim.new(0,3),
 })
 
-local x=k("ScrollingFrame",{
-Size=UDim2.new(1,-5,1,r.Searchable and-40 or-10),
-Position=UDim2.fromOffset(5,r.Searchable and 40 or 5),
+local y=l("ScrollingFrame",{
+Size=UDim2.new(1,-5,1,s.Searchable and-40 or-10),
+Position=UDim2.fromOffset(5,s.Searchable and 40 or 5),
 BackgroundTransparency=1,
 BottomImage="rbxassetid://6889812791",
 MidImage="rbxassetid://6889812721",
@@ -2639,26 +2643,26 @@ ScrollBarThickness=4,
 BorderSizePixel=0,
 CanvasSize=UDim2.fromScale(0,0),
 },{
-w,
+x,
 })
 
-local y=k("Frame",{
+local z=l("Frame",{
 Size=UDim2.fromScale(1,0.6),
 ThemeTag={
 BackgroundColor3="DropdownHolder",
 },
 },{
-x,
-k("UICorner",{
+y,
+l("UICorner",{
 CornerRadius=UDim.new(0,7),
 }),
-k("UIStroke",{
+l("UIStroke",{
 ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
 ThemeTag={
 Color="DropdownBorder",
 },
 }),
-k("ImageLabel",{
+l("ImageLabel",{
 BackgroundTransparency=1,
 Image="http://www.roblox.com/asset/?id=5554236805",
 ScaleType=Enum.ScaleType.Slice,
@@ -2670,17 +2674,17 @@ ImageTransparency=0.1,
 }),
 })::Frame
 
-local z=require(l.Textbox)(y,true)
-z.Frame.Visible=r.Searchable
-z.Frame.AnchorPoint=Vector2.new(0.5,0)
-z.Frame.Position=UDim2.new(0.5,0,0,5)
-z.Frame.Size=UDim2.new(1,-5,0,32)
-z.Input.PlaceholderText=r.SearchPlaceholder
-z.Input.Text=""
+local A=require(m.Textbox)(z,true)
+A.Frame.Visible=s.Searchable
+A.Frame.AnchorPoint=Vector2.new(0.5,0)
+A.Frame.Position=UDim2.new(0.5,0,0,5)
+A.Frame.Size=UDim2.new(1,-5,0,32)
+A.Input.PlaceholderText=s.SearchPlaceholder
+A.Input.Text=""
 
-local A=z.Input
+local B=A.Input
 
-local B=k("Frame",{
+local C=l("Frame",{
 Size=UDim2.fromOffset(4,14),
 BackgroundColor3=Color3.fromRGB(76,194,255),
 Position=UDim2.fromOffset(-1,16),
@@ -2689,12 +2693,12 @@ ThemeTag={
 BackgroundColor3="Accent",
 }
 },{
-k("UICorner",{
+l("UICorner",{
 CornerRadius=UDim.new(0,2),
 }),
 })::Frame
 
-local C=k("TextLabel",{
+local D=l("TextLabel",{
 FontFace=Font.new"rbxasset://fonts/families/GothamSSm.json",
 TextColor3=Color3.fromRGB(200,200,200),
 TextSize=13,
@@ -2710,7 +2714,7 @@ TextColor3="Text"
 }
 })::TextLabel
 
-local D=k("TextButton",{
+local E=l("TextButton",{
 Size=UDim2.new(1,-5,0,32),
 BackgroundTransparency=1,
 ZIndex=23,
@@ -2719,404 +2723,404 @@ ThemeTag={
 BackgroundColor3="DropdownOption"
 }
 },{
-B,
 C,
-k("UICorner",{
+D,
+l("UICorner",{
 CornerRadius=UDim.new(0,6),
 })
 })::TextButton
 
-local E=k("Frame",{
+local F=l("Frame",{
 BackgroundTransparency=1,
 Size=UDim2.fromOffset(170,300),
-Parent=n.Library.GUI,
+Parent=o.Library.GUI,
 Visible=false,
 },{
-y,
-k("UISizeConstraint",{
+z,
+l("UISizeConstraint",{
 MinSize=Vector2.new(170,0),
 }),
 })
 
-q.OpenFrames[#q.OpenFrames+1]=E
+r.OpenFrames[#r.OpenFrames+1]=F
 
 local function RecalculateListPosition()
-local F=0
-if g.ViewportSize.Y-v.AbsolutePosition.Y<E.AbsoluteSize.Y-5 then
-F=E.AbsoluteSize.Y
+local G=0
+if h.ViewportSize.Y-w.AbsolutePosition.Y<F.AbsoluteSize.Y-5 then
+G=F.AbsoluteSize.Y
 -5
--(g.ViewportSize.Y-v.AbsolutePosition.Y)
+-(h.ViewportSize.Y-w.AbsolutePosition.Y)
 +40
 end
-E.Position=
-UDim2.fromOffset(v.AbsolutePosition.X-1,v.AbsolutePosition.Y-5-F)
+F.Position=
+UDim2.fromOffset(w.AbsolutePosition.X-1,w.AbsolutePosition.Y-5-G)
 end
 
-local F=0
+local G=0
 local function RecalculateListSize()
-local G=r.Searchable and 42 or 0
-local H=r.Searchable and 35 or 0
+local H=s.Searchable and 42 or 0
+local I=s.Searchable and 35 or 0
 
-E.Size=UDim2.fromOffset(F,math.min(392-G,w.AbsoluteContentSize.Y+10+H))
+F.Size=UDim2.fromOffset(G,math.min(392-H,x.AbsoluteContentSize.Y+10+I))
 end
 
 local function RecalculateCanvasSize()
-x.CanvasSize=UDim2.fromOffset(0,w.AbsoluteContentSize.Y)
+y.CanvasSize=UDim2.fromOffset(0,x.AbsoluteContentSize.Y)
 end
 
 local function RepopulateDropdownList()
-r:BuildDropdownList()
+s:BuildDropdownList()
 end
 
 RecalculateListPosition()
 RecalculateListSize()
 
-i.AddSignal(v:GetPropertyChangedSignal"AbsolutePosition",RecalculateListPosition)
-i.AddSignal(A:GetPropertyChangedSignal"Text",RepopulateDropdownList)
+j.AddSignal(w:GetPropertyChangedSignal"AbsolutePosition",RecalculateListPosition)
+j.AddSignal(B:GetPropertyChangedSignal"Text",RepopulateDropdownList)
 
-local G=n.ScrollFrame
-function r.Open(H)
-r.Opened=true
-G.ScrollingEnabled=false
-E.Visible=true
-y:TweenSize(
+local H=o.ScrollFrame
+function s.Open(I)
+s.Opened=true
+H.ScrollingEnabled=false
+F.Visible=true
+z:TweenSize(
 UDim2.fromScale(1,1),
 Enum.EasingDirection.Out,
 Enum.EasingStyle.Quart,
 .2
 )
 
-if r.Searchable then
-A.Text=""
+if s.Searchable then
+B.Text=""
 
-if r.FocusSearch then
-A:CaptureFocus()
+if s.FocusSearch then
+B:CaptureFocus()
 end
-end
-end
-
-function r.Close(H)
-r.Opened=false
-G.ScrollingEnabled=true
-y.Size=UDim2.fromScale(1,0.6)
-E.Visible=false
-
-if r.Searchable then
-A.Text=""
-A:ReleaseFocus()
 end
 end
 
-i.AddSignal(v.MouseButton1Click,function()
-r:Open()
+function s.Close(I)
+s.Opened=false
+H.ScrollingEnabled=true
+z.Size=UDim2.fromScale(1,0.6)
+F.Visible=false
+
+if s.Searchable then
+B.Text=""
+B:ReleaseFocus()
+end
+end
+
+j.AddSignal(w.MouseButton1Click,function()
+s:Open()
 end)
 
-i.AddSignal(e.InputBegan,function(H)
+j.AddSignal(f.InputBegan,function(I)
 if
-H.UserInputType==Enum.UserInputType.MouseButton1
-or H.UserInputType==Enum.UserInputType.Touch
+I.UserInputType==Enum.UserInputType.MouseButton1
+or I.UserInputType==Enum.UserInputType.Touch
 then
-local I,J=y.AbsolutePosition,y.AbsoluteSize
+local J,K=z.AbsolutePosition,z.AbsoluteSize
 if
-f.X<I.X
-or f.X>I.X+J.X
-or f.Y<(I.Y-20-1)
-or f.Y>I.Y+J.Y
+g.X<J.X
+or g.X>J.X+K.X
+or g.Y<(J.Y-20-1)
+or g.Y>J.Y+K.Y
 then
-r:Close()
+s:Close()
 end
 end
 end)
 
-function r.Display(H)
-local I=r.Values
-local J=""
+function s.Display(I)
+local J=s.Values
+local K=""
 
-if p.Multi then
-for K,L in next,I do
-if r.Value[L]then
-J=`{J}{r.Displayer(L)}, `
+if q.Multi then
+for L,M in next,J do
+if s.Value[M]then
+K=`{K}{s.Displayer(M)}, `
 end
 end
-J=J:sub(1,#J-2)
+K=K:sub(1,#K-2)
 else
-J=r.Value and r.Displayer(r.Value)or""
+K=s.Value and s.Displayer(s.Value)or""
 end
 
-t.Text=(J==""and"--"or J)
+u.Text=(K==""and"--"or K)
 end
 
-function r.GetActiveValues(H)
-if p.Multi then
-local I={}
-
-for J,K in next,r.Value do
-I[#I+1]=J
-end
-
-return I
-else
-return r.Value and 1 or 0
-end
-end
-
-function r.BuildDropdownList(H)
-local I=r.Values
+function s.GetActiveValues(I)
+if q.Multi then
 local J={}
 
-for K,L in next,x:GetChildren()do
-if not L:IsA"UIListLayout"then
-L:Destroy()
+for K,L in next,s.Value do
+J[#J+1]=K
+end
+
+return J
+else
+return s.Value and 1 or 0
 end
 end
 
-local K=0
+function s.BuildDropdownList(I)
+local J=s.Values
+local K={}
 
-for L,M in next,I do
-K+=1
+for L,M in next,y:GetChildren()do
+if not M:IsA"UIListLayout"then
+M:Destroy()
+end
+end
 
-if K%30==0 then
+local L=0
+
+for M,N in next,J do
+L+=1
+
+if L%30==0 then
 task.wait()
 end
 
-if r.Searchable and A.Text~=""and not string.lower(r.Displayer(M)):match(string.lower(A.Text))then
+if s.Searchable and B.Text~=""and not string.lower(s.Displayer(N)):match(string.lower(B.Text))then
 continue
 end
 
-local N={}
-local O
+local O={}
+local P
 
-local P=D:Clone()
-local Q,R=P.Frame,P.ButtonLabel
-
-
+local Q=E:Clone()
+local R,S=Q.Frame,Q.ButtonLabel
 
 
 
-i.AddThemeObject(P,{
+
+
+j.AddThemeObject(Q,{
 BackgroundColor3="DropdownOption"
 })
 
-i.AddThemeObject(Q,{
+j.AddThemeObject(R,{
 BackgroundColor3="Accent",
 })
 
-i.AddThemeObject(R,{
+j.AddThemeObject(S,{
 TextColor3="Text"
 })
 
-if p.Multi then
-O=r.Value[M]
+if q.Multi then
+P=s.Value[N]
 else
-O=r.Value==M
+P=s.Value==N
 end local
 
-S, T=i.SpringMotor(1,P,"BackgroundTransparency")local
-U, V=i.SpringMotor(1,Q,"BackgroundTransparency")
-local W=j.SingleMotor.new(6)
+T, U=j.SpringMotor(1,Q,"BackgroundTransparency")local
+V, W=j.SpringMotor(1,R,"BackgroundTransparency")
+local X=k.SingleMotor.new(6)
 
-W:onStep(function(X)
-Q.Size=UDim2.new(0,4,0,X)
+X:onStep(function(Y)
+R.Size=UDim2.new(0,4,0,Y)
 end)
 
-i.AddSignal(P.MouseEnter,function()
-T(O and 0.85 or 0.89)
+j.AddSignal(Q.MouseEnter,function()
+U(P and 0.85 or 0.89)
 end)
 
-i.AddSignal(P.MouseLeave,function()
-T(O and 0.89 or 1)
+j.AddSignal(Q.MouseLeave,function()
+U(P and 0.89 or 1)
 end)
 
-i.AddSignal(P.MouseButton1Down,function()
-T(0.92)
+j.AddSignal(Q.MouseButton1Down,function()
+U(0.92)
 end)
 
-i.AddSignal(P.MouseButton1Up,function()
-T(O and 0.85 or 0.89)
+j.AddSignal(Q.MouseButton1Up,function()
+U(P and 0.85 or 0.89)
 end)
 
-function N.UpdateButton(X)
-if p.Multi then
-O=r.Value[M]
-if O then
-T(0.89)
+function O.UpdateButton(Y)
+if q.Multi then
+P=s.Value[N]
+if P then
+U(0.89)
 end
 else
-O=r.Value==M
-T(O and 0.89 or 1)
+P=s.Value==N
+U(P and 0.89 or 1)
 end
 
-W:setGoal(j.Spring.new(O and 14 or 6,{frequency=6}))
-V(O and 0 or 1)
+X:setGoal(k.Spring.new(P and 14 or 6,{frequency=6}))
+W(P and 0 or 1)
 end
 
-R.InputBegan:Connect(function(X)
+S.InputBegan:Connect(function(Y)
 if
-X.UserInputType==Enum.UserInputType.MouseButton1
-or X.UserInputType==Enum.UserInputType.Touch
+Y.UserInputType==Enum.UserInputType.MouseButton1
+or Y.UserInputType==Enum.UserInputType.Touch
 then
-local Y=not O
+local Z=not P
 
-if r:GetActiveValues()==1 and not Y and not p.AllowNull then
+if s:GetActiveValues()==1 and not Z and not q.AllowNull then
 else
-if p.Multi then
-O=Y
-r.Value[M]=O and true or nil
+if q.Multi then
+P=Z
+s.Value[N]=P and true or nil
 
-if typeof(r.Callback)=="function"then
-q:SafeCallback(r.Callback,r.Value)
+if typeof(s.Callback)=="function"then
+r:SafeCallback(s.Callback,s.Value)
 end
-if typeof(r.Changed)=="function"then
-q:SafeCallback(r.Changed,r.Value)
+if typeof(s.Changed)=="function"then
+r:SafeCallback(s.Changed,s.Value)
 end
 else
-O=Y
-r:SetValue(O and M or nil)
+P=Z
+s:SetValue(P and N or nil)
 
-for Z,_ in next,J do
-_:UpdateButton()
+for _,aa in next,K do
+aa:UpdateButton()
 end
 end
 
-N:UpdateButton()
-r:Display()
+O:UpdateButton()
+s:Display()
 end
 end
 end)
 
-R.Text=r.Displayer(M)
-P.Parent=x
+S.Text=s.Displayer(N)
+Q.Parent=y
 
-N:UpdateButton()
-r:Display()
+O:UpdateButton()
+s:Display()
 
-J[P]=N
+K[Q]=O
 end
 
-F=0
+G=0
 
-for L,M in next,J do
-if L.ButtonLabel then
-if L.ButtonLabel.TextBounds.X>F then
-F=L.ButtonLabel.TextBounds.X
+for aa,M in next,K do
+if aa.ButtonLabel then
+if aa.ButtonLabel.TextBounds.X>G then
+G=aa.ButtonLabel.TextBounds.X
 end
 end
 end
 
-F=F+30
+G=G+30
 
 RecalculateCanvasSize()
 RecalculateListSize()
 end
 
-function r.SetValues(H,I)
+function s.SetValues(aa,I)
 if I then
-rawset(r,"Values",I)
+rawset(s,"Values",I)
 end
 
-r:BuildDropdownList()
+s:BuildDropdownList()
 end
 
-function r.OnChanged(H,I)
-r.Changed=I
-q:SafeCallback(I,r.Value,r.Value)
+function s.OnChanged(aa,I)
+s.Changed=I
+r:SafeCallback(I,s.Value,s.Value)
 end
 
-function r.SetValue(H,I)
-if r.Multi then
+function s.SetValue(aa,I)
+if s.Multi then
 local J={}
 
 for K,L in next,I do
-if table.find(r.Values,K)then
+if table.find(s.Values,K)then
 J[K]=true
 end
 end
 
-rawset(r,"Value",J)
+rawset(s,"Value",J)
 else
 if not I then
-rawset(r,"Value",nil)
-elseif table.find(r.Values,I)then
-rawset(r,"Value",I)
+rawset(s,"Value",nil)
+elseif table.find(s.Values,I)then
+rawset(s,"Value",I)
 end
 end
 
-r:BuildDropdownList()
+s:BuildDropdownList()
 
-if typeof(r.Callback)=="function"then
-q:SafeCallback(r.Callback,r.Value)
+if typeof(s.Callback)=="function"then
+r:SafeCallback(s.Callback,s.Value)
 end
-if typeof(r.Changed)=="function"then
-q:SafeCallback(r.Changed,r.Value)
+if typeof(s.Changed)=="function"then
+r:SafeCallback(s.Changed,s.Value)
 end
-end
-
-function r.Destroy(H)
-s:Destroy()
-q.Options[o]=nil
 end
 
-r:BuildDropdownList()
-r:Display()
+function s.Destroy(aa)
+t:Destroy()
+r.Options[p]=nil
+end
 
-local H={}
+s:BuildDropdownList()
+s:Display()
 
-if type(p.Default)=="table"then
-for I,J in next,p.Default do
-local K=table.find(r.Values,J)
+local aa={}
+
+if type(q.Default)=="table"then
+for I,J in next,q.Default do
+local K=table.find(s.Values,J)
 
 if K then
-H[#H+1]=K
+aa[#aa+1]=K
 end
 end
-table.clear(p.Default)
-elseif type(p.Default)=="number"and r.Values[p.Default]~=nil then
-H[#H+1]=p.Default
+table.clear(q.Default)
+elseif type(q.Default)=="number"and s.Values[q.Default]~=nil then
+aa[#aa+1]=q.Default
 else
-local I=table.find(r.Values,p.Default)
+local I=table.find(s.Values,q.Default)
 if I then
-H[#H+1]=I
+aa[#aa+1]=I
 end
 end
 
-if next(H)then
-for I=1,#H do
-local J=H[I]
+if next(aa)then
+for I=1,#aa do
+local J=aa[I]
 
-if p.Multi then
-r.Value[r.Values[J] ]=true
+if q.Multi then
+s.Value[s.Values[J] ]=true
 else
-r.Value=r.Values[J]
+s.Value=s.Values[J]
 break
 end
 end
 
-r:BuildDropdownList()
-r:Display()
+s:BuildDropdownList()
+s:Display()
 end
 
-q.Options[o]=r
+r.Options[p]=s
 
-r.Instance=s
+s.Instance=t
 
-return setmetatable(r,{
+return setmetatable(s,{
 __newindex=function(I,J,K)
 if J=="Value"then
-task.spawn(r.SetValue,r,K)
+task.spawn(s.SetValue,s,K)
 elseif J=="Values"or J=="List"then
-task.spawn(r.SetValues,r,K)
+task.spawn(s.SetValues,s,K)
 end
 rawset(I,J,K)
 end
 })
 end
 
-return m
+return n
 
 end)()
 end
 b.Elements=function()
-local d=createProxy"Root/Elements"
+local aa=createProxy"Root/Elements"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
@@ -3126,7 +3130,7 @@ return(function()
 local e={}
 
 
-local f=d:GetChildren()
+local f=aa:GetChildren()
 
 
 for g=1,#f do
@@ -3138,13 +3142,13 @@ return e
 end)()
 end
 b["Elements/Input"]=function()
-local d=createProxy"Root/Elements/Input"
+local aa=createProxy"Root/Elements/Input"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
 end
 return(function()
-local e=d.Parent.Parent
+local e=aa.Parent.Parent
 local f=require(e.Modules.Creator)
 
 local g=f.AddSignal
@@ -3251,7 +3255,7 @@ return i
 end)()
 end
 b["Elements/Keybind"]=function()
-local d=createProxy"Root/Elements/Keybind"
+local aa=createProxy"Root/Elements/Keybind"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
@@ -3259,7 +3263,7 @@ end
 return(function()
 local e=game:GetService"UserInputService"
 
-local f=d.Parent.Parent
+local f=aa.Parent.Parent
 local g=require(f.Modules.Creator)
 
 local h=g.New
@@ -3505,13 +3509,13 @@ return j
 end)()
 end
 b["Elements/Paragraph"]=function()
-local d=createProxy"Root/Elements/Paragraph"
+local aa=createProxy"Root/Elements/Paragraph"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
 end
 return(function()
-local e=d.Parent.Parent
+local e=aa.Parent.Parent
 local f=e.Components
 
 local g={}
@@ -3591,14 +3595,14 @@ return g
 end)()
 end
 b["Elements/Slider"]=function()
-local d=createProxy"Root/Elements/Slider"
+local aa=createProxy"Root/Elements/Slider"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
 end
 return(function()
 local e=game:GetService"UserInputService"
-local f=d.Parent.Parent
+local f=aa.Parent.Parent
 local g=require(f.Modules.Creator)
 
 local h=g.New
@@ -3781,7 +3785,7 @@ return j
 end)()
 end
 b["Elements/Toggle"]=function()
-local d=createProxy"Root/Elements/Toggle"
+local aa=createProxy"Root/Elements/Toggle"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
@@ -3789,7 +3793,7 @@ end
 return(function()
 
 local e,f=game:GetService"TweenService",game:GetService"UserInputService"
-local g=d.Parent.Parent
+local g=aa.Parent.Parent
 local h=require(g.Modules.Creator)
 
 local i=h.New
@@ -4181,7 +4185,7 @@ return n
 end)()
 end
 b.Root=function()
-local d=createProxy"Root/Root"
+local aa=createProxy"Root/Root"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
@@ -4244,7 +4248,7 @@ local h=GetService"Workspace".CurrentCamera
 local i=GetService"UserInputService"
 local j=GetService"GuiService"
 
-local k=d
+local k=aa
 local l=k.Components
 
 local m=require(k.Modules.Creator)
@@ -4635,16 +4639,16 @@ return w
 end)()
 end
 b["Modules/Acrylic/AcrylicBlur"]=function()
-local d=createProxy"Root/Modules/Acrylic/AcrylicBlur"
+local aa=createProxy"Root/Modules/Acrylic/AcrylicBlur"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
 end
 return(function()
-local e=d.Parent.Parent.Parent
+local e=aa.Parent.Parent.Parent
 local f=require(e.Modules.Creator)
-local g=require(d.Parent.CreateAcrylic)
-local h,i=unpack(require(d.Parent.Utils))
+local g=require(aa.Parent.CreateAcrylic)
+local h,i=unpack(require(aa.Parent.Utils))
 
 local j=Instance.new("Folder",game:GetService"Workspace".CurrentCamera)
 
@@ -4761,15 +4765,15 @@ end
 end)()
 end
 b["Modules/Acrylic/AcrylicPaint"]=function()
-local d=createProxy"Root/Modules/Acrylic/AcrylicPaint"
+local aa=createProxy"Root/Modules/Acrylic/AcrylicPaint"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
 end
 return(function()
-local e=d.Parent.Parent.Parent
+local e=aa.Parent.Parent.Parent
 local f=require(e.Modules.Creator)
-local g=require(d.Parent.AcrylicBlur)
+local g=require(aa.Parent.AcrylicBlur)
 
 local h=f.New
 
@@ -4891,13 +4895,13 @@ end
 end)()
 end
 b["Modules/Acrylic/CreateAcrylic"]=function()
-local d=createProxy"Root/Modules/Acrylic/CreateAcrylic"
+local aa=createProxy"Root/Modules/Acrylic/CreateAcrylic"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
 end
 return(function()
-local e=d.Parent.Parent.Parent
+local e=aa.Parent.Parent.Parent
 local f=require(e.Modules.Creator)
 
 local function createAcrylic()
@@ -4926,16 +4930,16 @@ return createAcrylic
 end)()
 end
 b["Modules/Acrylic"]=function()
-local d=createProxy"Root/Modules/Acrylic"
+local aa=createProxy"Root/Modules/Acrylic"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
 end
 return(function()
 local e={
-AcrylicBlur=require(d.AcrylicBlur),
-CreateAcrylic=require(d.CreateAcrylic),
-AcrylicPaint=require(d.AcrylicPaint),
+AcrylicBlur=require(aa.AcrylicBlur),
+CreateAcrylic=require(aa.CreateAcrylic),
+AcrylicPaint=require(aa.AcrylicPaint),
 }
 
 function e.init()
@@ -4993,18 +4997,18 @@ createProxy"Root/Modules/Acrylic/Utils"
 
 
 return(function()
-local function map(d,e,f,g,h)
-return(d-e)*(h-g)/(f-e)+g
+local function map(aa,e,f,g,h)
+return(aa-e)*(h-g)/(f-e)+g
 end
 
-local function viewportPointToWorld(d,e)
-local f=game:GetService"Workspace".CurrentCamera:ScreenPointToRay(d.X,d.Y)
+local function viewportPointToWorld(aa,e)
+local f=game:GetService"Workspace".CurrentCamera:ScreenPointToRay(aa.X,aa.Y)
 return f.Origin+f.Direction*e
 end
 
 local function getOffset()
-local d=game:GetService"Workspace".CurrentCamera.ViewportSize.Y
-return map(d,0,2560,8,56)
+local aa=game:GetService"Workspace".CurrentCamera.ViewportSize.Y
+return map(aa,0,2560,8,56)
 end
 
 return{viewportPointToWorld,getOffset}
@@ -5012,14 +5016,14 @@ return{viewportPointToWorld,getOffset}
 end)()
 end
 b["Modules/Creator"]=function()
-local d=createProxy"Root/Modules/Creator"
+local aa=createProxy"Root/Modules/Creator"
 local function require(e)
 local f=tostring(e):gsub("Root/","")
 return __REQUIRE(f)
 end
 return(function()
 
-local e=d.Parent.Parent
+local e=aa.Parent.Parent
 local f=require(e.Themes)local
 g, h=require(e.Packages.Flipper), require(e.Packages.Ripple)
 local i=require(e.Packages.Signal)
@@ -5267,7 +5271,7 @@ createProxy"Root/Modules/Icons"
 
 
 return(function()
-local d='rbxassetid://124334518624683'
+local aa='rbxassetid://124334518624683'
 local e='rbxassetid://113826256227095'
 local f='rbxassetid://129900432084566'
 local g='rbxassetid://118976126805967'
@@ -5312,7 +5316,7 @@ local S='rbxassetid://93555120675964'
 
 local T={['0_0']=Vector2.new(0,0),['64_0']=Vector2.new(64,0),['128_0']=Vector2.new(128,0),['192_0']=Vector2.new(192,0),['256_0']=Vector2.new(256,0),['320_0']=Vector2.new(320,0),['384_0']=Vector2.new(384,0),['448_0']=Vector2.new(448,0),['512_0']=Vector2.new(512,0),['576_0']=Vector2.new(576,0),['640_0']=Vector2.new(640,0),['704_0']=Vector2.new(704,0),['768_0']=Vector2.new(768,0),['832_0']=Vector2.new(832,0),['896_0']=Vector2.new(896,0),['960_0']=Vector2.new(960,0),['0_64']=Vector2.new(0,64),['64_64']=Vector2.new(64,64),['128_64']=Vector2.new(128,64),['192_64']=Vector2.new(192,64),['256_64']=Vector2.new(256,64),['320_64']=Vector2.new(320,64),['384_64']=Vector2.new(384,64),['448_64']=Vector2.new(448,64),['512_64']=Vector2.new(512,64),['576_64']=Vector2.new(576,64),['640_64']=Vector2.new(640,64),['704_64']=Vector2.new(704,64),['768_64']=Vector2.new(768,64),['832_64']=Vector2.new(832,64),['896_64']=Vector2.new(896,64),['960_64']=Vector2.new(960,64),['0_128']=Vector2.new(0,128),['64_128']=Vector2.new(64,128),['128_128']=Vector2.new(128,128),['192_128']=Vector2.new(192,128),['256_128']=Vector2.new(256,128),['320_128']=Vector2.new(320,128),['384_128']=Vector2.new(384,128),['448_128']=Vector2.new(448,128),['512_128']=Vector2.new(512,128),['576_128']=Vector2.new(576,128),['640_128']=Vector2.new(640,128),['704_128']=Vector2.new(704,128),['768_128']=Vector2.new(768,128),['832_128']=Vector2.new(832,128),['896_128']=Vector2.new(896,128),['960_128']=Vector2.new(960,128),['0_192']=Vector2.new(0,192),['64_192']=Vector2.new(64,192),['128_192']=Vector2.new(128,192),['192_192']=Vector2.new(192,192),['256_192']=Vector2.new(256,192),['320_192']=Vector2.new(320,192),['384_192']=Vector2.new(384,192),['448_192']=Vector2.new(448,192),['512_192']=Vector2.new(512,192),['576_192']=Vector2.new(576,192),['640_192']=Vector2.new(640,192),['704_192']=Vector2.new(704,192),['768_192']=Vector2.new(768,192),['832_192']=Vector2.new(832,192),['896_192']=Vector2.new(896,192),['960_192']=Vector2.new(960,192),['0_256']=Vector2.new(0,256),['64_256']=Vector2.new(64,256),['128_256']=Vector2.new(128,256),['192_256']=Vector2.new(192,256),['256_256']=Vector2.new(256,256),['320_256']=Vector2.new(320,256),['384_256']=Vector2.new(384,256),['448_256']=Vector2.new(448,256),['512_256']=Vector2.new(512,256),['576_256']=Vector2.new(576,256),['640_256']=Vector2.new(640,256),['704_256']=Vector2.new(704,256),['768_256']=Vector2.new(768,256),['832_256']=Vector2.new(832,256),['896_256']=Vector2.new(896,256),['960_256']=Vector2.new(960,256),['0_320']=Vector2.new(0,320),['64_320']=Vector2.new(64,320),['128_320']=Vector2.new(128,320),['192_320']=Vector2.new(192,320),['256_320']=Vector2.new(256,320),['320_320']=Vector2.new(320,320),['384_320']=Vector2.new(384,320),['448_320']=Vector2.new(448,320),['512_320']=Vector2.new(512,320),['576_320']=Vector2.new(576,320),['640_320']=Vector2.new(640,320),['704_320']=Vector2.new(704,320),['768_320']=Vector2.new(768,320),['832_320']=Vector2.new(832,320),['896_320']=Vector2.new(896,320),['960_320']=Vector2.new(960,320),['0_384']=Vector2.new(0,384),['64_384']=Vector2.new(64,384),['128_384']=Vector2.new(128,384),['192_384']=Vector2.new(192,384),['256_384']=Vector2.new(256,384),['320_384']=Vector2.new(320,384),['384_384']=Vector2.new(384,384),['448_384']=Vector2.new(448,384),['512_384']=Vector2.new(512,384),['576_384']=Vector2.new(576,384),['640_384']=Vector2.new(640,384),['704_384']=Vector2.new(704,384),['768_384']=Vector2.new(768,384),['832_384']=Vector2.new(832,384),['896_384']=Vector2.new(896,384),['960_384']=Vector2.new(960,384),['0_448']=Vector2.new(0,448),['64_448']=Vector2.new(64,448),['128_448']=Vector2.new(128,448),['192_448']=Vector2.new(192,448),['256_448']=Vector2.new(256,448),['320_448']=Vector2.new(320,448),['384_448']=Vector2.new(384,448),['448_448']=Vector2.new(448,448),['512_448']=Vector2.new(512,448),['576_448']=Vector2.new(576,448),['640_448']=Vector2.new(640,448),['704_448']=Vector2.new(704,448),['768_448']=Vector2.new(768,448),['832_448']=Vector2.new(832,448),['896_448']=Vector2.new(896,448),['960_448']=Vector2.new(960,448),['0_512']=Vector2.new(0,512),['64_512']=Vector2.new(64,512),['128_512']=Vector2.new(128,512),['192_512']=Vector2.new(192,512),['256_512']=Vector2.new(256,512),['320_512']=Vector2.new(320,512),['384_512']=Vector2.new(384,512),['448_512']=Vector2.new(448,512),['512_512']=Vector2.new(512,512),['576_512']=Vector2.new(576,512),['640_512']=Vector2.new(640,512),['704_512']=Vector2.new(704,512),['768_512']=Vector2.new(768,512),['832_512']=Vector2.new(832,512),['896_512']=Vector2.new(896,512),['960_512']=Vector2.new(960,512),['0_576']=Vector2.new(0,576),['64_576']=Vector2.new(64,576),['128_576']=Vector2.new(128,576),['192_576']=Vector2.new(192,576),['256_576']=Vector2.new(256,576),['320_576']=Vector2.new(320,576),['384_576']=Vector2.new(384,576),['448_576']=Vector2.new(448,576),['512_576']=Vector2.new(512,576),['576_576']=Vector2.new(576,576),['640_576']=Vector2.new(640,576),['704_576']=Vector2.new(704,576),['768_576']=Vector2.new(768,576),['832_576']=Vector2.new(832,576),['896_576']=Vector2.new(896,576),['960_576']=Vector2.new(960,576),['0_640']=Vector2.new(0,640),['64_640']=Vector2.new(64,640),['128_640']=Vector2.new(128,640),['192_640']=Vector2.new(192,640),['256_640']=Vector2.new(256,640),['320_640']=Vector2.new(320,640),['384_640']=Vector2.new(384,640),['448_640']=Vector2.new(448,640),['512_640']=Vector2.new(512,640),['576_640']=Vector2.new(576,640),['640_640']=Vector2.new(640,640),['704_640']=Vector2.new(704,640),['768_640']=Vector2.new(768,640),['832_640']=Vector2.new(832,640),['896_640']=Vector2.new(896,640),['960_640']=Vector2.new(960,640),['0_704']=Vector2.new(0,704),['64_704']=Vector2.new(64,704),['128_704']=Vector2.new(128,704),['192_704']=Vector2.new(192,704),['256_704']=Vector2.new(256,704),['320_704']=Vector2.new(320,704),['384_704']=Vector2.new(384,704),['448_704']=Vector2.new(448,704),['512_704']=Vector2.new(512,704),['576_704']=Vector2.new(576,704),['640_704']=Vector2.new(640,704),['704_704']=Vector2.new(704,704),['768_704']=Vector2.new(768,704),['832_704']=Vector2.new(832,704),['896_704']=Vector2.new(896,704),['960_704']=Vector2.new(960,704),['0_768']=Vector2.new(0,768),['64_768']=Vector2.new(64,768),['128_768']=Vector2.new(128,768),['192_768']=Vector2.new(192,768),['256_768']=Vector2.new(256,768),['320_768']=Vector2.new(320,768),['384_768']=Vector2.new(384,768),['448_768']=Vector2.new(448,768),['512_768']=Vector2.new(512,768),['576_768']=Vector2.new(576,768),['640_768']=Vector2.new(640,768),['704_768']=Vector2.new(704,768),['768_768']=Vector2.new(768,768),['832_768']=Vector2.new(832,768),['896_768']=Vector2.new(896,768),['960_768']=Vector2.new(960,768),['0_832']=Vector2.new(0,832),['64_832']=Vector2.new(64,832),['128_832']=Vector2.new(128,832),['192_832']=Vector2.new(192,832),['256_832']=Vector2.new(256,832),['320_832']=Vector2.new(320,832),['384_832']=Vector2.new(384,832),['448_832']=Vector2.new(448,832),['512_832']=Vector2.new(512,832),['576_832']=Vector2.new(576,832),['640_832']=Vector2.new(640,832),['704_832']=Vector2.new(704,832),['768_832']=Vector2.new(768,832),['832_832']=Vector2.new(832,832),['896_832']=Vector2.new(896,832),['960_832']=Vector2.new(960,832),['0_896']=Vector2.new(0,896),['64_896']=Vector2.new(64,896),['128_896']=Vector2.new(128,896),['192_896']=Vector2.new(192,896),['256_896']=Vector2.new(256,896),['320_896']=Vector2.new(320,896),['384_896']=Vector2.new(384,896),['448_896']=Vector2.new(448,896),['512_896']=Vector2.new(512,896),['576_896']=Vector2.new(576,896),['640_896']=Vector2.new(640,896),['704_896']=Vector2.new(704,896),['768_896']=Vector2.new(768,896),['832_896']=Vector2.new(832,896),['896_896']=Vector2.new(896,896),['960_896']=Vector2.new(960,896),['0_960']=Vector2.new(0,960),['64_960']=Vector2.new(64,960),['128_960']=Vector2.new(128,960),['192_960']=Vector2.new(192,960),['256_960']=Vector2.new(256,960),['320_960']=Vector2.new(320,960),['384_960']=Vector2.new(384,960),['448_960']=Vector2.new(448,960),['512_960']=Vector2.new(512,960),['576_960']=Vector2.new(576,960),['640_960']=Vector2.new(640,960),['704_960']=Vector2.new(704,960),['768_960']=Vector2.new(768,960),['832_960']=Vector2.new(832,960),['896_960']=Vector2.new(896,960),['960_960']=Vector2.new(960,960)}
 
-game:GetService'ContentProvider':PreloadAsync{d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,"rbxassetid://9886659671","rbxassetid://9886659276","rbxassetid://9886659406","rbxassetid://9886659001"}
+game:GetService'ContentProvider':PreloadAsync{aa,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,"rbxassetid://9886659671","rbxassetid://9886659276","rbxassetid://9886659406","rbxassetid://9886659001"}
 
 return{
 SetIcon=function(U,V:ImageLabel&ImageButton,W:string)
@@ -5322,31 +5326,31 @@ if typeof(X)~='table'then
 local Y
 local Z=math.huge
 
-for _,aa in next,U do
-local ab,ac=_,W
-local ad,ae=#ab,#ac
-local af={}
+for _,ab in next,U do
+local ac,ad=_,W
+local ae,af=#ac,#ad
+local ag={}
 
-for ag=0,ad do
-af[ag]={}
-af[ag][0]=ag
+for ah=0,ae do
+ag[ah]={}
+ag[ah][0]=ah
 end
 
-for ag=0,ae do
-af[0][ag]=ag
+for ah=0,af do
+ag[0][ah]=ah
 end
 
-for ag=1,ad do
 for ah=1,ae do
-local ai=(ab:sub(ag,ag)==ac:sub(ah,ah))and 0 or 1
-af[ag][ah]=math.min(af[ag-1][ah]+1,af[ag][ah-1]+1,af[ag-1][ah-1]+ai)
+for ai=1,af do
+local aj=(ac:sub(ah,ah)==ad:sub(ai,ai))and 0 or 1
+ag[ah][ai]=math.min(ag[ah-1][ai]+1,ag[ah][ai-1]+1,ag[ah-1][ai-1]+aj)
 end
 end
 
-local ag=af[ad][ae]
+local ah=ag[ae][af]
 
-if ag<Z then
-Z=ag
+if ah<Z then
+Z=ah
 Y=_
 end
 end
@@ -5374,1282 +5378,1282 @@ end,Close=
 ['a-arrow-down']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_0'],
-Image=d
+Image=aa
 },
 ['a-arrow-up']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_0'],
-Image=d
+Image=aa
 },
 ['a-large-small']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_0'],
-Image=d
+Image=aa
 },accessibility=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_0'],
-Image=d
+Image=aa
 },activity=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_0'],
-Image=d
+Image=aa
 },
 ['air-vent']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_0'],
-Image=d
+Image=aa
 },airplay=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_0'],
-Image=d
+Image=aa
 },
 ['alarm-clock-check']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_0'],
-Image=d
+Image=aa
 },
 ['alarm-clock-minus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_0'],
-Image=d
+Image=aa
 },
 ['alarm-clock-off']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_0'],
-Image=d
+Image=aa
 },
 ['alarm-clock-plus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_0'],
-Image=d
+Image=aa
 },
 ['alarm-clock']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_0'],
-Image=d
+Image=aa
 },
 ['alarm-smoke']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_0'],
-Image=d
+Image=aa
 },album=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_0'],
-Image=d
+Image=aa
 },
 ['align-center-horizontal']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_0'],
-Image=d
+Image=aa
 },
 ['align-center-vertical']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_0'],
-Image=d
+Image=aa
 },
 ['align-center']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_64'],
-Image=d
+Image=aa
 },
 ['align-end-horizontal']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_64'],
-Image=d
+Image=aa
 },
 ['align-end-vertical']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_64'],
-Image=d
+Image=aa
 },
 ['align-horizontal-distribute-center']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_64'],
-Image=d
+Image=aa
 },
 ['align-horizontal-distribute-end']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_64'],
-Image=d
+Image=aa
 },
 ['align-horizontal-distribute-start']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_64'],
-Image=d
+Image=aa
 },
 ['align-horizontal-justify-center']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_64'],
-Image=d
+Image=aa
 },
 ['align-horizontal-justify-end']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_64'],
-Image=d
+Image=aa
 },
 ['align-horizontal-justify-start']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_64'],
-Image=d
+Image=aa
 },
 ['align-horizontal-space-around']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_64'],
-Image=d
+Image=aa
 },
 ['align-horizontal-space-between']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_64'],
-Image=d
+Image=aa
 },
 ['align-justify']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_64'],
-Image=d
+Image=aa
 },
 ['align-left']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_64'],
-Image=d
+Image=aa
 },
 ['align-right']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_64'],
-Image=d
+Image=aa
 },
 ['align-start-horizontal']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_64'],
-Image=d
+Image=aa
 },
 ['align-start-vertical']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_64'],
-Image=d
+Image=aa
 },
 ['align-vertical-distribute-center']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_128'],
-Image=d
+Image=aa
 },
 ['align-vertical-distribute-end']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_128'],
-Image=d
+Image=aa
 },
 ['align-vertical-distribute-start']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_128'],
-Image=d
+Image=aa
 },
 ['align-vertical-justify-center']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_128'],
-Image=d
+Image=aa
 },
 ['align-vertical-justify-end']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_128'],
-Image=d
+Image=aa
 },
 ['align-vertical-justify-start']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_128'],
-Image=d
+Image=aa
 },
 ['align-vertical-space-around']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_128'],
-Image=d
+Image=aa
 },
 ['align-vertical-space-between']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_128'],
-Image=d
+Image=aa
 },ambulance=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_128'],
-Image=d
+Image=aa
 },ampersand=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_128'],
-Image=d
+Image=aa
 },ampersands=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_128'],
-Image=d
+Image=aa
 },amphora=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_128'],
-Image=d
+Image=aa
 },anchor=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_128'],
-Image=d
+Image=aa
 },angry=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_128'],
-Image=d
+Image=aa
 },annoyed=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_128'],
-Image=d
+Image=aa
 },antenna=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_128'],
-Image=d
+Image=aa
 },anvil=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_192'],
-Image=d
+Image=aa
 },aperture=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_192'],
-Image=d
+Image=aa
 },
 ['app-window-mac']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_192'],
-Image=d
+Image=aa
 },
 ['app-window']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_192'],
-Image=d
+Image=aa
 },apple=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_192'],
-Image=d
+Image=aa
 },
 ['archive-restore']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_192'],
-Image=d
+Image=aa
 },
 ['archive-x']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_192'],
-Image=d
+Image=aa
 },archive=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_192'],
-Image=d
+Image=aa
 },armchair=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_192'],
-Image=d
+Image=aa
 },
 ['arrow-big-down-dash']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_192'],
-Image=d
+Image=aa
 },
 ['arrow-big-down']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_192'],
-Image=d
+Image=aa
 },
 ['arrow-big-left-dash']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_192'],
-Image=d
+Image=aa
 },
 ['arrow-big-left']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_192'],
-Image=d
+Image=aa
 },
 ['arrow-big-right-dash']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_192'],
-Image=d
+Image=aa
 },
 ['arrow-big-right']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_192'],
-Image=d
+Image=aa
 },
 ['arrow-big-up-dash']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_192'],
-Image=d
+Image=aa
 },
 ['arrow-big-up']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-0-1']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-1-0']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-a-z']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-from-line']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-left']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-narrow-wide']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-right']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-to-dot']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-to-line']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-up']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-wide-narrow']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_256'],
-Image=d
+Image=aa
 },
 ['arrow-down-z-a']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_256'],
-Image=d
+Image=aa
 },
 ['arrow-down']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_256'],
-Image=d
+Image=aa
 },
 ['arrow-left-from-line']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_256'],
-Image=d
+Image=aa
 },
 ['arrow-left-right']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_256'],
-Image=d
+Image=aa
 },
 ['arrow-left-to-line']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_320'],
-Image=d
+Image=aa
 },
 ['arrow-left']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_320'],
-Image=d
+Image=aa
 },
 ['arrow-right-from-line']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_320'],
-Image=d
+Image=aa
 },
 ['arrow-right-left']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_320'],
-Image=d
+Image=aa
 },
 ['arrow-right-to-line']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_320'],
-Image=d
+Image=aa
 },
 ['arrow-right']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-0-1']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-1-0']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-a-z']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-down']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-from-dot']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-from-line']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-left']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-narrow-wide']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-right']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-to-line']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_320'],
-Image=d
+Image=aa
 },
 ['arrow-up-wide-narrow']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_384'],
-Image=d
+Image=aa
 },
 ['arrow-up-z-a']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_384'],
-Image=d
+Image=aa
 },
 ['arrow-up']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_384'],
-Image=d
+Image=aa
 },
 ['arrows-up-from-line']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_384'],
-Image=d
+Image=aa
 },asterisk=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_384'],
-Image=d
+Image=aa
 },
 ['at-sign']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_384'],
-Image=d
+Image=aa
 },atom=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_384'],
-Image=d
+Image=aa
 },
 ['audio-lines']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_384'],
-Image=d
+Image=aa
 },
 ['audio-waveform']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_384'],
-Image=d
+Image=aa
 },award=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_384'],
-Image=d
+Image=aa
 },axe=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_384'],
-Image=d
+Image=aa
 },
 ['axis-3d']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_384'],
-Image=d
+Image=aa
 },baby=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_384'],
-Image=d
+Image=aa
 },backpack=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_384'],
-Image=d
+Image=aa
 },
 ['badge-alert']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_384'],
-Image=d
+Image=aa
 },
 ['badge-cent']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_384'],
-Image=d
+Image=aa
 },
 ['badge-check']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_448'],
-Image=d
+Image=aa
 },
 ['badge-dollar-sign']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_448'],
-Image=d
+Image=aa
 },
 ['badge-euro']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_448'],
-Image=d
+Image=aa
 },
 ['badge-help']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_448'],
-Image=d
+Image=aa
 },
 ['badge-indian-rupee']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_448'],
-Image=d
+Image=aa
 },
 ['badge-info']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_448'],
-Image=d
+Image=aa
 },
 ['badge-japanese-yen']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_448'],
-Image=d
+Image=aa
 },
 ['badge-minus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_448'],
-Image=d
+Image=aa
 },
 ['badge-percent']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_448'],
-Image=d
+Image=aa
 },
 ['badge-plus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_448'],
-Image=d
+Image=aa
 },
 ['badge-pound-sterling']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_448'],
-Image=d
+Image=aa
 },
 ['badge-russian-ruble']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_448'],
-Image=d
+Image=aa
 },
 ['badge-swiss-franc']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_448'],
-Image=d
+Image=aa
 },
 ['badge-x']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_448'],
-Image=d
+Image=aa
 },badge=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_448'],
-Image=d
+Image=aa
 },
 ['baggage-claim']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_448'],
-Image=d
+Image=aa
 },ban=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_512'],
-Image=d
+Image=aa
 },banana=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_512'],
-Image=d
+Image=aa
 },bandage=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_512'],
-Image=d
+Image=aa
 },banknote=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_512'],
-Image=d
+Image=aa
 },barcode=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_512'],
-Image=d
+Image=aa
 },baseline=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_512'],
-Image=d
+Image=aa
 },bath=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_512'],
-Image=d
+Image=aa
 },
 ['battery-charging']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_512'],
-Image=d
+Image=aa
 },
 ['battery-full']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_512'],
-Image=d
+Image=aa
 },
 ['battery-low']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_512'],
-Image=d
+Image=aa
 },
 ['battery-medium']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_512'],
-Image=d
+Image=aa
 },
 ['battery-warning']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_512'],
-Image=d
+Image=aa
 },battery=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_512'],
-Image=d
+Image=aa
 },beaker=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_512'],
-Image=d
+Image=aa
 },
 ['bean-off']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_512'],
-Image=d
+Image=aa
 },bean=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_512'],
-Image=d
+Image=aa
 },
 ['bed-double']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_576'],
-Image=d
+Image=aa
 },
 ['bed-single']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_576'],
-Image=d
+Image=aa
 },bed=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_576'],
-Image=d
+Image=aa
 },beef=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_576'],
-Image=d
+Image=aa
 },
 ['beer-off']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_576'],
-Image=d
+Image=aa
 },beer=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_576'],
-Image=d
+Image=aa
 },
 ['bell-dot']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_576'],
-Image=d
+Image=aa
 },
 ['bell-electric']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_576'],
-Image=d
+Image=aa
 },
 ['bell-minus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_576'],
-Image=d
+Image=aa
 },
 ['bell-off']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_576'],
-Image=d
+Image=aa
 },
 ['bell-plus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_576'],
-Image=d
+Image=aa
 },
 ['bell-ring']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_576'],
-Image=d
+Image=aa
 },bell=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_576'],
-Image=d
+Image=aa
 },
 ['between-horizontal-end']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_576'],
-Image=d
+Image=aa
 },
 ['between-horizontal-start']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_576'],
-Image=d
+Image=aa
 },
 ['between-vertical-end']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_576'],
-Image=d
+Image=aa
 },
 ['between-vertical-start']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_640'],
-Image=d
+Image=aa
 },
 ['biceps-flexed']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_640'],
-Image=d
+Image=aa
 },bike=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_640'],
-Image=d
+Image=aa
 },binary=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_640'],
-Image=d
+Image=aa
 },binoculars=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_640'],
-Image=d
+Image=aa
 },biohazard=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_640'],
-Image=d
+Image=aa
 },bird=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_640'],
-Image=d
+Image=aa
 },bitcoin=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_640'],
-Image=d
+Image=aa
 },blend=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_640'],
-Image=d
+Image=aa
 },blinds=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_640'],
-Image=d
+Image=aa
 },blocks=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_640'],
-Image=d
+Image=aa
 },
 ['bluetooth-connected']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_640'],
-Image=d
+Image=aa
 },
 ['bluetooth-off']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_640'],
-Image=d
+Image=aa
 },
 ['bluetooth-searching']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_640'],
-Image=d
+Image=aa
 },bluetooth=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_640'],
-Image=d
+Image=aa
 },bold=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_640'],
-Image=d
+Image=aa
 },bolt=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_704'],
-Image=d
+Image=aa
 },bomb=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_704'],
-Image=d
+Image=aa
 },bone=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_704'],
-Image=d
+Image=aa
 },
 ['book-a']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_704'],
-Image=d
+Image=aa
 },
 ['book-audio']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_704'],
-Image=d
+Image=aa
 },
 ['book-check']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_704'],
-Image=d
+Image=aa
 },
 ['book-copy']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_704'],
-Image=d
+Image=aa
 },
 ['book-dashed']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_704'],
-Image=d
+Image=aa
 },
 ['book-down']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_704'],
-Image=d
+Image=aa
 },
 ['book-headphones']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_704'],
-Image=d
+Image=aa
 },
 ['book-heart']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_704'],
-Image=d
+Image=aa
 },
 ['book-image']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_704'],
-Image=d
+Image=aa
 },
 ['book-key']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_704'],
-Image=d
+Image=aa
 },
 ['book-lock']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_704'],
-Image=d
+Image=aa
 },
 ['book-marked']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_704'],
-Image=d
+Image=aa
 },
 ['book-minus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_704'],
-Image=d
+Image=aa
 },
 ['book-open-check']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_768'],
-Image=d
+Image=aa
 },
 ['book-open-text']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_768'],
-Image=d
+Image=aa
 },
 ['book-open']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_768'],
-Image=d
+Image=aa
 },
 ['book-plus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_768'],
-Image=d
+Image=aa
 },
 ['book-text']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_768'],
-Image=d
+Image=aa
 },
 ['book-type']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_768'],
-Image=d
+Image=aa
 },
 ['book-up-2']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_768'],
-Image=d
+Image=aa
 },
 ['book-up']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_768'],
-Image=d
+Image=aa
 },
 ['book-user']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_768'],
-Image=d
+Image=aa
 },
 ['book-x']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_768'],
-Image=d
+Image=aa
 },book=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_768'],
-Image=d
+Image=aa
 },
 ['bookmark-check']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_768'],
-Image=d
+Image=aa
 },
 ['bookmark-minus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_768'],
-Image=d
+Image=aa
 },
 ['bookmark-plus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_768'],
-Image=d
+Image=aa
 },
 ['bookmark-x']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_768'],
-Image=d
+Image=aa
 },bookmark=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_768'],
-Image=d
+Image=aa
 },
 ['boom-box']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_832'],
-Image=d
+Image=aa
 },
 ['bot-message-square']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_832'],
-Image=d
+Image=aa
 },
 ['bot-off']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_832'],
-Image=d
+Image=aa
 },bot=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_832'],
-Image=d
+Image=aa
 },box=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_832'],
-Image=d
+Image=aa
 },boxes=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_832'],
-Image=d
+Image=aa
 },braces=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_832'],
-Image=d
+Image=aa
 },brackets=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_832'],
-Image=d
+Image=aa
 },
 ['brain-circuit']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_832'],
-Image=d
+Image=aa
 },
 ['brain-cog']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_832'],
-Image=d
+Image=aa
 },brain=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_832'],
-Image=d
+Image=aa
 },
 ['brick-wall']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_832'],
-Image=d
+Image=aa
 },
 ['briefcase-business']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_832'],
-Image=d
+Image=aa
 },
 ['briefcase-conveyor-belt']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_832'],
-Image=d
+Image=aa
 },
 ['briefcase-medical']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_832'],
-Image=d
+Image=aa
 },briefcase=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_832'],
-Image=d
+Image=aa
 },
 ['bring-to-front']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_896'],
-Image=d
+Image=aa
 },brush=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_896'],
-Image=d
+Image=aa
 },
 ['bug-off']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_896'],
-Image=d
+Image=aa
 },
 ['bug-play']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_896'],
-Image=d
+Image=aa
 },bug=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_896'],
-Image=d
+Image=aa
 },
 ['building-2']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_896'],
-Image=d
+Image=aa
 },building=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_896'],
-Image=d
+Image=aa
 },
 ['bus-front']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_896'],
-Image=d
+Image=aa
 },bus=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_896'],
-Image=d
+Image=aa
 },
 ['cable-car']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_896'],
-Image=d
+Image=aa
 },cable=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_896'],
-Image=d
+Image=aa
 },
 ['cake-slice']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_896'],
-Image=d
+Image=aa
 },cake=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_896'],
-Image=d
+Image=aa
 },calculator=
 {
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_896'],
-Image=d
+Image=aa
 },
 ['calendar-1']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_896'],
-Image=d
+Image=aa
 },
 ['calendar-arrow-down']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_896'],
-Image=d
+Image=aa
 },
 ['calendar-arrow-up']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['0_960'],
-Image=d
+Image=aa
 },
 ['calendar-check-2']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['64_960'],
-Image=d
+Image=aa
 },
 ['calendar-check']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['128_960'],
-Image=d
+Image=aa
 },
 ['calendar-clock']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['192_960'],
-Image=d
+Image=aa
 },
 ['calendar-cog']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['256_960'],
-Image=d
+Image=aa
 },
 ['calendar-days']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['320_960'],
-Image=d
+Image=aa
 },
 ['calendar-fold']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['384_960'],
-Image=d
+Image=aa
 },
 ['calendar-heart']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['448_960'],
-Image=d
+Image=aa
 },
 ['calendar-minus-2']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['512_960'],
-Image=d
+Image=aa
 },
 ['calendar-minus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['576_960'],
-Image=d
+Image=aa
 },
 ['calendar-off']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['640_960'],
-Image=d
+Image=aa
 },
 ['calendar-plus-2']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['704_960'],
-Image=d
+Image=aa
 },
 ['calendar-plus']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['768_960'],
-Image=d
+Image=aa
 },
 ['calendar-range']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['832_960'],
-Image=d
+Image=aa
 },
 ['calendar-search']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['896_960'],
-Image=d
+Image=aa
 },
 ['calendar-sync']={
 ImageRectSize=T['64_64'],
 ImageRectOffset=T['960_960'],
-Image=d
+Image=aa
 },
 ['calendar-x-2']={
 ImageRectSize=T['64_64'],
@@ -58569,8 +58573,8 @@ end
 ah._complete=true
 ah._motors={}
 
-for ai,d in pairs(af)do
-ah._motors[ai]=toMotor(d)
+for ai,aj in pairs(af)do
+ah._motors[ai]=toMotor(aj)
 end
 
 return ah
@@ -58583,8 +58587,8 @@ end
 
 local ah=true
 
-for ai,d in pairs(af._motors)do
-local e=d:step(ag)
+for ai,aj in pairs(af._motors)do
+local e=aj:step(ag)
 if not e then
 
 ah=false
@@ -58612,8 +58616,8 @@ af._complete=false
 af._onStart:fire()
 
 for ah,ai in pairs(ag)do
-local d=assert(af._motors[ah],("Unknown motor for key %s"):format(ah))
-d:setGoal(ai)
+local aj=assert(af._motors[ah],("Unknown motor for key %s"):format(ah))
+aj:setGoal(ai)
 end
 
 if af._useImplicitConnections then
@@ -58933,17 +58937,17 @@ function ad.step(ae,af,ag)
 
 local ah=ae._dampingRatio
 local ai=ae._frequency*2*math.pi
-local d=ae._targetValue
+local aj=ae._targetValue
 local e=af.value
 local f=af.velocity or 0
 
-local g=e-d
+local g=e-aj
 local h=math.exp(-ah*ai*ag)
 
 local i,j
 
 if ah==1 then
-i=(g*(1+ai*ag)+f*ag)*h+d
+i=(g*(1+ai*ag)+f*ag)*h+aj
 j=(f*(1-ai*ag)-g*(ai*ai*ag))*h
 elseif ah<1 then
 local k=math.sqrt(1-ah*ah)
@@ -58986,7 +58990,7 @@ local p=ai*k
 o=ag+((ag*ag)*(p*p)*(p*p)/20-p*p)*(ag*ag*ag)/6
 end
 
-i=(g*(l+ah*n)+f*o)*h+d
+i=(g*(l+ah*n)+f*o)*h+aj
 j=(f*(l-n*ah)-g*(n*ai))*h
 else
 local k=math.sqrt(ah*ah-1)
@@ -59000,15 +59004,15 @@ local o=g-n
 local p=o*math.exp(l*ag)
 local q=n*math.exp(m*ag)
 
-i=p+q+d
+i=p+q+aj
 j=p*l+q*m
 end
 
-local k=math.abs(j)<aa and math.abs(i-d)<ab
+local k=math.abs(j)<aa and math.abs(i-aj)<ab
 
 return{
 complete=k,
-value=k and d or i,
+value=k and aj or i,
 velocity=j,
 }
 end
@@ -59710,9 +59714,9 @@ ae.ThemeChanged:Connect(SaveTheme)
 end
 
 
-local function Toggle(d,e,f,g,h,i)
+local function Toggle(aj,e,f,g,h,i)
 local j={Title=f,Default=g,Callback=h or function()end}
-local k=d:AddToggle(e,j)
+local k=aj:AddToggle(e,j)
 
 
 if ag then
@@ -59726,16 +59730,16 @@ end
 
 
 task.wait(0.05)
-local d={}
+local aj={}
 
-d.Home=ai:Tab{Title="Dashboard",Icon="home"}
+aj.Home=ai:Tab{Title="Dashboard",Icon="home"}
 
 
-d.Home:AddParagraph("Welcome",{
+aj.Home:AddParagraph("Welcome",{
 Title=ag and"Welcome, Premium User! 👑"or"Welcome to FSSHub",
 Content="User: "..(ac.User.Username or"Guest").."\nTier: "..(ac.User.Tier or"Free")
 })
-d.Home:AddButton{
+aj.Home:AddButton{
 Title="Join Discord",
 Description="Get Support & Premium",
 Callback=function()
@@ -59746,12 +59750,12 @@ end
 
 task.wait(0.02)
 
-d.Movement=ai:Tab{Title="Movement",Icon="footprints"}
+aj.Movement=ai:Tab{Title="Movement",Icon="footprints"}
 
 
 
 
-d.Movement:AddSlider("SpeedVal",
+aj.Movement:AddSlider("SpeedVal",
 {
 Title="Value",
 Default=16,
@@ -59764,14 +59768,14 @@ af:Emit("toggle_speed",f,e)
 end
 })
 
-Toggle(d.Movement,"Speed","Walk Speed",false,
+Toggle(aj.Movement,"Speed","Walk Speed",false,
 function(e)
 local f=16
 if ae.Options.SpeedVal and ae.Options.SpeedVal.Value then f=ae.Options.SpeedVal.Value end
 af:Emit("toggle_speed",e,f)
 end)
 
-d.Movement:AddSlider("JumpVal",
+aj.Movement:AddSlider("JumpVal",
 {
 Title="Value",
 Default=50,
@@ -59784,7 +59788,7 @@ af:Emit("toggle_jump",f,e)
 end
 })
 
-Toggle(d.Movement,"Jump","Jump Power",false,
+Toggle(aj.Movement,"Jump","Jump Power",false,
 function(e)
 local f=50
 if ae.Options.JumpVal and ae.Options.JumpVal.Value then f=ae.Options.JumpVal.Value end
@@ -59792,30 +59796,30 @@ af:Emit("toggle_jump",e,f)
 end)
 
 if ag then
-d.Movement:AddParagraph("Prem",{Title="Premium",Content="Fly & Noclip unlocked"})
-Toggle(d.Movement,"Fly","Fly Mode",false,function(e)af:Emit("toggle_fly",e)end,Enum.KeyCode.F)
-Toggle(d.Movement,"Noclip","Noclip",false,function(e)af:Emit("toggle_noclip",e)end)
+aj.Movement:AddParagraph("Prem",{Title="Premium",Content="Fly & Noclip unlocked"})
+Toggle(aj.Movement,"Fly","Fly Mode",false,function(e)af:Emit("toggle_fly",e)end,Enum.KeyCode.F)
+Toggle(aj.Movement,"Noclip","Noclip",false,function(e)af:Emit("toggle_noclip",e)end)
 end
 
 task.wait(0.02)
 
-d.Visual=ai:Tab{Title="Visual",Icon="eye"}
+aj.Visual=ai:Tab{Title="Visual",Icon="eye"}
 
-Toggle(d.Visual,"ESP","Enable ESP",false,function(e)af:Emit("toggle_esp",e)end,Enum.KeyCode.E)
-Toggle(d.Visual,"Fullbright","Fullbright",false,function(e)af:Emit("toggle_fullbright",e)end)
-
-task.wait(0.02)
-
-d.Utility=ai:Tab{Title="Utility",Icon="wrench"}
-d.Utility:AddButton{Title="Rejoin Server",Callback=function()af:Emit"action_rejoin"end}
-
-d.Player=ai:Tab{Title="Player",Icon="user"}
-d.Player:AddButton{Title="Reset Character",Callback=function()af:Emit"action_reset"end}
+Toggle(aj.Visual,"ESP","Enable ESP",false,function(e)af:Emit("toggle_esp",e)end,Enum.KeyCode.E)
+Toggle(aj.Visual,"Fullbright","Fullbright",false,function(e)af:Emit("toggle_fullbright",e)end)
 
 task.wait(0.02)
 
-d.Settings=ai:Tab{Title="Settings",Icon="settings"}
-d.Settings:AddDropdown("Theme",
+aj.Utility=ai:Tab{Title="Utility",Icon="wrench"}
+aj.Utility:AddButton{Title="Rejoin Server",Callback=function()af:Emit"action_rejoin"end}
+
+aj.Player=ai:Tab{Title="Player",Icon="user"}
+aj.Player:AddButton{Title="Reset Character",Callback=function()af:Emit"action_reset"end}
+
+task.wait(0.02)
+
+aj.Settings=ai:Tab{Title="Settings",Icon="settings"}
+aj.Settings:AddDropdown("Theme",
 {Title="Theme",Values=ae.Themes,Default=ae.Theme,Callback=function(e)ae:SetTheme(e)end})
 
 ai:SelectTab(1)
@@ -59853,7 +59857,7 @@ local af
 if isfile and isfile(ae)then
 local ag,ah=pcall(readfile,ae)
 if ag then local
-ai, d=loadstring(ah)
+ai, aj=loadstring(ah)
 if ai then
 af=ai
 Log"Loaded Fluent from Local Cache"
