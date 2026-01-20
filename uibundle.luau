@@ -1,4 +1,4 @@
-﻿-- FSSHUB UI Bundle (generated)
+-- FSSHUB UI Bundle (generated)
 local LibChunk = (function()
 
 
