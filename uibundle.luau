@@ -7095,17 +7095,17 @@ return{Fluent=aa,Execute=Execute,Assets=a}
 end)
 
 local BuilderChunk = (function()
--- [[ FSSHUB V5 Menu Builder ]]
--- Architecture: Dual-Asset Lazy Cache
--- Updated: Added complete feature coverage for Free & Premium
+-- [[ FSSHUB V6.4 Menu Builder ]]
+-- Architecture: UI-First (Build in Prometheus, not Luraph)
+-- Updated: UI now builds immediately, updates dynamically when context arrives
 
 return function(Fluent)
-    local Info = getgenv().FSSHUB_INFO
-    -- task.wait() removed to prevent initial yield error
-    if not Info then
-        warn("[FSSHUB] Info missing")
-        return
-    end
+    -- V6.4: Use existing Info OR create placeholder (will be updated by payload)
+    local Info = getgenv().FSSHUB_INFO or {
+        User = { Tier = "Loading...", IsPremium = false, Username = "Guest", ExpiryText = "..." },
+        Game = { Name = "Universal", Slug = "universal", IsSupported = true },
+        Version = "v6.4"
+    }
 
     -- 1. Inject Default Theme
     Fluent.Themes["Default"] = {
