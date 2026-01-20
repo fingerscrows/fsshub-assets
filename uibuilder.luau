@@ -196,6 +196,8 @@ return function(Fluent)
         end
     })
 
+    task.wait() -- Yield after Home tab
+
     -- [[ MOVEMENT TAB ]]
     Tabs.Movement = Window:Tab({ Title = "Movement", Icon = "run" })
 
@@ -262,6 +264,8 @@ return function(Fluent)
             { Title = "Gravity", Default = 196.2, Min = 0, Max = 200, Callback = function(v) Events:Emit("set_gravity", v) end })
     end
 
+    task.wait() -- Yield after Movement tab
+
     -- [[ VISUAL TAB ]]
     Tabs.Visual = Window:Tab({ Title = "Visual", Icon = "eye" })
     Toggle(Tabs.Visual, "ESP", "Enable ESP", false, function(v)
@@ -276,6 +280,8 @@ return function(Fluent)
         Toggle(Tabs.Visual, "SkelESP", "Skeleton ESP", false, function(v) Events:Emit("toggle_skeleton", v) end, Enum.KeyCode.L) -- Default: L
         Toggle(Tabs.Visual, "Tracers", "Tracers", false, function(v) Events:Emit("toggle_tracers", v) end, Enum.KeyCode.K) -- Default: K
     end
+
+    task.wait() -- Yield after Visual tab
 
     -- [[ PLAYER TAB ]]
     Tabs.Player = Window:Tab({ Title = "Player", Icon = "user" })
@@ -292,6 +298,8 @@ return function(Fluent)
             { Title = "Animation Speed", Default = 1, Min = 0, Max = 5, Callback = function(v) Events:Emit(
                 "toggle_animspeed", true, v) end })
     end
+
+    task.wait() -- Yield after Player tab
 
     -- [[ UTILITY TAB ]]
     Tabs.Utility = Window:Tab({ Title = "Utility", Icon = "wrench" })
@@ -310,6 +318,8 @@ return function(Fluent)
         Toggle(Tabs.Utility, "AntiLag", "Anti-Lag (Textures Off)", false,
             function(v) Events:Emit("toggle_antilag", v) end)
     end
+
+    task.wait() -- Yield after Utility tab
 
     -- [[ SETTINGS TAB ]]
     Tabs.Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
