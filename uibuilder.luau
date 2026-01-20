@@ -4,7 +4,7 @@
 
 return function(Fluent)
     local Info = getgenv().FSSHUB_INFO
-    task.wait() -- Yield to prevent timeout
+    -- task.wait() removed to prevent initial yield error
     if not Info then
         warn("[FSSHUB] Info missing")
         return

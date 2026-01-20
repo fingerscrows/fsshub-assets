@@ -7029,7 +7029,7 @@ Log"Fluent Loaded. Initializing UI..."
 task.wait(0.05)
 
 
-task.defer(function()
+task.spawn(function()
 InitUI(k)
 end)
 else
