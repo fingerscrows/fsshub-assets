@@ -7572,11 +7572,13 @@ end
 
 end)
 
-local Fluent = LibChunk()
-task.wait(0.1)
-if type(BuilderChunk) == 'function' then
-    local Builder = BuilderChunk()
-    if type(Builder) == 'function' then
-        Builder(Fluent)
+return function()
+    local Fluent = LibChunk()
+    local Builder = nil
+    
+    if type(BuilderChunk) == 'function' then
+        Builder = BuilderChunk()
     end
+    
+    return Fluent, Builder
 end
