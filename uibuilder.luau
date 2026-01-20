@@ -63,6 +63,19 @@ return function(Fluent)
         return s and t or "FSSvs"
     end
 
+    local function GetConfigList()
+        if not isfolder(CONFIG_FOLDER) then return {} end
+        local files = listfiles(CONFIG_FOLDER)
+        local names = {}
+        for _, file in ipairs(files) do
+            if file:match("%.json$") then
+                local name = file:match("([^/\\]+)%.json$")
+                if name then table.insert(names, name) end
+            end
+        end
+        return names
+    end
+
     local function SaveConfig(name)
         if not isfolder("FSSHUB") then makefolder("FSSHUB") end
         if not isfolder(CONFIG_FOLDER) then makefolder(CONFIG_FOLDER) end
@@ -324,15 +337,43 @@ return function(Fluent)
         end
     })
 
+
+
     if isPremium then
         Tabs.Settings:AddSection("Config Manager")
+        
+        local Configs = GetConfigList()
+        
+        local ConfDropdown = Tabs.Settings:AddDropdown("ConfSelect", {
+            Title = "Select Config",
+            Values = Configs,
+            Multi = false,
+            Default = nil,
+            Callback = function(v)
+                if Tabs.Settings.Options.ConfName then
+                   Tabs.Settings.Options.ConfName:SetValue(v)
+                end
+            end
+        })
+
         Tabs.Settings:AddInput("ConfName", { Title = "Config Name", Default = "default" })
+
+        Tabs.Settings:AddButton({
+            Title = "Refresh List",
+            Icon = "refresh-cw",
+            Callback = function()
+                ConfDropdown:SetValues(GetConfigList())
+                Fluent:Notify({ Title = "Refreshed", Content = "Config list updated.", Duration = 2 })
+            end
+        })
+
         Tabs.Settings:AddButton({
             Title = "Save Config",
             Icon = "save",
             Callback = function()
                 local name = Fluent.Options.ConfName and Fluent.Options.ConfName.Value or "default"
                 SaveConfig(name)
+                ConfDropdown:SetValues(GetConfigList())
             end
         })
         Tabs.Settings:AddButton({
