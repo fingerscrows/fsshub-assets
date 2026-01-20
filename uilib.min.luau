@@ -10,24 +10,38 @@ local d={}
 local e=0
 local f=tick()
 
+
+local function __SAFE_YIELD()
+f=tick()
+e=0
+task.wait()
+end
+
 local function __REQUIRE(g)
 if c[g]then return c[g]end
 if d[g]then error("Cyclic dependency detected: "..tostring(g))end
 if not b[g]then error("Mod 404: "..tostring(g))end
 
 
+
+
 e=e+1
-if e>=5 or(tick()-f)>25 then
-e=0
-f=tick()
-task.wait()
+local h=tick()-f
+if e>=2 or h>5 then
+__SAFE_YIELD()
 end
 
 d[g]=true
-local h=b[g]()
+local i=b[g]()
 d[g]=nil
-c[g]=h
-return h
+c[g]=i
+
+
+if(tick()-f)>3 then
+__SAFE_YIELD()
+end
+
+return i
 end
 local function createProxy(g)
 local h={}
@@ -6961,17 +6975,30 @@ task.wait(0.02)
 
 m.Settings=l:Tab{Title="Settings",Icon="settings"}
 
+task.wait()
+
 
 local n={}
 for o,p in pairs(h.Themes)do
+if type(o)=="string"then
 table.insert(n,o)
 end
-table.sort(n)
+end
+
+pcall(function()
+table.sort(n,function(o,p)
+return tostring(o)<tostring(p)
+end)
+end)
+
+
+local o=GetSavedTheme()
+local p=table.find(n,o)and o or(n[1]or"Dark")
 
 m.Settings:AddDropdown("Theme",
-{Title="Theme",Values=n,Default=GetSavedTheme(),Callback=function(o)
-h:SetTheme(o)
-SaveTheme(o)
+{Title="Theme",Values=n,Default=p,Callback=function(q)
+h:SetTheme(q)
+SaveTheme(q)
 end})
 
 l:SelectTab(1)

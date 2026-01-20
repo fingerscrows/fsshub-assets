@@ -326,15 +326,28 @@ return function(Fluent)
     -- [[ SETTINGS TAB ]]
     Tabs.Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
     
-    -- Build theme names list from Fluent.Themes table
+    task.wait() -- Yield before heavy settings tab operations
+    
+    -- Build theme names list from Fluent.Themes table (only string keys)
     local themeNames = {}
     for themeName, _ in pairs(Fluent.Themes) do
-        table.insert(themeNames, themeName)
+        if type(themeName) == "string" then
+            table.insert(themeNames, themeName)
+        end
     end
-    table.sort(themeNames) -- Sort alphabetically for consistency
+    -- Safe sort with explicit string comparison
+    pcall(function()
+        table.sort(themeNames, function(a, b) 
+            return tostring(a) < tostring(b) 
+        end)
+    end)
+    
+    -- Default to first theme if saved theme not found
+    local savedTheme = GetSavedTheme()
+    local defaultTheme = table.find(themeNames, savedTheme) and savedTheme or (themeNames[1] or "Dark")
     
     Tabs.Settings:AddDropdown("Theme",
-        { Title = "Interface Theme", Values = themeNames, Default = GetSavedTheme(), Callback = function(v)
+        { Title = "Interface Theme", Values = themeNames, Default = defaultTheme, Callback = function(v)
             Fluent:SetTheme(v)
             SaveTheme(v)
             Events:Emit("theme_changed", v)
