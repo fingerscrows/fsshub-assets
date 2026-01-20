@@ -6445,8 +6445,7 @@ local ab={
 "Aqua",
 "Amethyst",
 "Rose",
-"FSSvs",
-"Cyber",
+"FSS",
 }
 
 
@@ -6659,8 +6658,8 @@ HoverChange=0.1
 }
 end)()
 end
-b["Themes/Cyber"]=function()
-createProxy"Root/Themes/Cyber"
+b["Themes/FSS"]=function()
+createProxy"Root/Themes/FSS"
 
 
 
