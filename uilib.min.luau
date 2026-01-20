@@ -6960,8 +6960,19 @@ m.Player:AddButton{Title="Reset Character",Callback=function()i:Emit"action_rese
 task.wait(0.02)
 
 m.Settings=l:Tab{Title="Settings",Icon="settings"}
+
+
+local n={}
+for o,p in pairs(h.Themes)do
+table.insert(n,o)
+end
+table.sort(n)
+
 m.Settings:AddDropdown("Theme",
-{Title="Theme",Values=h.Themes,Default=h.Theme,Callback=function(n)h:SetTheme(n)end})
+{Title="Theme",Values=n,Default=GetSavedTheme(),Callback=function(o)
+h:SetTheme(o)
+SaveTheme(o)
+end})
 
 l:SelectTab(1)
 

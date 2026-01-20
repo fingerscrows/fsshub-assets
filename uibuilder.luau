@@ -326,9 +326,17 @@ return function(Fluent)
     -- [[ SETTINGS TAB ]]
     Tabs.Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
     
+    -- Build theme names list from Fluent.Themes table
+    local themeNames = {}
+    for themeName, _ in pairs(Fluent.Themes) do
+        table.insert(themeNames, themeName)
+    end
+    table.sort(themeNames) -- Sort alphabetically for consistency
+    
     Tabs.Settings:AddDropdown("Theme",
-        { Title = "Interface Theme", Values = Fluent.Themes, Default = "FSS", Callback = function(v)
+        { Title = "Interface Theme", Values = themeNames, Default = GetSavedTheme(), Callback = function(v)
             Fluent:SetTheme(v)
+            SaveTheme(v)
             Events:Emit("theme_changed", v)
         end })
 
