@@ -300,16 +300,20 @@ return function(Fluent)
     -- [[ SETTINGS TAB ]]
     Tabs.Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
     
-    local ThemeNames = Fluent.Themes.Names or {}
-    if #ThemeNames == 0 then
-        for Name, _ in next, Fluent.Themes do
-            table.insert(ThemeNames, Name)
+    local ThemeNames = {}
+    for key, val in pairs(Fluent.Themes) do
+        if type(key) == "string" then
+            table.insert(ThemeNames, key)
+        elseif type(val) == "string" then
+            table.insert(ThemeNames, val)
         end
     end
     
     Tabs.Settings:AddDropdown("Theme",
-        { Title = "Interface Theme", Values = ThemeNames, Default = Fluent.Theme, Callback = function(v) Fluent
-                :SetTheme(v) end })
+        { Title = "Interface Theme", Values = ThemeNames, Default = Fluent.Theme, Callback = function(v)
+            Fluent:SetTheme(v)
+            Events:Emit("theme_changed", v)
+        end })
 
     Tabs.Settings:AddKeybind("CloseUI", {
         Title = "Hide Menu Keybind",
