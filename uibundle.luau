@@ -7573,7 +7573,9 @@ end
 end)
 
 return function()
-    local Fluent = LibChunk()
+    local LibResult = LibChunk()
+    task.wait() -- Reset script timer after heavy module load
+    local Fluent = LibResult and LibResult.Fluent or nil
     local Builder = nil
     
     if type(BuilderChunk) == 'function' then
