@@ -53,9 +53,11 @@ return function(Fluent)
     local THEME_FILE = "FSSHUB/Config/theme.cfg"
     
     local function SaveTheme(themeName)
-        if not isfolder("FSSHUB") then makefolder("FSSHUB") end
-        if not isfolder(CONFIG_FOLDER) then makefolder(CONFIG_FOLDER) end
-        if writefile then pcall(writefile, THEME_FILE, themeName) end
+        task.spawn(function()
+            if not isfolder("FSSHUB") then makefolder("FSSHUB") end
+            if not isfolder(CONFIG_FOLDER) then makefolder(CONFIG_FOLDER) end
+            if writefile then pcall(writefile, THEME_FILE, themeName) end
+        end)
     end
 
     local function GetSavedTheme()
