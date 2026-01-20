@@ -4,6 +4,7 @@
 
 return function(Fluent)
     local Info = getgenv().FSSHUB_INFO
+    task.wait() -- Yield to prevent timeout
     if not Info then
         warn("[FSSHUB] Info missing")
         return
@@ -315,17 +316,26 @@ return function(Fluent)
     
     local ThemeNames = {}
     for key, val in pairs(Fluent.Themes) do
+        local name = val
         if type(key) == "string" then
-            table.insert(ThemeNames, key)
+            name = key
         elseif type(val) == "string" then
-            table.insert(ThemeNames, val)
+            name = val
+        end
+        
+        if name == "Cyber" then
+             table.insert(ThemeNames, "FSSvs")
+        elseif name ~= "Default" then -- Ensure Default is skipped if implicitly present
+             table.insert(ThemeNames, name)
         end
     end
     
     Tabs.Settings:AddDropdown("Theme",
-        { Title = "Interface Theme", Values = ThemeNames, Default = Fluent.Theme, Callback = function(v)
-            Fluent:SetTheme(v)
-            Events:Emit("theme_changed", v)
+        { Title = "Interface Theme", Values = ThemeNames, Default = "FSSvs", Callback = function(v)
+            local real = v
+            if v == "FSSvs" then real = "Cyber" end
+            Fluent:SetTheme(real)
+            Events:Emit("theme_changed", real)
         end })
 
     Tabs.Settings:AddKeybind("CloseUI", {

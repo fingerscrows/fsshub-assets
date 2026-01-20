@@ -11,7 +11,7 @@ if d[f]then error("Cyclic dependency detected: "..tostring(f))end
 if not b[f]then error("Mod 404: "..tostring(f))end
 
 e=e+1
-if e>=50 then
+if e>=5 then
 e=0
 task.wait()
 end
