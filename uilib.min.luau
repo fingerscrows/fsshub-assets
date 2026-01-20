@@ -3484,8 +3484,12 @@ o.Value=w
 r.Text=n.Utilities:Prettify(o.Value)
 UpdateClearButton()
 
+if typeof(o.ChangedCallback)=="function"then
 n:SafeCallback(o.ChangedCallback,x.KeyCode or x.UserInputType)
+end
+if typeof(o.Changed)=="function"then
 n:SafeCallback(o.Changed,x.KeyCode or x.UserInputType)
+end
 end
 end)
 end)
