@@ -7425,23 +7425,32 @@ return function(Fluent)
     
     task.wait() -- Yield before heavy settings tab operations
     
-    -- Build theme names list from Fluent.Themes table (only string keys)
-    -- Build theme names list from Fluent.Themes table (only string keys)
+    -- Build theme names list from Fluent.Themes table
     local themeNames = {}
-    for themeName, _ in pairs(Fluent.Themes) do
-        if type(themeName) == "string" and themeName ~= "Names" then
-            table.insert(themeNames, themeName)
+    print("[FSSHUB DEBUG] populating themes from Fluent.Themes...")
+    for k, v in pairs(Fluent.Themes) do
+        if type(k) == "string" and k ~= "Names" then
+            print("[FSSHUB DEBUG] found theme key:", k)
+            if not table.find(themeNames, k) then
+                table.insert(themeNames, k)
+            end
+        elseif type(v) == "string" then
+            print("[FSSHUB DEBUG] found theme name:", v)
+            if not table.find(themeNames, v) then
+                table.insert(themeNames, v)
+            end
         end
     end
     
-    -- Add lazy-loaded themes from internal list
-    if Fluent.Themes.Names then
+    -- Fallback: Add lazy-loaded themes if they haven't been added yet
+    if type(Fluent.Themes) == "table" and Fluent.Themes.Names then
         for _, name in ipairs(Fluent.Themes.Names) do
             if not table.find(themeNames, name) then
                 table.insert(themeNames, name)
             end
         end
     end
+    print("[FSSHUB DEBUG] total themes found:", #themeNames)
     -- Safe sort with explicit string comparison
     pcall(function()
         table.sort(themeNames, function(a, b) 
