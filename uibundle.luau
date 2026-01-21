@@ -7567,6 +7567,24 @@ return function(Fluent)
         end)
     end
     
+    -- CRITICAL: Re-emit toggle states when features finish loading (async sync)
+    -- This ensures features receive the correct initial state even though they loaded after UI
+    Events:On("features_ready", function()
+        print("[FSSHUB] Features ready! Syncing UI state with features...")
+        task.spawn(function()
+            task.wait(0.1) -- Brief delay to ensure all listeners are registered
+            for key, option in pairs(Fluent.Options) do
+                if option.Type == "Toggle" and option.Value == true then
+                    -- Re-emit the toggle event with current value
+                    if option.Callback then
+                        pcall(option.Callback, option.Value)
+                    end
+                end
+            end
+            print("[FSSHUB] UI state synced with features.")
+        end)
+    end)
+    
     print("[FSSHUB] UI Builder Completed.")
 end
 
