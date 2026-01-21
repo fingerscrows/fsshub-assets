@@ -7426,10 +7426,20 @@ return function(Fluent)
     task.wait() -- Yield before heavy settings tab operations
     
     -- Build theme names list from Fluent.Themes table (only string keys)
+    -- Build theme names list from Fluent.Themes table (only string keys)
     local themeNames = {}
     for themeName, _ in pairs(Fluent.Themes) do
-        if type(themeName) == "string" then
+        if type(themeName) == "string" and themeName ~= "Names" then
             table.insert(themeNames, themeName)
+        end
+    end
+    
+    -- Add lazy-loaded themes from internal list
+    if Fluent.Themes.Names then
+        for _, name in ipairs(Fluent.Themes.Names) do
+            if not table.find(themeNames, name) then
+                table.insert(themeNames, name)
+            end
         end
     end
     -- Safe sort with explicit string comparison
