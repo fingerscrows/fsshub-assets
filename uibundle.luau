@@ -1,4 +1,4 @@
--- FSSHUB UI Bundle (v1.2.18) [dev]
+-- FSSHUB UI Bundle (v1.2.19) [dev]
 local LibChunk = (function()
 
 
@@ -7388,8 +7388,6 @@ Toggle(i.Visual,"Fullbright","Fullbright",false,function(j)e:Emit("toggle_fullbr
 
 if f then
 
-Toggle(i.Visual,"SkelESP","Skeleton ESP",false,function(j)e:Emit("toggle_skeleton",j)end,Enum.KeyCode.L)
-Toggle(i.Visual,"Tracers","Tracers",false,function(j)e:Emit("toggle_tracers",j)end,Enum.KeyCode.K)
 end
 
 task.wait()
@@ -7397,12 +7395,10 @@ task.wait()
 
 i.Player=h:Tab{Title="Player",Icon="user"}
 i.Player:AddButton{Title="Reset Character",Icon="skull",Callback=function()e:Emit"action_reset"end}
-Toggle(i.Player,"AutoRespawn","Fast Respawn",false,function(j)e:Emit("toggle_autorespawn",j)end,Enum.KeyCode.RightBracket)
 Toggle(i.Player,"NoCol","Disable Collision",false,function(j)e:Emit("toggle_nocollision",j)end)
 
 if f then
 
-Toggle(i.Player,"GodMode","God Mode",false,function(j)e:Emit("toggle_godmode",j)end,Enum.KeyCode.Delete)
 Toggle(i.Player,"NoFall","No Fall Damage",false,function(j)e:Emit("toggle_nofall",j)end,Enum.KeyCode.End)
 Toggle(i.Player,"NoRagdoll","Anti-Ragdoll",false,function(j)e:Emit("toggle_noragdoll",j)end)
 i.Player:AddSlider("AnimSpeed",
@@ -7418,7 +7414,7 @@ i.Utility:AddButton{Title="Rejoin Server",Icon="refresh-cw",Callback=function()e
 i.Utility:AddButton{Title="Unlock FPS",Description="Boost FPS Cap",Icon="unlock",Callback=function()e:Emit
 "action_unlockfps"end}
 Toggle(i.Utility,"AntiAFK","Anti-AFK",false,function(j)e:Emit("toggle_antiafk",j)end,Enum.KeyCode.P)
-Toggle(i.Utility,"FPSBoost","FPS Boost (Low Quality)",false,function(j)e:Emit("toggle_fpsboost",j)end,Enum.KeyCode.O)
+Toggle(i.Utility,"FPSBoost","FPS Boost & Anti-Lag",false,function(j)e:Emit("toggle_fpsboost",j)end,Enum.KeyCode.O)
 
 if f then
 i.Utility:AddButton{Title="Server Hop",Description="Find a better server",Icon="server",Callback=function()e
@@ -7426,8 +7422,6 @@ i.Utility:AddButton{Title="Server Hop",Description="Find a better server",Icon="
 i.Utility:AddButton{Title="Auto Rejoin",Description="Rejoin on kick",Icon="repeat",Callback=function()e:Emit(
 "toggle_autorejoin",true)end}
 Toggle(i.Utility,"PerfMon","Performance Monitor",false,function(j)e:Emit("toggle_perfmon",j)end)
-Toggle(i.Utility,"AntiLag","Anti-Lag (Textures Off)",false,
-function(j)e:Emit("toggle_antilag",j)end)
 end
 
 task.wait()
