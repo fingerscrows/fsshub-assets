@@ -1,4 +1,4 @@
--- FSSHUB UI Bundle (v1.2.24) [dev]
+-- FSSHUB UI Bundle (v1.2.25) [dev]
 local LibChunk = (function()
 
 
@@ -7199,7 +7199,7 @@ end
 
 d:LoadSettings()
 
-if a.ThemeChanged then a.ThemeChanged:Connect(SaveTheme)end
+
 
 
 local function Toggle(i,j,k,l,m,n)
