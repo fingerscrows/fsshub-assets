@@ -1,4 +1,4 @@
--- FSSHUB UI Bundle (v1.2.20) [dev]
+-- FSSHUB UI Bundle (v1.2.21) [dev]
 local LibChunk = (function()
 
 
@@ -7158,91 +7158,17 @@ HoverChange=0.1
 }
 
 
-local c="FSSHUB/Config"
-local d="FSSHUB/Config/theme.cfg"
+local c=loadstring(game:HttpGet"https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau")()
+local d=loadstring(game:HttpGet"https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau")()
 
-local function SaveTheme(e)
-task.spawn(function()
-if not isfolder"FSSHUB"then makefolder"FSSHUB"end
-if not isfolder(c)then makefolder(c)end
-if writefile then pcall(writefile,d,e)end
-end)
-end
+c:SetLibrary(a)
+d:SetLibrary(a)
 
-local function GetSavedTheme()
-if not readfile or not isfile(d)then return"FSSvs"end
-local e,f=pcall(readfile,d)
-return e and f or"FSSvs"
-end
+c:IgnoreThemeSettings()
+c:SetIgnoreIndexes{}
 
-local function GetConfigList()
-if not isfolder(c)then return{}end
-local e=listfiles(c)
-local f={}
-for g,h in ipairs(e)do
-if h:match"%.json$"then
-local i=h:match"([^/\\]+)%.json$"
-if i then table.insert(f,i)end
-end
-end
-return f
-end
-
-local function SaveConfig(e)
-if not isfolder"FSSHUB"then makefolder"FSSHUB"end
-if not isfolder(c)then makefolder(c)end
-
-local f=c.."/"..e..".json"
-local g={}
-
-for h,i in pairs(a.Options)do
-if i.Type=="Toggle"then
-g[h]={Type="Toggle",Value=i.Value,Key=i.Keybind and i.Keybind.Value.Name or"None"}
-elseif i.Type=="Slider"then
-g[h]={Type="Slider",Value=i.Value}
-elseif i.Type=="Dropdown"then
-g[h]={Type="Dropdown",Value=i.Value}
-elseif i.Type=="Keybind"then
-g[h]={Type="Keybind",Value=i.Value.Name}
-end
-end
-
-if writefile then
-local h,i=pcall(game:GetService"HttpService".JSONEncode,game:GetService"HttpService",g)
-if h then writefile(f,i)end
-end
-a:Notify{Title="Config Saved",Content="Saved config: "..e,Duration=3}
-end
-
-local function LoadConfig(e)
-local f=c.."/"..e..".json"
-if not isfile(f)then
-a:Notify{Title="Load Error",Content="Config not found: "..e,Duration=3}
-return
-end
-
-local g,h=pcall(game:GetService"HttpService".JSONDecode,game:GetService"HttpService",readfile(f))
-if g and h then
-for i,j in pairs(h)do
-local k=a.Options[i]
-if k then
-if j.Type=="Toggle"then
-k:SetValue(j.Value)
-if k.Keybind and j.Key then
-pcall(function()k.Keybind:SetValue(Enum.KeyCode[j.Key])end)
-end
-elseif j.Type=="Slider"then
-k:SetValue(j.Value)
-elseif j.Type=="Dropdown"then
-k:SetValue(j.Value)
-elseif j.Type=="Keybind"then
-pcall(function()k:SetValue(Enum.KeyCode[j.Value])end)
-end
-end
-end
-a:Notify{Title="Config Loaded",Content="Loaded config: "..e,Duration=3}
-end
-end
+d:SetFolder"FSSHUB"
+c:SetFolder"FSSHUB"
 
 
 if _G.FSSHUB_WINDOW and _G.FSSHUB_WINDOW.Destroy then
@@ -7264,11 +7190,14 @@ Size=UDim2.fromOffset(580,460),
 Resize=false,
 MinimizeKey=Enum.KeyCode.RightControl,
 Acrylic=false,
-Theme=GetSavedTheme(),
+Theme="Dark",
 OnClose=function()
 if _G.FSSHUB_CLEANUP then _G.FSSHUB_CLEANUP()end
 end
 }
+
+
+d:LoadSettings()
 
 if a.ThemeChanged then a.ThemeChanged:Connect(SaveTheme)end
 
@@ -7429,163 +7358,8 @@ task.wait()
 
 i.Settings=h:Tab{Title="Settings",Icon="settings"}
 
-task.wait()
-
-
-local j={}
-print"[FSSHUB DEBUG] populating themes from Fluent.Themes..."
-
-if type(a.Themes)=="table"then
-
-local k=(type(a.Themes.Names)=="table")and a.Themes.Names or a.Themes
-for l,m in ipairs(k)do
-
-if type(m)=="string"and m~="Default"and m~="Names"then
-print("[FSSHUB DEBUG] found theme name:",m)
-if not table.find(j,m)then
-table.insert(j,m)
-end
-end
-end
-end
-
-
-if type(a.Themes)=="table"and a.Themes.Names then
-for k,l in ipairs(a.Themes.Names)do
-if not table.find(j,l)then
-table.insert(j,l)
-end
-end
-end
-print("[FSSHUB DEBUG] total themes found:",#j)
-
-pcall(function()
-table.sort(j,function(k,l)
-return tostring(k)<tostring(l)
-end)
-end)
-
-
-local k=GetSavedTheme()
-local l=table.find(j,k)and k or(j[1]or"Dark")
-
-i.Settings:AddDropdown("Theme",
-{Title="Interface Theme",Values=j,Default=l,Callback=function(m)
-a:SetTheme(m)
-SaveTheme(m)
-e:Emit("theme_changed",m)
-end})
-
-i.Settings:AddKeybind("CloseUI",{
-Title="Hide Menu Keybind",
-Description="Key to toggle the main menu visibility",
-Default=Enum.KeyCode.RightControl,
-ChangedCallback=function(m)
-a.MinimizeKey=m
-end
-})
-
-
-
-if f then
-i.Settings:AddSection"Config Manager"
-
-local m=GetConfigList()
-
-local n=i.Settings:AddDropdown("ConfSelect",{
-Title="Config Manager",
-Description="Select existing or type new config name",
-Values=m,
-Multi=false,
-Default=nil,
-Searchable=true,
-AllowCustomInput=true,
-Callback=function(n)
-
-end
-})
-
-
-
-i.Settings:AddButton{
-Title="Refresh List",
-Icon="refresh-cw",
-Callback=function()
-n:SetValues(GetConfigList())
-a:Notify{Title="Refreshed",Content="Config list updated.",Duration=2}
-end
-}
-
-i.Settings:AddButton{
-Title="Save Config",
-Icon="save",
-Callback=function()
-
-local o="default"
-if n.SearchBox and n.SearchBox.Text~=""then
-o=n.SearchBox.Text
-elseif n.Value then
-o=n.Value
-end
-
-SaveConfig(o)
-n:SetValues(GetConfigList())
-
-n:SetValue(o)
-end
-}
-i.Settings:AddButton{
-Title="Load Config",
-Icon="file-output",
-Callback=function()
-local o="default"
-if n.SearchBox and n.SearchBox.Text~=""then
-o=n.SearchBox.Text
-elseif n.Value then
-o=n.Value
-end
-LoadConfig(o)
-end
-}
-
-i.Settings:AddButton{
-Title="Reset Defaults",
-Description="Reset all settings to default values",
-Icon="rotate-ccw",
-Callback=function()
-h:Dialog{
-Title="Reset Settings?",
-Content="Are you sure you want to reset all settings to their default values?",
-Buttons={
-{
-Title="Yes, Reset",
-Callback=function()
-for o,p in pairs(a.Options)do
-if p.Type=="Toggle"then
-p:SetValue(p.Default~=nil and p.Default or false)
-elseif p.Type=="Slider"then
-p:SetValue(p.Default or p.Min or 0)
-elseif p.Type=="Dropdown"then
-p:SetValue(p.Default or p.Values[1])
-elseif p.Type=="Colorpicker"then
-p:SetValue(p.Default or Color3.new(1,1,1))
-elseif p.Type=="Keybind"then
-p:SetValue(p.Default or"None")
-end
-end
-a:SetTheme"FSSvs"
-a:Notify{Title="Reset Complete",Content="Settings have been reset.",Duration=3}
-end
-},
-{
-Title="Cancel",
-Callback=function()end
-}
-}
-}
-end
-}
-end
+d:BuildInterfaceSection(i.Settings)
+c:BuildConfigSection(i.Settings)
 
 
 task.spawn(function()
@@ -7600,12 +7374,7 @@ if getgenv then getgenv().FSSHUB_MAIN_MENU_READY=true end
 
 
 if f then
-pcall(function()
-local m=c.."/default.json"
-if isfile(m)then
-LoadConfig"default"
-end
-end)
+c:LoadAutoloadConfig()
 end
 
 
@@ -7614,11 +7383,11 @@ e:On("features_ready",function()
 print"[FSSHUB] Features ready! Syncing UI state with features..."
 task.spawn(function()
 task.wait(0.1)
-for m,n in pairs(a.Options)do
-if n.Type=="Toggle"and n.Value==true then
+for j,k in pairs(a.Options)do
+if k.Type=="Toggle"and k.Value==true then
 
-if n.Callback then
-pcall(n.Callback,n.Value)
+if k.Callback then
+pcall(k.Callback,k.Value)
 end
 end
 end
