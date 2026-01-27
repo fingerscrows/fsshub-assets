@@ -1,4 +1,4 @@
--- FSSHUB UI Bundle (v1.2.35) [dev]
+-- FSSHUB UI Bundle (v1.2.36) [dev]
 local LibChunk = (function()
 
 
