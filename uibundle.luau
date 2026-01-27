@@ -1,4 +1,4 @@
--- FSSHUB UI Bundle (v1.2.28) [dev]
+-- FSSHUB UI Bundle (v1.2.29) [dev]
 local LibChunk = (function()
 
 
@@ -7119,9 +7119,6 @@ Game={Name="Universal",Slug="universal",IsSupported=true},
 Version="v6.4"
 }
 
-local c=require(a.Folder.."Addons/SaveManager")
-local d=require(a.Folder.."Addons/InterfaceManager")
-
 
 a.Themes.Default={
 Accent=Color3.fromRGB(138,110,215),
@@ -7161,15 +7158,119 @@ HoverChange=0.1
 }
 
 
-c:SetLibrary(a)
-d:SetLibrary(a)
+local c="FSSHUB/Config"
+local d="FSSHUB/Config/theme.cfg"
 
-c:SetFolder"FSSHUB/Config"
-d:SetFolder"FSSHUB/Config"
+local e="FSSHUB/Config/autoload.cfg"
+local f="FSSHUB/Config/autosave.cfg"
 
-c:IgnoreThemeSettings()
-c:SetIgnoreIndexes{'InterfaceManager_InterfaceTheme','InterfaceManager_AcrylicToggle','InterfaceManager_TransparentToggle','InterfaceManager_MenuKeybind'}
+local function SaveTheme(g)
+task.spawn(function()
+if not isfolder"FSSHUB"then makefolder"FSSHUB"end
+if not isfolder(c)then makefolder(c)end
+if writefile then pcall(writefile,d,g)end
+end)
+end
 
+local function GetSavedTheme()
+if not readfile or not isfile(d)then return"FSSvs"end
+local g,h=pcall(readfile,d)
+return g and h or"FSSvs"
+end
+
+local function SaveAutoload(g)
+if not isfolder"FSSHUB"then makefolder"FSSHUB"end
+if not isfolder(c)then makefolder(c)end
+if writefile then pcall(writefile,e,g or"")end
+end
+
+local function GetAutoload()
+if not isfile(e)then return nil end
+local g,h=pcall(readfile,e)
+return g and h~=""and h or nil
+end
+
+local function SaveAutosave(g)
+if not isfolder"FSSHUB"then makefolder"FSSHUB"end
+if not isfolder(c)then makefolder(c)end
+if writefile then pcall(writefile,f,g and"true"or"false")end
+getgenv().FSSHUB_AUTOSAVE=g
+end
+
+local function GetAutosave()
+if not isfile(f)then return false end
+local g,h=pcall(readfile,f)
+return g and h=="true"
+end
+
+local function GetConfigList()
+if not isfolder(c)then return{}end
+local g=listfiles(c)
+local h={}
+for i,j in ipairs(g)do
+if j:match"%.json$"then
+local k=j:match"([^/\\]+)%.json$"
+if k then table.insert(h,k)end
+end
+end
+return h
+end
+
+local function SaveConfig(g)
+if not isfolder"FSSHUB"then makefolder"FSSHUB"end
+if not isfolder(c)then makefolder(c)end
+
+local h=c.."/"..g..".json"
+local i={}
+
+for j,k in pairs(a.Options)do
+if k.Type=="Toggle"then
+i[j]={Type="Toggle",Value=k.Value,Key=k.Keybind and k.Keybind.Value.Name or"None"}
+elseif k.Type=="Slider"then
+i[j]={Type="Slider",Value=k.Value}
+elseif k.Type=="Dropdown"then
+i[j]={Type="Dropdown",Value=k.Value}
+elseif k.Type=="Keybind"then
+i[j]={Type="Keybind",Value=k.Value.Name}
+end
+end
+
+if writefile then
+local j,k=pcall(game:GetService"HttpService".JSONEncode,game:GetService"HttpService",i)
+if j then writefile(h,k)end
+end
+a:Notify{Title="Config Saved",Content="Saved config: "..g,Duration=3}
+end
+
+local function LoadConfig(g)
+local h=c.."/"..g..".json"
+if not isfile(h)then
+a:Notify{Title="Load Error",Content="Config not found: "..g,Duration=3}
+return
+end
+
+local i,j=pcall(game:GetService"HttpService".JSONDecode,game:GetService"HttpService",readfile(h))
+if i and j then
+for k,l in pairs(j)do
+local m=a.Options[k]
+if m then
+if l.Type=="Toggle"then
+m:SetValue(l.Value)
+if m.Keybind and l.Key then
+pcall(function()m.Keybind:SetValue(Enum.KeyCode[l.Key])end)
+end
+elseif l.Type=="Slider"then
+m:SetValue(l.Value)
+elseif l.Type=="Dropdown"then
+m:SetValue(l.Value)
+elseif l.Type=="Keybind"then
+pcall(function()m:SetValue(Enum.KeyCode[l.Value])end)
+end
+end
+end
+a:Notify{Title="Config Loaded",Content="Loaded config: "..g,Duration=3}
+end
+end
 
 
 if _G.FSSHUB_WINDOW and _G.FSSHUB_WINDOW.Destroy then
@@ -7177,46 +7278,62 @@ pcall(function()_G.FSSHUB_WINDOW:Destroy()end)
 end
 
 
-local e=_G.FSSHUB_EVENTS or{listeners={},Emit=function()end,On=function()end}
+local g=_G.FSSHUB_EVENTS or{listeners={},Emit=function()end,On=function()end}
 
 
-local f=(b.User.IsPremium==true or b.User.IsPremium=="true")
-local g=b.Game.Name or"Universal"
+local h=(b.User.IsPremium==true or b.User.IsPremium=="true")
+local i=b.Game.Name or"Universal"
 
-local h=a:Window{
-Title=f and"FSSHUB [VIP] | "..g or"FSSHUB | "..g,
+local j=a:Window{
+Title=h and"FSSHUB [VIP] | "..i or"FSSHUB | "..i,
 SubTitle=b.Version or"v5.0",
 TabWidth=160,
 Size=UDim2.fromOffset(580,460),
 Resize=false,
 MinimizeKey=Enum.KeyCode.RightControl,
 Acrylic=false,
-Theme="FSSvs",
+Theme=GetSavedTheme(),
 OnClose=function()
 if _G.FSSHUB_CLEANUP then _G.FSSHUB_CLEANUP()end
 end
 }
 
+getgenv().FSSHUB_AUTOSAVE=GetAutosave()
+
+if a.ThemeChanged then a.ThemeChanged:Connect(SaveTheme)end
 
 
-
-local function Toggle(i,j,k,l,m,n)
-local o={Title=k,Default=l,Callback=m or function()end}
-local p=i:AddToggle(j,o)
-if f then
-local q=n or Enum.KeyCode.Unknown
-p:Keybind("Key_"..j,{Title="Key",Default=q,Mode="Toggle"})
+local function Toggle(k,l,m,n,o,p)
+local q={Title=m,Default=n,Callback=function(q)
+if o then o(q)end
+if getgenv().FSSHUB_AUTOSAVE then
+local r="default"
+local s=a.Options.ConfSelect
+if s then
+if s.SearchBox and s.SearchBox.Text~=""then
+r=s.SearchBox.Text
+elseif s.Value then
+r=s.Value
 end
-return p
+end
+SaveConfig(r)
+end
+end}
+local r=k:AddToggle(l,q)
+if h then
+local s=p or Enum.KeyCode.Unknown
+r:Keybind("Key_"..l,{Title="Key",Default=s,Mode="Toggle"})
+end
+return r
 end
 
 
-local i={}
+local k={}
 
 
-i.Home=h:Tab{Title="Dashboard",Icon="home"}
-i.Home:AddParagraph("Welcome",{
-Title=f and"Welcome, Premium Member [VIP]"or"Welcome to FSSHub",
+k.Home=j:Tab{Title="Dashboard",Icon="home"}
+k.Home:AddParagraph("Welcome",{
+Title=h and"Welcome, Premium Member [VIP]"or"Welcome to FSSHub",
 Content="User: "..
 (b.User.Username or"Guest")..
 "\nTier: "..(b.User.Tier or"Free").."\nExpires: "..(b.User.ExpiryText or"Never")
@@ -7224,7 +7341,7 @@ Content="User: "..
 
 
 
-i.Home:AddButton{
+k.Home:AddButton{
 Title="Join Discord",
 Description="Get Support",
 Icon="gamepad-2",
@@ -7237,159 +7354,355 @@ end
 task.wait()
 
 
-i.Movement=h:Tab{Title="Movement",Icon="run"}
+k.Movement=j:Tab{Title="Movement",Icon="run"}
 
 
-i.Movement:AddSlider("SpeedVal",{
+k.Movement:AddSlider("SpeedVal",{
 Title="Walk Speed Value",
 Default=16,
 Min=16,
 Max=500,
-Callback=function(j)
-local k=false
-if a.Options.Speed and a.Options.Speed.Value then k=a.Options.Speed.Value end
-e:Emit("toggle_speed",k,j)
+Callback=function(l)
+local m=false
+if a.Options.Speed and a.Options.Speed.Value then m=a.Options.Speed.Value end
+g:Emit("toggle_speed",m,l)
 end
 })
-Toggle(i.Movement,"Speed","Enable Walk Speed",false,function(j)
-local k=16
-if a.Options.SpeedVal then k=a.Options.SpeedVal.Value end
-e:Emit("toggle_speed",j,k)
+Toggle(k.Movement,"Speed","Enable Walk Speed",false,function(l)
+local m=16
+if a.Options.SpeedVal then m=a.Options.SpeedVal.Value end
+g:Emit("toggle_speed",l,m)
 end,Enum.KeyCode.B)
 
 
-i.Movement:AddSlider("JumpVal",{
+k.Movement:AddSlider("JumpVal",{
 Title="Jump Power Value",
 Default=50,
 Min=50,
 Max=500,
-Callback=function(j)
-local k=false
-if a.Options.Jump and a.Options.Jump.Value then k=a.Options.Jump.Value end
-e:Emit("toggle_jump",k,j)
+Callback=function(l)
+local m=false
+if a.Options.Jump and a.Options.Jump.Value then m=a.Options.Jump.Value end
+g:Emit("toggle_jump",m,l)
 end
 })
-Toggle(i.Movement,"Jump","Enable Jump Power",false,function(j)
-local k=50
-if a.Options.JumpVal then k=a.Options.JumpVal.Value end
-e:Emit("toggle_jump",j,k)
+Toggle(k.Movement,"Jump","Enable Jump Power",false,function(l)
+local m=50
+if a.Options.JumpVal then m=a.Options.JumpVal.Value end
+g:Emit("toggle_jump",l,m)
 end,Enum.KeyCode.V)
 
-Toggle(i.Movement,"InfJump","Infinite Jump",false,function(j)e:Emit("toggle_infinitejump",j)end,Enum.KeyCode.G)
+Toggle(k.Movement,"InfJump","Infinite Jump",false,function(l)g:Emit("toggle_infinitejump",l)end,Enum.KeyCode.G)
 
-if f then
+if h then
 
-Toggle(i.Movement,"Fly","Fly Mode",false,function(j)
-local k=a.Options.FlySpeed and a.Options.FlySpeed.Value or 50
-e:Emit("toggle_fly",j,k)
+Toggle(k.Movement,"Fly","Fly Mode",false,function(l)
+local m=a.Options.FlySpeed and a.Options.FlySpeed.Value or 50
+g:Emit("toggle_fly",l,m)
 end,Enum.KeyCode.H)
 
-i.Movement:AddSlider("FlySpeed",{
+k.Movement:AddSlider("FlySpeed",{
 Title="Fly Speed",
 Default=50,
 Min=10,
 Max=200,
-Callback=function(j)
-if a.Options.Fly and a.Options.Fly.Value then e:Emit("toggle_fly",true,j)end
+Callback=function(l)
+if a.Options.Fly and a.Options.Fly.Value then g:Emit("toggle_fly",true,l)end
 end
 })
 
-Toggle(i.Movement,"Noclip","Noclip",false,function(j)e:Emit("toggle_noclip",j)end,Enum.KeyCode.N)
-Toggle(i.Movement,"NoClipPhys","Platform Stand",false,
-function(j)e:Emit("toggle_platformstand",j)end,Enum.KeyCode.RightAlt)
+Toggle(k.Movement,"Noclip","Noclip",false,function(l)g:Emit("toggle_noclip",l)end,Enum.KeyCode.N)
+Toggle(k.Movement,"NoClipPhys","Platform Stand",false,
+function(l)g:Emit("toggle_platformstand",l)end,Enum.KeyCode.RightAlt)
 
-i.Movement:AddSlider("Gravity",
-{Title="Gravity",Default=196.2,Min=0,Max=200,Callback=function(j)e:Emit("set_gravity",j)end})
+k.Movement:AddSlider("Gravity",
+{Title="Gravity",Default=196.2,Min=0,Max=200,Callback=function(l)g:Emit("set_gravity",l)end})
 end
 
 task.wait()
 
 
-i.Visual=h:Tab{Title="Visual",Icon="eye"}
-Toggle(i.Visual,"ESP","Enable ESP",false,function(j)
-local k={showName=true,showDistance=true,showHealth=true,showChams=true}
-e:Emit("toggle_esp",j,k)
+k.Visual=j:Tab{Title="Visual",Icon="eye"}
+Toggle(k.Visual,"ESP","Enable ESP",false,function(l)
+local m={showName=true,showDistance=true,showHealth=true,showChams=true}
+g:Emit("toggle_esp",l,m)
 end,Enum.KeyCode.Y)
 
-Toggle(i.Visual,"Fullbright","Fullbright",false,function(j)e:Emit("toggle_fullbright",j)end,Enum.KeyCode.U)
+Toggle(k.Visual,"Fullbright","Fullbright",false,function(l)g:Emit("toggle_fullbright",l)end,Enum.KeyCode.U)
 
-if f then
+if h then
 
 end
 
 task.wait()
 
 
-i.Player=h:Tab{Title="Player",Icon="user"}
-i.Player:AddButton{Title="Reset Character",Icon="skull",Callback=function()e:Emit"action_reset"end}
-Toggle(i.Player,"NoCol","Disable Collision",false,function(j)e:Emit("toggle_nocollision",j)end)
+k.Player=j:Tab{Title="Player",Icon="user"}
+k.Player:AddButton{Title="Reset Character",Icon="skull",Callback=function()g:Emit"action_reset"end}
+Toggle(k.Player,"NoCol","Disable Collision",false,function(l)g:Emit("toggle_nocollision",l)end)
 
-if f then
+if h then
 
-Toggle(i.Player,"NoFall","No Fall Damage",false,function(j)e:Emit("toggle_nofall",j)end,Enum.KeyCode.End)
-Toggle(i.Player,"NoRagdoll","Anti-Ragdoll",false,function(j)e:Emit("toggle_noragdoll",j)end)
-i.Player:AddSlider("AnimSpeed",
-{Title="Animation Speed",Default=1,Min=0,Max=5,Callback=function(j)e:Emit(
-"toggle_animspeed",true,j)end})
+Toggle(k.Player,"NoFall","No Fall Damage",false,function(l)g:Emit("toggle_nofall",l)end,Enum.KeyCode.End)
+Toggle(k.Player,"NoRagdoll","Anti-Ragdoll",false,function(l)g:Emit("toggle_noragdoll",l)end)
+k.Player:AddSlider("AnimSpeed",
+{Title="Animation Speed",Default=1,Min=0,Max=5,Callback=function(l)g:Emit(
+"toggle_animspeed",true,l)end})
 end
 
 task.wait()
 
 
-i.Utility=h:Tab{Title="Utility",Icon="wrench"}
-i.Utility:AddButton{Title="Rejoin Server",Icon="refresh-cw",Callback=function()e:Emit"action_rejoin"end}
-i.Utility:AddButton{Title="Unlock FPS",Description="Boost FPS Cap",Icon="unlock",Callback=function()e:Emit
+k.Utility=j:Tab{Title="Utility",Icon="wrench"}
+k.Utility:AddButton{Title="Rejoin Server",Icon="refresh-cw",Callback=function()g:Emit"action_rejoin"end}
+k.Utility:AddButton{Title="Unlock FPS",Description="Boost FPS Cap",Icon="unlock",Callback=function()g:Emit
 "action_unlockfps"end}
-Toggle(i.Utility,"AntiAFK","Anti-AFK",false,function(j)e:Emit("toggle_antiafk",j)end,Enum.KeyCode.P)
-Toggle(i.Utility,"FPSBoost","FPS Boost & Anti-Lag",false,function(j)e:Emit("toggle_fpsboost",j)end,Enum.KeyCode.O)
+Toggle(k.Utility,"AntiAFK","Anti-AFK",false,function(l)g:Emit("toggle_antiafk",l)end,Enum.KeyCode.P)
+Toggle(k.Utility,"FPSBoost","FPS Boost & Anti-Lag",false,function(l)g:Emit("toggle_fpsboost",l)end,Enum.KeyCode.O)
 
-if f then
-i.Utility:AddButton{Title="Server Hop",Description="Find a better server",Icon="server",Callback=function()e
+if h then
+k.Utility:AddButton{Title="Server Hop",Description="Find a better server",Icon="server",Callback=function()g
 :Emit"action_serverhop"end}
-i.Utility:AddButton{Title="Auto Rejoin",Description="Rejoin on kick",Icon="repeat",Callback=function()e:Emit(
+k.Utility:AddButton{Title="Auto Rejoin",Description="Rejoin on kick",Icon="repeat",Callback=function()g:Emit(
 "toggle_autorejoin",true)end}
-Toggle(i.Utility,"PerfMon","Performance Monitor",false,function(j)e:Emit("toggle_perfmon",j)end)
+Toggle(k.Utility,"PerfMon","Performance Monitor",false,function(l)g:Emit("toggle_perfmon",l)end)
 end
 
 task.wait()
 
 
-i.Settings=h:Tab{Title="Settings",Icon="settings"}
+k.Settings=j:Tab{Title="Settings",Icon="settings"}
 
 task.wait()
 
-d:BuildInterfaceSection(i.Settings)
-c:BuildConfigSection(i.Settings)
+
+local l={}
+print"[FSSHUB DEBUG] populating themes from Fluent.Themes..."
+
+if type(a.Themes)=="table"then
+
+local m=(type(a.Themes.Names)=="table")and a.Themes.Names or a.Themes
+for n,o in ipairs(m)do
+
+if type(o)=="string"and o~="Default"and o~="Names"then
+print("[FSSHUB DEBUG] found theme name:",o)
+if not table.find(l,o)then
+table.insert(l,o)
+end
+end
+end
+end
+
+
+if type(a.Themes)=="table"and a.Themes.Names then
+for m,n in ipairs(a.Themes.Names)do
+if not table.find(l,n)then
+table.insert(l,n)
+end
+end
+end
+print("[FSSHUB DEBUG] total themes found:",#l)
+
+pcall(function()
+table.sort(l,function(m,n)
+return tostring(m)<tostring(n)
+end)
+end)
+
+
+local m=GetSavedTheme()
+local n=table.find(l,m)and m or(l[1]or"Dark")
+
+k.Settings:AddDropdown("Theme",
+{Title="Interface Theme",Values=l,Default=n,Callback=function(o)
+a:SetTheme(o)
+SaveTheme(o)
+g:Emit("theme_changed",o)
+end})
+
+k.Settings:AddKeybind("CloseUI",{
+Title="Hide Menu Keybind",
+Description="Key to toggle the main menu visibility",
+Default=Enum.KeyCode.RightControl,
+ChangedCallback=function(o)
+a.MinimizeKey=o
+end
+})
+
+
+
+if h then
+k.Settings:AddSection"Config Manager"
+
+local o=GetConfigList()
+
+local p=k.Settings:AddDropdown("ConfSelect",{
+Title="Config Manager",
+Description="Select existing or type new config name",
+Values=o,
+Multi=false,
+Default=nil,
+Searchable=true,
+AllowCustomInput=true,
+Callback=function(p)
+
+end
+})
+
+
+
+k.Settings:AddButton{
+Title="Refresh List",
+Icon="refresh-cw",
+Callback=function()
+p:SetValues(GetConfigList())
+a:Notify{Title="Refreshed",Content="Config list updated.",Duration=2}
+end
+}
+
+k.Settings:AddButton{
+Title="Save Config",
+Icon="save",
+Callback=function()
+
+local q="default"
+if p.SearchBox and p.SearchBox.Text~=""then
+q=p.SearchBox.Text
+elseif p.Value then
+q=p.Value
+end
+
+SaveConfig(q)
+p:SetValues(GetConfigList())
+
+p:SetValue(q)
+end
+}
+k.Settings:AddButton{
+Title="Load Config",
+Icon="file-output",
+Callback=function()
+local q="default"
+if p.SearchBox and p.SearchBox.Text~=""then
+q=p.SearchBox.Text
+elseif p.Value then
+q=p.Value
+end
+LoadConfig(q)
+end
+}
+
+k.Settings:AddButton{
+Title="Reset Defaults",
+Description="Reset all settings to default values",
+Icon="rotate-ccw",
+Callback=function()
+j:Dialog{
+Title="Reset Settings?",
+Content="Are you sure you want to reset all settings to their default values?",
+Buttons={
+{
+Title="Yes, Reset",
+Callback=function()
+for q,r in pairs(a.Options)do
+if r.Type=="Toggle"then
+r:SetValue(r.Default~=nil and r.Default or false)
+elseif r.Type=="Slider"then
+r:SetValue(r.Default or r.Min or 0)
+elseif r.Type=="Dropdown"then
+r:SetValue(r.Default or r.Values[1])
+elseif r.Type=="Colorpicker"then
+r:SetValue(r.Default or Color3.new(1,1,1))
+elseif r.Type=="Keybind"then
+r:SetValue(r.Default or"None")
+end
+end
+a:SetTheme"FSSvs"
+SaveAutoload""
+SaveAutosave(false)
+if a.Options.AutoloadConfig then a.Options.AutoloadConfig:SetValue(false)end
+if a.Options.AutosaveConfig then a.Options.AutosaveConfig:SetValue(false)end
+a:Notify{Title="Reset Complete",Content="Settings have been reset.",Duration=3}
+end
+},
+{
+Title="Cancel",
+Callback=function()end
+}
+}
+}
+end
+}
+
+k.Settings:AddSection"Auto Manager"
+
+local q=GetAutoload()
+k.Settings:AddToggle("AutoloadConfig",{
+Title="Autoload Selected",
+Description="Automatically load the selected config on startup",
+Default=q~=nil,
+Callback=function(r)
+if r then
+local s="default"
+if p.SearchBox and p.SearchBox.Text~=""then
+s=p.SearchBox.Text
+elseif p.Value then
+s=p.Value
+end
+SaveAutoload(s)
+a:Notify{Title="Autoload Enabled",Content="Will autoload: "..s,Duration=2}
+else
+SaveAutoload""
+a:Notify{Title="Autoload Disabled",Content="Autoload has been cleared.",Duration=2}
+end
+end
+})
+
+k.Settings:AddToggle("AutosaveConfig",{
+Title="Enable Autosave",
+Description="Automatically save config when settings change",
+Default=GetAutosave(),
+Callback=function(r)
+SaveAutosave(r)
+a:Notify{Title="Autosave "..(r and"Enabled"or"Disabled"),Content="Config will "..(r and"now"or"no longer").." save automatically.",Duration=2}
+end
+})
+end
 
 
 task.spawn(function()
 task.wait(0.2)
-if h then h:SelectTab(1)end
+if j then j:SelectTab(1)end
 end)
 
-_G.FSSHUB_WINDOW=h
+_G.FSSHUB_WINDOW=j
 _G.FSSHUB_FLUENT=a
 _G.FSSHUB_OPTIONS=a.Options
 if getgenv then getgenv().FSSHUB_MAIN_MENU_READY=true end
 
 
-if f then
+if h then
 pcall(function()
-c:LoadAutoloadConfig()
+local o=GetAutoload()
+if o and isfile(c.."/"..o..".json")then
+LoadConfig(o)
+elseif isfile(c.."/default.json")then
+LoadConfig"default"
+end
 end)
 end
 
 
 
-e:On("features_ready",function()
+g:On("features_ready",function()
 print"[FSSHUB] Features ready! Syncing UI state with features..."
 task.spawn(function()
 task.wait(0.1)
-for j,k in pairs(a.Options)do
-if k.Type=="Toggle"and k.Value==true then
+for o,p in pairs(a.Options)do
+if p.Type=="Toggle"and p.Value==true then
 
-if k.Callback then
-pcall(k.Callback,k.Value)
+if p.Callback then
+pcall(p.Callback,p.Value)
 end
 end
 end
