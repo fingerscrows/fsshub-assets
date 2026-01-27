@@ -1048,23 +1048,19 @@ do
         local function FetchURL(u)
             if request or http_request then
                 local reqFn = request or http_request
-                local resp = reqFn({
+                local success, result = pcall(reqFn, {
                     Url = u,
-                    Method = "GET",
-                    Headers = {
-                        ["User-Agent"] = "Roblox/WinInet",
-                        ["Cache-Control"] = "no-cache",
-                        ["Pragma"] = "no-cache"
-                    }
+                    Method = "GET"
                 })
-                if resp.Success or resp.StatusCode == 200 then
-                    return resp.Body
-                else
-                    warn("[FSSHUB DEBUG] Request failed: " .. tostring(resp.StatusCode))
-                    return nil
+
+                if success and result and (result.Success or result.StatusCode == 200) then
+                    return result.Body
                 end
+
+                warn("[FSSHUB DEBUG] 'request' failed (Status: " ..
+                tostring(result and result.StatusCode or "Err") .. "). Falling back to game:HttpGet...")
             end
-            return game:HttpGet(u, true) -- Second arg 'true' forces cache bypass in some executors
+            return game:HttpGet(u, true)
         end
 
         local fetchSuccess, payload = pcall(FetchURL, url)
