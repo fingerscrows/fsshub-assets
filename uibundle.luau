@@ -1,4 +1,4 @@
--- FSSHUB UI Bundle (v1.2.25) [dev]
+-- FSSHUB UI Bundle (v1.2.26) [dev]
 local LibChunk = (function()
 
 
@@ -7119,6 +7119,9 @@ Game={Name="Universal",Slug="universal",IsSupported=true},
 Version="v6.4"
 }
 
+local c=require(a.Folder.."Addons/SaveManager")
+local d=require(a.Folder.."Addons/InterfaceManager")
+
 
 a.Themes.Default={
 Accent=Color3.fromRGB(138,110,215),
@@ -7158,17 +7161,15 @@ HoverChange=0.1
 }
 
 
-local c=loadstring(game:HttpGet"https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau")()
-local d=loadstring(game:HttpGet"https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau")()
-
 c:SetLibrary(a)
 d:SetLibrary(a)
 
-c:IgnoreThemeSettings()
-c:SetIgnoreIndexes{}
+c:SetFolder"FSSHUB/Config"
+d:SetFolder"FSSHUB/Config"
 
-d:SetFolder"FSSHUB"
-c:SetFolder"FSSHUB"
+c:IgnoreThemeSettings()
+c:SetIgnoreIndexes{'InterfaceManager_InterfaceTheme','InterfaceManager_AcrylicToggle','InterfaceManager_TransparentToggle','InterfaceManager_MenuKeybind'}
+
 
 
 if _G.FSSHUB_WINDOW and _G.FSSHUB_WINDOW.Destroy then
@@ -7190,14 +7191,11 @@ Size=UDim2.fromOffset(580,460),
 Resize=false,
 MinimizeKey=Enum.KeyCode.RightControl,
 Acrylic=false,
-Theme="Dark",
+Theme="FSSvs",
 OnClose=function()
 if _G.FSSHUB_CLEANUP then _G.FSSHUB_CLEANUP()end
 end
 }
-
-
-d:LoadSettings()
 
 
 
@@ -7358,6 +7356,8 @@ task.wait()
 
 i.Settings=h:Tab{Title="Settings",Icon="settings"}
 
+task.wait()
+
 d:BuildInterfaceSection(i.Settings)
 c:BuildConfigSection(i.Settings)
 
@@ -7374,7 +7374,9 @@ if getgenv then getgenv().FSSHUB_MAIN_MENU_READY=true end
 
 
 if f then
+pcall(function()
 c:LoadAutoloadConfig()
+end)
 end
 
 
