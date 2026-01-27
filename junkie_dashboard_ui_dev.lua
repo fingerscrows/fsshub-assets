@@ -1044,7 +1044,30 @@ do
         task.wait(0.01)
 
         -- Fetch Payload
-        local fetchSuccess, payload = pcall(game.HttpGet, game, url)
+        -- Fetch Payload Helper
+        local function FetchURL(u)
+            if request or http_request then
+                local reqFn = request or http_request
+                local resp = reqFn({
+                    Url = u,
+                    Method = "GET",
+                    Headers = {
+                        ["User-Agent"] = "Roblox/WinInet",
+                        ["Cache-Control"] = "no-cache",
+                        ["Pragma"] = "no-cache"
+                    }
+                })
+                if resp.Success or resp.StatusCode == 200 then
+                    return resp.Body
+                else
+                    warn("[FSSHUB DEBUG] Request failed: " .. tostring(resp.StatusCode))
+                    return nil
+                end
+            end
+            return game:HttpGet(u, true) -- Second arg 'true' forces cache bypass in some executors
+        end
+
+        local fetchSuccess, payload = pcall(FetchURL, url)
         if fetchSuccess and payload then
             print("[FSSHUB] Payload received, length = " .. #payload)
             task.wait(0.01)
