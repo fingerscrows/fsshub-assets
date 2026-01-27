@@ -1036,7 +1036,6 @@ do
             .. "?key=" .. tostring(key or "unknown")
             .. "&hwid=" .. tostring(hwid)
             .. "&placeId=" .. tostring(game.PlaceId)
-            .. (devToken ~= "" and ("&dt=" .. devToken) or "")
 
         -- LOGGING: Print FULL URL to verify Cache Buster
         print("[FSSHUB DEBUG] Full Payload URL: " .. url)
