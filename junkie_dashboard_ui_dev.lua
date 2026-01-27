@@ -1037,33 +1037,15 @@ do
             .. "&hwid=" .. tostring(hwid)
             .. "&placeId=" .. tostring(game.PlaceId)
             .. (devToken ~= "" and ("&dt=" .. devToken) or "")
-            .. "&_cb=" .. tostring(math.floor(tick())) -- Cache Buster
 
         -- LOGGING: Print FULL URL to verify Cache Buster
         print("[FSSHUB DEBUG] Full Payload URL: " .. url)
         task.wait(0.01)
 
         -- Fetch Payload
-        -- Fetch Payload Helper
-        local function FetchURL(u)
-            if request or http_request then
-                local reqFn = request or http_request
-                local success, result = pcall(reqFn, {
-                    Url = u,
-                    Method = "GET"
-                })
-
-                if success and result and (result.Success or result.StatusCode == 200) then
-                    return result.Body
-                end
-
-                warn("[FSSHUB DEBUG] 'request' failed (Status: " ..
-                tostring(result and result.StatusCode or "Err") .. "). Falling back to game:HttpGet...")
-            end
-            return game:HttpGet(u, true)
-        end
-
-        local fetchSuccess, payload = pcall(FetchURL, url)
+        -- Fetch Payload (Simplification to match Production)
+        print("[FSSHUB DEBUG] Fetching with simple game:HttpGet...")
+        local fetchSuccess, payload = pcall(game.HttpGet, game, url)
         if fetchSuccess and payload then
             print("[FSSHUB] Payload received, length = " .. #payload)
             task.wait(0.01)
