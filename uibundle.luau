@@ -1,4 +1,4 @@
--- FSSHUB UI Bundle (v1.2.37) [dev]
+-- FSSHUB UI Bundle (v1.2.38) [dev]
 local LibChunk = (function()
 
 
@@ -7714,6 +7714,629 @@ print"[FSSHUB] UI Builder Completed."
 end
 end)
 
+local LoginChunk = (function()
+
+
+
+
+return function()
+
+local a={
+Title="FSSHUB",
+Desc="KEYSYSTEM GATEWAY",
+Assets={
+Logo="rbxthumb://type=Asset&id=120860566854298&w=420&h=420"
+},
+Colors={
+Background=Color3.fromRGB(25,20,35),
+MainStroke=Color3.fromRGB(140,120,210),
+Accent=Color3.fromRGB(138,110,215),
+Secondary=Color3.fromRGB(170,150,240),
+Error=Color3.fromRGB(255,80,100),
+Success=Color3.fromRGB(50,255,120),
+Info=Color3.fromRGB(0,200,255),
+TextLight=Color3.fromRGB(255,255,255),
+TextDim=Color3.fromRGB(180,180,200),
+InputBg=Color3.fromRGB(15,12,25),
+ButtonBg=Color3.fromRGB(40,30,60)
+}
+}
+
+local b=game:GetService"TweenService"
+local c=game:GetService"CoreGui"
+local d="FSSHUB/bin/SavedKeyFSSHUB.cfg"
+
+
+local e=getgenv().Junkie
+if not e then
+pcall(function()
+e=loadstring(game:HttpGet"https://jnkie.com/sdk/library.lua")()
+if e then
+e.service="FSSHUB Official"
+e.identifier="1000139"
+e.provider="FSSHUB - KEY SYSTEM"
+end
+end)
+end
+
+
+local f={
+Connections={},
+UI=nil,
+Keys={
+Assets=a.Assets,
+MainTitle=a.Title,
+MainDesc=a.Desc
+}
+}
+
+
+local g={}
+function g.RandomString(h)
+local i=""
+for j=1,h do i=i..string.char(math.random(65,90))end
+return i
+end
+
+function g.NeonStroke(h,i,j)
+local k=Instance.new"UIStroke"
+k.Thickness=j or 1
+k.Color=i
+k.Transparency=0.2
+k.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+k.Parent=h
+return k
+end
+
+function g.GlitchText(h,i)
+task.spawn(function()
+local j=i.Text or h.Text
+for k=1,10 do
+if not h or not h.Parent then break end
+h.Text=g.RandomString(#j)
+local l=i.TextColor3 or a.Colors.TextLight
+h.TextColor3=(k%2==0)and a.Colors.TextLight or l
+task.wait(0.05)
+end
+if h and h.Parent then
+h.Text=j
+h.TextColor3=i.TextColor3 or a.Colors.TextLight
+end
+end)
+end
+
+
+function f.SaveKey(h)
+if not isfolder"FSSHUB"then makefolder"FSSHUB"end
+if not isfolder"FSSHUB/bin"then makefolder"FSSHUB/bin"end
+if writefile then pcall(writefile,d,h)end
+pcall(function()
+if isfile"verifiedkey"then delfile"verifiedkey"end
+if isfile"FSSHUB/bin/SavedKeyFSSHUB"then delfile"FSSHUB/bin/SavedKeyFSSHUB"end
+end)
+end
+
+function f.LoadKey()
+if isfile and isfile(d)then
+local h,i=pcall(readfile,d)
+if h and i and i~=""then
+local j=e and e.check_key(i)
+if j and(j.valid or j.message=="KEY_VALID"or j.message=="KEYLESS")then
+return i
+end
+end
+end
+return nil
+end
+
+local h=f.LoadKey()
+if h then
+f.SavedKey=h
+f.AutoLoggedIn=true
+end
+
+
+function f.Initialize(i)
+local j=i.Function or i.validateCallback
+local k=i.KeyLink or"https://fsshub.com/getkey"
+
+if f.UI then f.UI:Destroy()end
+
+
+local l=c:FindFirstChild"FSSHUB_Lazy_Loader"or
+(gethui and gethui():FindFirstChild"FSSHUB_Lazy_Loader")
+if l then l:Destroy()end
+
+local m=Instance.new"ScreenGui"
+m.Name="FSSHUB_Cyber_Loader"
+m.IgnoreGuiInset=true
+m.DisplayOrder=10000
+if gethui then m.Parent=gethui()else m.Parent=c end
+f.UI=m
+
+
+local n=Instance.new"BlurEffect"
+n.Size=0
+n.Parent=game:GetService"Lighting"
+b:Create(n,TweenInfo.new(0.5),{Size=24}):Play()
+
+
+local o=a.Assets.Logo
+local p=UDim2.new(0,80,0,80)
+if f.Keys.Assets and f.Keys.Assets.Logo then
+if type(f.Keys.Assets.Logo)=="table"then
+o=f.Keys.Assets.Logo.ID
+p=f.Keys.Assets.Logo.Size or UDim2.new(0,80,0,80)
+else
+o=f.Keys.Assets.Logo
+end
+end
+local q=(o~=nil and o~="")
+local r=q and 340 or 280
+
+
+local s=Instance.new"Frame"
+s.Name="MainContainer"
+s.Size=UDim2.new(0,400,0,r)
+s.Position=UDim2.new(0.5,0,0.5,0)
+s.AnchorPoint=Vector2.new(0.5,0.5)
+s.BackgroundColor3=a.Colors.Background
+s.BorderSizePixel=0
+s.BackgroundTransparency=0.25
+s.Parent=m
+s.ClipsDescendants=true
+
+local t=Instance.new"UICorner"
+t.CornerRadius=UDim.new(0,12)
+t.Parent=s
+
+
+local u=Instance.new"UIGradient"
+u.Rotation=45
+u.Color=ColorSequence.new{
+ColorSequenceKeypoint.new(0,Color3.fromRGB(20,20,25)),
+ColorSequenceKeypoint.new(1,Color3.fromRGB(10,10,15))
+}
+u.Parent=s
+
+local v=g.NeonStroke(s,a.Colors.MainStroke,2)
+local w=Instance.new"UIGradient"
+w.Rotation=45
+w.Color=ColorSequence.new{
+ColorSequenceKeypoint.new(0,a.Colors.Secondary),
+ColorSequenceKeypoint.new(0.5,a.Colors.Accent),
+ColorSequenceKeypoint.new(1,a.Colors.Secondary)
+}
+w.Parent=v
+
+
+local x=Instance.new"Frame"
+x.Name="GalaxyBg"
+x.Size=UDim2.new(1,0,1,0)
+x.BackgroundTransparency=1
+x.ClipsDescendants=true
+x.Parent=s
+local y=Instance.new"UICorner"
+y.CornerRadius=UDim.new(0,8)
+y.Parent=x
+
+task.spawn(function()
+local z={a.Colors.Accent,a.Colors.Secondary,Color3.fromRGB(150,50,255),Color3
+.fromRGB(255,255,255)}
+while m and m.Parent do
+if not x.Parent then break end
+if math.random()>0.5 then
+local A=Instance.new"Frame"
+local B=math.random(2,4)
+A.Size=UDim2.new(0,B,0,B)
+A.Position=UDim2.new(math.random(),0,math.random(),0)
+A.BackgroundColor3=z[math.random(1,#z)]
+A.BorderSizePixel=0
+A.BackgroundTransparency=math.random(0.3,0.7)
+local C=Instance.new"UICorner"
+C.CornerRadius=UDim.new(1,0)
+C.Parent=A
+A.Parent=x
+local D=math.random(3,8)
+local E=A.Position+UDim2.new(math.random(-0.1,0.1),0,math.random(-0.1,0.1),0)
+b:Create(A,
+TweenInfo.new(D,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),
+{Position=E,BackgroundTransparency=1}):Play()
+game.Debris:AddItem(A,D)
+end
+task.wait(0.05)
+end
+end)
+
+
+local z=Instance.new"TextButton"
+z.Text="X"
+z.TextColor3=a.Colors.TextDim
+z.Font=Enum.Font.Code
+z.TextSize=18
+z.BackgroundTransparency=1
+z.Size=UDim2.new(0,30,0,30)
+z.Position=UDim2.new(1,-30,0,0)
+z.Parent=s
+z.MouseEnter:Connect(function()z.TextColor3=a.Colors.Error end)
+z.MouseLeave:Connect(function()z.TextColor3=a.Colors.TextDim end)
+
+
+local A
+if q then
+A=Instance.new"ImageLabel"
+A.Image=o
+A.Size=p
+A.Position=UDim2.new(0.5,0,0,20)
+A.AnchorPoint=Vector2.new(0.5,0)
+A.BackgroundTransparency=1
+A.ImageTransparency=1
+A.ZIndex=5
+A.Parent=s
+local B=Instance.new"UICorner"
+B.CornerRadius=UDim.new(0,12)
+B.Parent=A
+end
+
+local B=Instance.new"TextLabel"
+B.Text=f.Keys.MainTitle or"FSSHUB"
+B.Font=Enum.Font.GothamBold
+B.TextSize=28
+B.TextColor3=a.Colors.Accent
+B.Size=UDim2.new(1,0,0,30)
+B.Position=UDim2.new(0,0,0,A and 105 or 30)
+B.BackgroundTransparency=1
+B.TextTransparency=1
+B.Parent=s
+
+local C=Instance.new"TextLabel"
+C.Text=f.Keys.MainDesc or"KEYSYSTEM GATEWAY"
+C.Font=Enum.Font.Gotham
+C.TextSize=12
+C.TextColor3=a.Colors.TextDim
+C.Size=UDim2.new(1,0,0,20)
+C.Position=UDim2.new(0,0,0,A and 135 or 60)
+C.BackgroundTransparency=1
+C.TextTransparency=1
+C.Parent=s
+
+local D=game:GetService"Players"
+local E=D.LocalPlayer
+local F=Instance.new"TextLabel"
+F.Text="Welcome, @"..(E and E.Name or"User")
+F.Font=Enum.Font.GothamMedium
+F.TextSize=13
+F.TextColor3=a.Colors.Accent
+F.Size=UDim2.new(1,0,0,20)
+F.Position=UDim2.new(0,0,0,A and 155 or 85)
+F.BackgroundTransparency=1
+F.TextTransparency=1
+F.Parent=s
+
+
+local G=A and 195 or 125
+local H=Instance.new"Frame"
+H.Size=UDim2.new(0.85,0,0,42)
+H.Position=UDim2.new(0.5,0,0,G)
+H.AnchorPoint=Vector2.new(0.5,0)
+H.BackgroundColor3=a.Colors.InputBg
+H.BackgroundTransparency=0.5
+H.Parent=s
+H.Visible=false
+local I=Instance.new"UICorner"
+I.CornerRadius=UDim.new(0,6)
+I.Parent=H
+g.NeonStroke(H,a.Colors.TextDim,1)
+
+local J=Instance.new"TextBox"
+J.Size=UDim2.new(1,-20,1,0)
+J.Position=UDim2.new(0,10,0,0)
+J.BackgroundTransparency=1
+J.Font=Enum.Font.Code
+J.Text=""
+J.PlaceholderText="INPUT_KEY_HERE"
+J.PlaceholderColor3=Color3.fromRGB(60,80,80)
+J.TextColor3=a.Colors.Secondary
+J.TextSize=14
+J.Parent=H
+
+
+function f.ShowStatus(K,L)
+local M=s:FindFirstChild"StatusFrame"
+if M then M:Destroy()end
+local N=Instance.new"Frame"
+N.Name="StatusFrame"
+N.Size=UDim2.new(0,0,0,26)
+N.Position=UDim2.new(0.5,0,1,-12)
+N.AnchorPoint=Vector2.new(0.5,1)
+N.BackgroundColor3=a.Colors.InputBg
+N.BackgroundTransparency=0.3
+N.Parent=s
+local O=Instance.new"UICorner"
+O.CornerRadius=UDim.new(0,6)
+O.Parent=N
+local P=Instance.new"UIStroke"
+P.Color=L
+P.Thickness=1
+P.Parent=N
+local Q=Instance.new"TextLabel"
+Q.Text=string.upper(K)
+Q.TextColor3=L
+Q.Font=Enum.Font.GothamMedium
+Q.TextSize=12
+Q.Size=UDim2.new(1,0,1,0)
+Q.BackgroundTransparency=1
+Q.TextTransparency=1
+Q.Parent=N
+b:Create(N,TweenInfo.new(0.4,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),
+{Size=UDim2.new(0.9,0,0,26)}):Play()
+task.delay(0.2,function()
+b:Create(Q,TweenInfo.new(0.2),{TextTransparency=0}):Play()
+g.GlitchText(Q,{Text=string.upper(K),TextColor3=L})
+end)
+task.delay(3,function()
+if N.Parent then
+b:Create(Q,TweenInfo.new(0.2),{TextTransparency=1}):Play()
+local R=b:Create(N,
+TweenInfo.new(0.4,Enum.EasingStyle.Quart,Enum.EasingDirection.In),
+{Size=UDim2.new(0,0,0,26)})
+R:Play()
+R.Completed:Wait()
+N:Destroy()
+end
+end)
+end
+
+local function createCyberButton(K,L,M,N)
+local O=Instance.new"TextButton"
+O.Size=UDim2.new(0.35,0,0,35)
+O.AnchorPoint=Vector2.new(0.5,0)
+O.Position=L
+O.BackgroundColor3=a.Colors.ButtonBg
+O.BackgroundTransparency=0.3
+O.Text=K
+O.Font=Enum.Font.GothamBold
+O.TextColor3=M and a.Colors.Accent or a.Colors.TextDim
+O.TextSize=14
+O.Parent=s
+O.Visible=false
+local P=Instance.new"UICorner"
+P.CornerRadius=UDim.new(0,8)
+P.Parent=O
+local Q=g.NeonStroke(O,M and a.Colors.Accent or a.Colors.TextDim,1)
+O.MouseEnter:Connect(function()
+b:Create(Q,TweenInfo.new(0.2),
+{Color=M and a.Colors.Secondary or a.Colors.TextLight}):Play()
+O.TextColor3=M and a.Colors.Secondary or a.Colors.TextLight
+end)
+O.MouseLeave:Connect(function()
+b:Create(Q,TweenInfo.new(0.2),
+{Color=M and a.Colors.Accent or a.Colors.TextDim}):Play()
+O.TextColor3=M and a.Colors.Accent or a.Colors.TextDim
+end)
+O.MouseButton1Click:Connect(function()
+N()
+local R=Instance.new"Frame"
+R.Size=UDim2.new(1,0,1,0)
+R.BackgroundColor3=a.Colors.TextLight
+R.BackgroundTransparency=0.5
+R.Parent=O
+local S=Instance.new"UICorner"
+S.CornerRadius=UDim.new(0,6)
+S.Parent=R
+b:Create(R,TweenInfo.new(0.2),{BackgroundTransparency=1}):Play()
+game.Debris:AddItem(R,0.4)
+end)
+return O
+end
+
+local K=A and 255 or 185
+local L=createCyberButton("GET KEY",UDim2.new(0.28,0,0,K),false,function()
+if setclipboard then
+setclipboard(k)
+f.ShowStatus("LINK_COPIED",a.Colors.Info)
+else
+f.ShowStatus("LINK: "..k,a.Colors.Info)
+end
+end)
+local M=createCyberButton("VERIFY",UDim2.new(0.72,0,0,K),true,function()
+local M=J.Text:gsub("%s+","")
+if M==""then
+f.ShowStatus("NO_KEY_ENTERED",a.Colors.Error)
+return
+end
+if j then j(M)end
+end)
+
+J.FocusLost:Connect(function(N)
+if N then
+local O=J.Text:gsub("%s+","")
+if O==""then
+f.ShowStatus("NO_KEY_ENTERED",a.Colors.Error)
+return
+end
+if j then j(O)end
+end
+end)
+
+
+function f.Close(N)
+getgenv().UI_CLOSED=true
+if n then b:Create(n,TweenInfo.new(0.3),{Size=0}):Play()end
+if s then
+local O=b:Create(s,
+TweenInfo.new(0.3,Enum.EasingStyle.Back,Enum.EasingDirection.In),
+{Size=UDim2.new(0,0,0,0),BackgroundTransparency=1})
+O:Play()
+O.Completed:Wait()
+end
+if m then m:Destroy()end
+if n then n:Destroy()end
+if not N and _G.FSSHUB_CLEANUP then
+_G.FSSHUB_CLEANUP()
+end
+end
+
+z.MouseButton1Click:Connect(f.Close)
+
+
+function f.Authorize()
+f.ShowStatus("ACCESS_GRANTED... AUTHENTICATING",a.Colors.Success)
+task.delay(1,function()
+for N,O in ipairs(s:GetChildren())do
+local P=false
+if O.Name=="GalaxyBg"or O.Name=="MainGradient"or O.Name=="InnerHighlight"or O.ClassName=="UICorner"then P=true end
+if O==v then P=true end
+if O==A or O==B or O==C or O==z then P=true end
+if not P then
+pcall(function()
+local Q={BackgroundTransparency=1}
+if O:IsA"TextLabel"or O:IsA"TextButton"or O:IsA"TextBox"then Q.TextTransparency=1 end
+if O:IsA"ImageLabel"or O:IsA"ImageButton"then Q.ImageTransparency=1 end
+b:Create(O,TweenInfo.new(0.3),Q):Play()
+end)
+task.delay(0.3,function()pcall(function()O:Destroy()end)end)
+end
+end
+
+task.wait(0.4)
+if A then
+b:Create(A,
+TweenInfo.new(1,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),
+{Size=UDim2.new(0,85,0,85)}):Play()
+end
+
+local N=Instance.new"TextLabel"
+N.Text="LOADING CORE..."
+N.Font=Enum.Font.Code
+N.TextSize=18
+N.TextColor3=a.Colors.Accent
+N.Size=UDim2.new(1,0,0,30)
+N.Position=UDim2.new(0,0,0.65,0)
+N.BackgroundTransparency=1
+N.TextTransparency=1
+N.Parent=s
+
+b:Create(N,TweenInfo.new(0.5,Enum.EasingStyle.Back,Enum.EasingDirection.Out),
+{TextTransparency=0}):Play()
+g.GlitchText(N,{Text="LOADING CORE...",TextColor3=a.Colors.Accent})
+
+local O=Instance.new"Frame"
+O.Size=UDim2.new(0.6,0,0,4)
+O.Position=UDim2.new(0.5,0,0.75,0)
+O.AnchorPoint=Vector2.new(0.5,0.5)
+O.BackgroundColor3=a.Colors.InputBg
+O.BackgroundTransparency=1
+O.Parent=s
+Instance.new("UICorner",O).CornerRadius=UDim.new(1,0)
+
+local P=Instance.new"Frame"
+P.Size=UDim2.new(0,0,1,0)
+P.BackgroundColor3=a.Colors.Success
+P.Parent=O
+Instance.new("UICorner",P).CornerRadius=UDim.new(1,0)
+
+b:Create(O,TweenInfo.new(0.5),{BackgroundTransparency=0.5}):Play()
+
+task.spawn(function()
+local Q=tick()
+_G.FSSHUB_STATUS="REQUESTING CORE..."
+
+while(tick()-Q<60)do
+if not m or not m.Parent then break end
+local R=(getgenv().FSSHUB_MAIN_MENU_READY==true)or(_G.FSSHUB_WINDOW~=nil)
+if R then
+pcall(function()
+b:Create(P,TweenInfo.new(0.3),{Size=UDim2.new(1,0,1,0)}):Play()
+N.Text="READY - LAUNCHING"
+N.TextColor3=a.Colors.Success
+end)
+task.wait(0.5)
+f.Close(true)
+return
+end
+
+local S=_G.FSSHUB_STATUS or"WAITING..."
+pcall(function()
+N.Text=string.upper(S)
+local T=string.rep(".",math.floor(tick()*2)%4)
+if not string.find(N.Text,"%.%.%.")then N.Text=N.Text..T end
+local U=tick()*2
+local V=(math.sin(U)+1)/2
+P.Size=UDim2.new(0.3,0,1,0)
+P.Position=UDim2.new(V*0.7,0,0,0)
+end)
+task.wait(0.1)
+end
+f.Close()
+end)
+end)
+end
+
+function f.Fail()
+f.ShowStatus("ACCESS_DENIED: INVALID_KEY",a.Colors.Error)
+local N=UDim2.new(0.5,0,0.5,0)
+for O=1,6 do
+s.Position=N+UDim2.new(0,math.random(-5,5),0,math.random(-5,5))
+task.wait(0.04)
+end
+s.Position=N
+end
+
+
+s.Size=UDim2.new(0,150,0,50)
+s.BackgroundTransparency=0.05
+local N=Instance.new"TextLabel"
+N.Text="INITIALIZING..."
+N.Font=Enum.Font.Code
+N.TextSize=12
+N.TextColor3=a.Colors.Secondary
+N.Size=UDim2.new(1,0,1,0)
+N.BackgroundTransparency=1
+N.Parent=s
+
+task.spawn(function()
+task.wait(0.4)
+N:Destroy()
+local O=UDim2.new(0,400,0,r)
+b:Create(s,TweenInfo.new(0.5,Enum.EasingStyle.Back,Enum.EasingDirection.Out),
+{Size=O}):Play()
+task.wait(0.35)
+if A then b:Create(A,TweenInfo.new(0.3),{ImageTransparency=0}):Play()end
+b:Create(B,TweenInfo.new(0.3),{TextTransparency=0}):Play()
+b:Create(C,TweenInfo.new(0.3),{TextTransparency=0}):Play()
+
+if f.AutoLoggedIn then
+H.Visible=false
+L.Visible=false
+M.Visible=false
+F.Text="Welcome Back, @"..(E and E.Name or"User")
+b:Create(F,TweenInfo.new(0.3),{TextTransparency=0}):Play()
+f.ShowStatus("WELCOME BACK",a.Colors.Success)
+task.delay(1.5,function()
+f.Authorize()
+task.wait(1)
+getgenv().SCRIPT_KEY=f.SavedKey
+end)
+else
+b:Create(F,TweenInfo.new(0.3),{TextTransparency=0}):Play()
+H.Visible=true
+L.Visible=true
+M.Visible=true
+end
+
+task.spawn(function()
+task.wait(0.2)
+g.GlitchText(B,
+{Text=f.Keys.MainTitle or"FSSHUB",TextColor3=a.Colors.Accent})
+end)
+end)
+
+return f
+end
+end
+end)
+
 return function()
     local LibResult = LibChunk()
     task.wait() 
@@ -7723,6 +8346,11 @@ return function()
     if type(BuilderChunk) == 'function' then
         Builder = BuilderChunk()
     end
+
+    local LoginUI = nil
+    if type(LoginChunk) == 'function' then
+        LoginUI = LoginChunk()
+    end
     
-    return Fluent, Builder
+    return Fluent, Builder, LoginUI
 end
