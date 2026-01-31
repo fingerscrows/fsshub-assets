@@ -5,13 +5,13 @@ if script and script.Parent and script.Parent:FindFirstChild("src") then
 else
     -- Remote Distribution (Loadstring)
     Fluent = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/dev/src/client/Fluent/dist/main.lua"))()
+        "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/dev/src/client/Fluent/dist/main.lua"))()
 end
 
 local SaveManager = loadstring(game:HttpGet(
-"https://raw.githubusercontent.com/fingerscrows/fsshub-assets/dev/src/client/Fluent/Addons/SaveManager.lua"))()
+    "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/dev/src/client/Fluent/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet(
-"https://raw.githubusercontent.com/fingerscrows/fsshub-assets/dev/src/client/Fluent/Addons/InterfaceManager.lua"))()
+    "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/dev/src/client/Fluent/Addons/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
     Title = "FSSHUB",
@@ -83,6 +83,61 @@ do
     end)
 
     Options.MyToggle:SetValue(false)
+
+    -- Test Keybind for Toggle (Requested)
+    local ToggleKeybind = Toggle:AddKeybind("ToggleKeybind", {
+        Title = "Toggle Keybind",
+        Mode = "Toggle",
+        Default = "RightControl",
+        Callback = function(Value)
+            print("Toggle Keybind clicked!", Value)
+        end,
+        ChangedCallback = function(New)
+            print("Toggle Keybind changed:", New)
+        end
+    })
+
+    -- Discord Asset Verification (Requested)
+    Tabs.Main:AddButton({
+        Title = "Discord Asset Test",
+        Description = "Should show Discord Icon",
+        Callback = function()
+            Fluent:Notify({
+                Title = "Discord Asset",
+                Content = "Icon should be visible on this notification",
+                Icon = "Discord", -- Uses the asset key defined in Assets.lua
+                Duration = 5
+            })
+        end
+    })
+
+    -- Cancel / Destroy Button (Requested)
+    Tabs.Main:AddButton({
+        Title = "Cancel / Destroy UI",
+        Description = "Unloads the interface",
+        Callback = function()
+            Fluent:Destroy()
+        end
+    })
+
+    -- Cleanup Keybind (Shift + P)
+    local CleanupKeybind = Tabs.Main:AddKeybind("CleanupKeybind", {
+        Title = "Cleanup Bind",
+        Mode = "Hold",
+        Default = "P",
+        Callback = function()
+            -- logic handled in ChangedCallback or explicit check if needed,
+            -- but mostly just for binding reference here.
+        end,
+        ChangedCallback = function(New)
+            --
+        end
+    })
+
+    CleanupKeybind:OnClick(function()
+        Fluent:Destroy()
+    end)
+
 
 
 
