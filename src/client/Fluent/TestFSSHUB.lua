@@ -1,17 +1,27 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Fluent
+if script and script.Parent and script.Parent:FindFirstChild("src") then
+    -- Local Development
+    Fluent = require(script.Parent.src)
+else
+    -- Remote Distribution (Loadstring)
+    Fluent = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/fingerscrows/fsshub-assets/dev/src/client/Fluent/dist/main.lua"))()
+end
+
 local SaveManager = loadstring(game:HttpGet(
-"https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+"https://raw.githubusercontent.com/fingerscrows/fsshub-assets/dev/src/client/Fluent/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet(
-"https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+"https://raw.githubusercontent.com/fingerscrows/fsshub-assets/dev/src/client/Fluent/Addons/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Fluent " .. Fluent.Version,
-    SubTitle = "by dawid",
+    Title = "FSSHUB",
+    SubTitle = "Test Build",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,                        -- The blur may be detectable, setting this to false disables blur entirely
+    Acrylic = true,
     Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
+    MinimizeKey = Enum.KeyCode.LeftControl,
+    Badge = true, -- Shows Premium Badge
 })
 
 --Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
