@@ -85,7 +85,7 @@ do
     Options.MyToggle:SetValue(false)
 
     -- Test Keybind for Toggle (Requested)
-    local ToggleKeybind = Toggle:AddKeybind("ToggleKeybind", {
+    local ToggleKeybind = Toggle:Keybind("ToggleKeybind", {
         Title = "Toggle Keybind",
         Mode = "Toggle",
         Default = "RightControl",
